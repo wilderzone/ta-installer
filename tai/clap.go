@@ -23,12 +23,14 @@ type arguments struct {
 	method  string
 	path    string
 	repo    string
+	name    string
 }
 
 func GetArguments() arguments {
 	method := ""
 	path := ""
 	repo := ""
+	name := ""
 
 	for _, argument := range os.Args[1:] {
 		// Method.
@@ -48,12 +50,19 @@ func GetArguments() arguments {
 			repo = argument[7:]
 			continue
 		}
+		// Name.
+		match, _ = regexp.MatchString("^--name=", argument)
+		if len(name) == 0 && match {
+			name = argument[7:]
+			continue
+		}
 	}
 
 	return arguments{
 		method: method,
 		path:   path,
 		repo:   repo,
+		name:   name,
 	}
 }
 
@@ -73,6 +82,14 @@ func ValidateArguments(arguments arguments) error {
 		_, err := url.ParseRequestURI(arguments.repo)
 		if err != nil {
 			return errors.New("The provided repository URL is not valid.")
+		}
+	}
+
+	// Name.
+	if arguments.method == "asset" {
+		match, _ := regexp.MatchString("[a-zA-Z0-9_]+", arguments.name)
+		if !match {
+			return errors.New("The provided asset name is not valid. Please use only letters, numbers, and underscores.")
 		}
 	}
 

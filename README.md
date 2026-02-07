@@ -40,9 +40,9 @@ tai.exe uninstall --repo=<url> --path=<path>
 
 
 ### Asset
-Generate an asset file from the given path. The `asset.json` file will be exported at the root of `<path>`.
+Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.
 ```sh
-tai.exe asset --path=<path>
+tai.exe asset --name=<name> --path=<path>
 ```
 
 
