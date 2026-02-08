@@ -72,10 +72,10 @@ func CreateManifest(path string) (Manifest, error) {
 
 		if !entry.IsDir() {
 			file, err := f.Open(path)
-			defer file.Close()
 			if err != nil {
 				return err
 			}
+			defer file.Close()
 			asset := Asset{}
 			json.NewDecoder(file).Decode(&asset)
 			manifest.Assets = append(manifest.Assets, asset)

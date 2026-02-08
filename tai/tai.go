@@ -25,11 +25,11 @@ func main() {
 			}
 			path := filepath.Join(arguments.path, arguments.name + ".json")
 			file, err := os.OpenFile(path, os.O_CREATE, 0777)
-			defer file.Close()
 			if err != nil {
 				fmt.Println("Failed to create asset file:", err.Error())
 				os.Exit(1)
 			}
+			defer file.Close()
 			encoder := json.NewEncoder(file)
 			encoder.SetIndent("", "\t")
 			err = encoder.Encode(asset)
@@ -52,11 +52,11 @@ func main() {
 			}
 			path := filepath.Join(arguments.path, "manifest.json")
 			file, err := os.OpenFile(path, os.O_CREATE, 0777)
-			defer file.Close()
 			if err != nil {
 				fmt.Println("Failed to create manifest file:", err.Error())
 				os.Exit(1)
 			}
+			defer file.Close()
 			encoder := json.NewEncoder(file)
 			encoder.SetIndent("", "\t")
 			err = encoder.Encode(manifest)
