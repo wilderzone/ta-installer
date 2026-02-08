@@ -43,5 +43,32 @@ func main() {
 			}
 			fmt.Println("Created asset containing", len(asset.Files), plural)
 			fmt.Println(path)
+
+		case "manifest":
+			manifest, err := CreateManifest(arguments.path)
+			if err != nil {
+				fmt.Println("Failed to create manifest file:", err.Error())
+				os.Exit(1)
+			}
+			path := filepath.Join(arguments.path, "manifest.json")
+			file, err := os.OpenFile(path, os.O_CREATE, 0777)
+			defer file.Close()
+			if err != nil {
+				fmt.Println("Failed to create manifest file:", err.Error())
+				os.Exit(1)
+			}
+			encoder := json.NewEncoder(file)
+			encoder.SetIndent("", "\t")
+			err = encoder.Encode(manifest)
+			if err != nil {
+				fmt.Println("Failed to encode manifest file:", err.Error())
+				os.Exit(1)
+			}
+			plural := "asset:"
+			if len(manifest.Assets) != 1 {
+				plural = "assets:"
+			}
+			fmt.Println("Created manifest containing", len(manifest.Assets), plural)
+			fmt.Println(path)
 	}
 }

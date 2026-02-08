@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io/fs"
 	"os"
 )
@@ -56,4 +57,32 @@ func CreateAsset(path string, name string) (Asset, error) {
 	})
 
 	return asset, err
+}
+
+// Create a manifest file from a given collection of asset files.
+func CreateManifest(path string) (Manifest, error) {
+	manifest := Manifest{}
+	manifest.Version = "0.0.0"
+
+	f := os.DirFS(path)
+	err := fs.WalkDir(f, ".", func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !entry.IsDir() {
+			file, err := f.Open(path)
+			defer file.Close()
+			if err != nil {
+				return err
+			}
+			asset := Asset{}
+			json.NewDecoder(file).Decode(&asset)
+			manifest.Assets = append(manifest.Assets, asset)
+		}
+
+		return nil
+	})
+
+	return manifest, err
 }
