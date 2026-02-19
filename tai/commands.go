@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 // Handle the "asset" command.
@@ -101,5 +102,55 @@ func Install(arguments arguments) (string, error) {
 	} else if len(failed) != 0 {
 		message = "Partially installed. You may need to run the \"verify\" command."
 	}
+	return message, nil
+}
+
+func Verify(arguments arguments) (string, error) {
+	manifest, err := GetManifest(arguments.repo)
+	if err != nil {
+		return "", errors.New("Failed to retrieve manifest: " + err.Error())
+	}
+
+	damaged, _ := CheckForDamagedAssets(arguments.path, manifest)
+
+	if len(damaged) != 0 {
+		plural := "asset is damaged and needs"
+		if len(damaged) != 1 {
+			plural = "assets are damaged and need"
+		}
+		plural += " to be redownloaded. "
+		fmt.Printf("%d %s", len(damaged), plural)
+
+		proceed := arguments.yes
+		if !proceed {
+			fmt.Print("Proceed? [y/N] ")
+			action := "n"
+			_, _ = fmt.Scanln(&action)
+			match, _ := regexp.MatchString("^[yY]", action)
+			proceed = match
+		}
+		if proceed {
+			fmt.Println("Redownloading...")
+			failed := []Asset{}
+			for index, asset := range damaged {
+				message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(damaged))
+				message += asset.Name
+				err = Download(arguments.repo, arguments.path, asset)
+				if err != nil {
+					message += ": \x1b[31mFailed\x1b[0m: " + err.Error()
+					failed = append(failed, asset)
+				} else {
+					message += ": \x1b[32mDownloaded\x1b[0m"
+				}
+				fmt.Println(message)
+			}
+
+			if len(failed) != 0 {
+				return "", errors.New("Failed to patch.")
+			}
+		}
+	}
+
+	message := "Installation verified."
 	return message, nil
 }

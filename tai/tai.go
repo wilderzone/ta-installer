@@ -24,6 +24,9 @@ func main() {
 
 		case "install":
 			status, err = Install(arguments)
+
+		case "verify":
+			status, err = Verify(arguments)
 	}
 
 	if err != nil {

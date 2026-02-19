@@ -26,6 +26,7 @@ type arguments struct {
 	path    string
 	repo    string
 	name    string
+	yes     bool
 }
 
 func GetArguments() arguments {
@@ -33,6 +34,7 @@ func GetArguments() arguments {
 	path := ""
 	repo := ""
 	name := ""
+	yes := false
 
 	for _, argument := range os.Args[1:] {
 		// Method.
@@ -58,6 +60,12 @@ func GetArguments() arguments {
 			name = argument[7:]
 			continue
 		}
+		// Yes shortcut.
+		match, _ = regexp.MatchString("^-y$", argument)
+		if match {
+			yes = true
+			continue
+		}
 	}
 
 	return arguments{
@@ -65,6 +73,7 @@ func GetArguments() arguments {
 		path:   path,
 		repo:   repo,
 		name:   name,
+		yes:    yes,
 	}
 }
 
