@@ -9,7 +9,7 @@ func main() {
 	arguments := GetArguments()
 	status := ""
 
-	err := ValidateArguments(arguments)
+	err := ValidateArguments(&arguments)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -21,6 +21,9 @@ func main() {
 
 		case "manifest":
 			status, err = GenerateManifestFile(arguments)
+
+		case "install":
+			status, err = Install(arguments)
 	}
 
 	if err != nil {

@@ -9,6 +9,8 @@ import (
 	"slices"
 )
 
+const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
+
 var methods = [...]string{
 	"asset",
 	"manifest",
@@ -66,7 +68,7 @@ func GetArguments() arguments {
 	}
 }
 
-func ValidateArguments(arguments arguments) error {
+func ValidateArguments(arguments *arguments) error {
 	// Method.
 	if !slices.Contains(methods[:], arguments.method) {
 		return errors.New("No subcommand provided.")
@@ -79,6 +81,9 @@ func ValidateArguments(arguments arguments) error {
 
 	// Repo.
 	if arguments.method != "asset" && arguments.method != "manifest" {
+		if len(arguments.repo) == 0 {
+			arguments.repo = DEFAULT_REPO
+		}
 		_, err := url.ParseRequestURI(arguments.repo)
 		if err != nil {
 			return errors.New("The provided repository URL is not valid.")

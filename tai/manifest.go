@@ -2,19 +2,31 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/fs"
+	"net/http"
+	"net/url"
 	"os"
+)
+
+type AssetType string
+const (
+	CORE         AssetType = "core"
+	DLC          AssetType = "dlc"
+	PREREQUISITE AssetType = "prerequisite"
 )
 
 type Asset struct {
 	// The unique name of the asset.
-	Name        string `json:"name"`
+	Name        string    `json:"name"`
+	// The asset type.
+	Type        AssetType `json:"type"`
 	// The location of the asset's remote source.
-	Source      string `json:"source"`
+	Source      string    `json:"source"`
 	// The location of the asset's local destination.
-	Destination string `json:"destination"`
+	Destination string    `json:"destination"`
 	// The files contained within the asset.
-	Files       []File `json:"files"`
+	Files       []File    `json:"files"`
 }
 
 type File struct {
@@ -85,4 +97,28 @@ func CreateManifest(path string) (Manifest, error) {
 	})
 
 	return manifest, err
+}
+
+// Retrieve a manifest file from the given repo URL.
+func GetManifest(repo string) (Manifest, error) {
+	manifest := Manifest{}
+	path, err := url.JoinPath(repo, "manifest.json")
+	if err != nil {
+		return manifest, err
+	}
+
+	fmt.Println("Retrieving manifest from:", path)
+	response, err := http.Get(path)
+	if err != nil {
+		return manifest, err
+	}
+	defer response.Body.Close()
+
+	fmt.Println("Status:", response.Status)
+	err = json.NewDecoder(response.Body).Decode(&manifest)
+	if err != nil {
+		return manifest, err
+	}
+
+	return manifest, nil
 }
