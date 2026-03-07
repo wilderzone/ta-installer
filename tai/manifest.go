@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 )
 
 type AssetType string
@@ -38,7 +40,7 @@ type File struct {
 
 type Manifest struct {
 	Assets  []Asset `json:"assets"`
-	Version string  `json:"version"`
+	Version uint32  `json:"version"`
 }
 
 // Create a manifest asset from a given directory.
@@ -74,7 +76,7 @@ func CreateAsset(path string, name string) (Asset, error) {
 // Create a manifest file from a given collection of asset files.
 func CreateManifest(path string) (Manifest, error) {
 	manifest := Manifest{}
-	manifest.Version = "0.0.0"
+	manifest.Version = 0
 
 	f := os.DirFS(path)
 	err := fs.WalkDir(f, ".", func(path string, entry fs.DirEntry, err error) error {
@@ -99,16 +101,34 @@ func CreateManifest(path string) (Manifest, error) {
 	return manifest, err
 }
 
-// Retrieve a manifest file from the given repo URL.
-func GetManifest(repo string) (Manifest, error) {
+// Read the content of the local manifest file.
+func ReadManifest(root string) (Manifest, error) {
 	manifest := Manifest{}
-	path, err := url.JoinPath(repo, "manifest.json")
+	source := filepath.Join(root, "manifest.json")
+	fmt.Println("Reading local manifest from:", source)
+	file, err := os.OpenFile(source, os.O_RDONLY, 0777)
 	if err != nil {
 		return manifest, err
 	}
 
-	fmt.Println("Retrieving manifest from:", path)
-	response, err := http.Get(path)
+	err = json.NewDecoder(file).Decode(&manifest)
+	if err != nil {
+		return manifest, err
+	}
+
+	return manifest, nil
+}
+
+// Retrieve a manifest file from the given repo URL.
+func GetManifest(repo string) (Manifest, error) {
+	manifest := Manifest{}
+	source, err := url.JoinPath(repo, "manifest.json")
+	if err != nil {
+		return manifest, err
+	}
+
+	fmt.Println("Retrieving manifest from:", source)
+	response, err := http.Get(source)
 	if err != nil {
 		return manifest, err
 	}
@@ -116,6 +136,57 @@ func GetManifest(repo string) (Manifest, error) {
 
 	fmt.Println("Status:", response.Status)
 	err = json.NewDecoder(response.Body).Decode(&manifest)
+	if err != nil {
+		return manifest, err
+	}
+
+	return manifest, nil
+}
+
+// Download a manifest file from the given repo URL.
+func DownloadManifest(repo string, root string) (Manifest, error) {
+	manifest := Manifest{}
+	destination := filepath.Join(root, "manifest.json")
+	file, err := os.OpenFile(destination, os.O_CREATE, 0777)
+	if err != nil {
+		return manifest, err
+	}
+	source, err := url.JoinPath(repo, "manifest.json")
+	if err != nil {
+		return manifest, err
+	}
+
+	fmt.Println("Downloading manifest from:", source)
+	response, err := http.Get(source)
+	if err != nil {
+		return manifest, err
+	}
+	defer response.Body.Close()
+
+	_, err = io.Copy(file, response.Body)
+	file.Close()
+
+	fmt.Println("Status:", response.Status)
+	err = json.NewDecoder(response.Body).Decode(&manifest)
+	if err != nil {
+		return manifest, err
+	}
+
+	return manifest, nil
+}
+
+// Save a manifest file to disk.
+func StoreManifest(manifest Manifest, root string) (Manifest, error) {
+	destination := filepath.Join(root, "manifest.json")
+	file, err := os.OpenFile(destination, os.O_CREATE, 0777)
+	if err != nil {
+		return manifest, err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "\t")
+	err = encoder.Encode(manifest)
 	if err != nil {
 		return manifest, err
 	}

@@ -24,10 +24,9 @@ tai.exe verify --repo=<url> --path=<path>
 ```
 
 
-### Patch/Update
+### Update
 Update an existing TA installation.
 ```sh
-tai.exe patch --repo=<url> --path=<path>
 tai.exe update --repo=<url> --path=<path>
 ```
 

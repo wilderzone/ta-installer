@@ -25,6 +25,9 @@ func main() {
 		case "install":
 			status, err = Install(arguments)
 
+		case "update":
+			status, err = Update(arguments)
+
 		case "verify":
 			status, err = Verify(arguments)
 	}

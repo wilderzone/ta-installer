@@ -64,3 +64,26 @@ func CheckForMissingFiles(root string, asset Asset) ([]File, []error) {
 
 	return missing, errs
 }
+
+// Compare the assets listed in `currentManifest` to those in `newManifest`, returning a list of assets that need to be patched.
+func CompareAssets(root string, currentManifest Manifest, newManifest Manifest) ([]Asset, []error) {
+	patch := []Asset{}
+	errs := []error{}
+
+	for index, asset := range newManifest.Assets {
+		message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(newManifest.Assets))
+		message += asset.Name
+		missing, errs := CheckForMissingFiles(root, asset)
+		// Mark as needs-patching if any files are missing.
+		if len(missing) > 0 || len(errs) > 0 {
+			// errs = append(errs, err)
+			patch = append(patch, asset)
+			message += ": \x1b[31mNeeds patching\x1b[0m"
+		} else {
+			message += ": \x1b[32mVerified\x1b[0m"
+		}
+		fmt.Println(message)
+	}
+
+	return patch, errs
+}
