@@ -147,7 +147,7 @@ func GetManifest(repo string) (Manifest, error) {
 func DownloadManifest(repo string, root string) (Manifest, error) {
 	manifest := Manifest{}
 	destination := filepath.Join(root, "manifest.json")
-	file, err := os.OpenFile(destination, os.O_CREATE, 0777)
+	file, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
 		return manifest, err
 	}
@@ -178,7 +178,7 @@ func DownloadManifest(repo string, root string) (Manifest, error) {
 // Save a manifest file to disk.
 func StoreManifest(manifest Manifest, root string) (Manifest, error) {
 	destination := filepath.Join(root, "manifest.json")
-	file, err := os.OpenFile(destination, os.O_CREATE, 0777)
+	file, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
 		return manifest, err
 	}
