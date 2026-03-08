@@ -134,7 +134,6 @@ func GetManifest(repo string) (Manifest, error) {
 	}
 	defer response.Body.Close()
 
-	fmt.Println("Status:", response.Status)
 	err = json.NewDecoder(response.Body).Decode(&manifest)
 	if err != nil {
 		return manifest, err
@@ -166,7 +165,6 @@ func DownloadManifest(repo string, root string) (Manifest, error) {
 	_, err = io.Copy(file, response.Body)
 	file.Close()
 
-	fmt.Println("Status:", response.Status)
 	err = json.NewDecoder(response.Body).Decode(&manifest)
 	if err != nil {
 		return manifest, err

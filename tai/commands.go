@@ -120,9 +120,9 @@ func Update(arguments arguments) (string, error) {
 
 	// Compare the version fields of the local and remote manifests.
 	if localManifest.Version >= remoteManifest.Version {
-		return fmt.Sprintf("Installation is up to date (manifest version %d).", localManifest.Version), nil
+		return fmt.Sprintf("Installation is up to date: v%d", localManifest.Version), nil
 	}
-	fmt.Printf("Update found (%d -> %d).\n", localManifest.Version, remoteManifest.Version)
+	fmt.Printf("Update found: v%d → v%d\n", localManifest.Version, remoteManifest.Version)
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)
