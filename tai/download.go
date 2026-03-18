@@ -15,13 +15,13 @@ import (
 
 func Download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
-	os.MkdirAll(filepath.Join(root, "temp"), 0777)
+	os.MkdirAll(filepath.Join(root, "temp"), os.FileMode(0777))
 	id := uuid.New().String()
 	if len(id) == 0 {
 		return errors.New("Failed to generate UUID.")
 	}
 	tempPath := filepath.Join(root, "temp", id)
-	file, err := os.OpenFile(tempPath, os.O_CREATE|os.O_TRUNC, 0777)
+	file, err := os.OpenFile(tempPath, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func Download(repo string, root string, asset Asset) error {
 }
 
 func Unpack(root string, archivePath string, asset Asset) error {
-	os.MkdirAll(filepath.Join(root, asset.Destination), 0777)
+	os.MkdirAll(filepath.Join(root, asset.Destination), os.FileMode(0777))
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func Unpack(root string, archivePath string, asset Asset) error {
 
 		// Handle directories.
 		if file.FileInfo().IsDir() {
-			err = os.MkdirAll(path, 0777)
+			err = os.MkdirAll(path, os.FileMode(0777))
 			if err != nil {
 				return err
 			}
@@ -71,7 +71,7 @@ func Unpack(root string, archivePath string, asset Asset) error {
 		}
 
 		// Open the destination file.
-		output, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, 0777)
+		output, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
 		if err != nil {
 			return err
 		}
