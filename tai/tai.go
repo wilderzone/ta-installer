@@ -15,7 +15,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := Logger{machine: arguments.machine}
+	logger := Logger{machine: arguments.machine, silent: arguments.silent}
 
 	switch arguments.method {
 		case "asset":

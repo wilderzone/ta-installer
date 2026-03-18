@@ -33,6 +33,7 @@ type LogLine struct {
 
 type Logger struct {
 	machine bool
+	silent  bool
 }
 
 var (
@@ -73,6 +74,10 @@ func (l *Logger) error(message ...any) {
 }
 
 func (l *Logger) log(message LogLine, additional ...any) {
+	if l.silent {
+		return
+	}
+
 	line := ""
 	if l.machine {
 		line = message.machine
@@ -91,6 +96,10 @@ func (l *Logger) plural(count int, singular string, plural string) string {
 }
 
 func (l *Logger) print(message ...any) {
+	if l.silent {
+		return
+	}
+
 	fmt.Println(message...)
 }
 

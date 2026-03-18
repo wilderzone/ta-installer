@@ -27,6 +27,7 @@ type arguments struct {
 	repo    string
 	name    string
 	machine bool
+	silent  bool
 	yes     bool
 }
 
@@ -36,6 +37,7 @@ func GetArguments() arguments {
 	repo := ""
 	name := ""
 	machine := false
+	silent := false
 	yes := false
 
 	for _, argument := range os.Args[1:] {
@@ -74,6 +76,13 @@ func GetArguments() arguments {
 			machine = true
 			continue
 		}
+		// Silent flag.
+		match, _ = regexp.MatchString("^-s$", argument)
+		if match {
+			silent = true
+			yes = true
+			continue
+		}
 	}
 
 	return arguments{
@@ -82,6 +91,7 @@ func GetArguments() arguments {
 		repo:    repo,
 		name:    name,
 		machine: machine,
+		silent:  silent,
 		yes:     yes,
 	}
 }
