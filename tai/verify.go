@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -18,23 +17,23 @@ func Checksum(file []byte) string {
 }
 
 // Given a manifest, check for any assets that have not been installed correctly.
-func CheckForDamagedAssets(root string, manifest Manifest) ([]Asset, []error) {
+func CheckForDamagedAssets(logger *Logger, root string, manifest Manifest) ([]Asset, []error) {
+	counter := logger.count(len(manifest.Assets))
 	damaged := []Asset{}
 	errs := []error{}
 
-	for index, asset := range manifest.Assets {
-		message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(manifest.Assets))
-		message += asset.Name
+	for _, asset := range manifest.Assets {
+		message := asset.Name
 		missing, errs := CheckForMissingFiles(root, asset)
 		// Mark as damaged if any files are missing.
 		if len(missing) > 0 || len(errs) > 0 {
 			// errs = append(errs, err)
 			damaged = append(damaged, asset)
-			message += ": \x1b[31mDamaged\x1b[0m"
+			message += ": " + logger.colour("Damaged", RED)
 		} else {
-			message += ": \x1b[32mVerified\x1b[0m"
+			message += ": " + logger.colour("Verified", GREEN)
 		}
-		fmt.Println(message)
+		counter.next(message)
 	}
 
 	return damaged, errs
@@ -66,23 +65,23 @@ func CheckForMissingFiles(root string, asset Asset) ([]File, []error) {
 }
 
 // Compare the assets listed in `currentManifest` to those in `newManifest`, returning a list of assets that need to be patched.
-func CompareAssets(root string, currentManifest Manifest, newManifest Manifest) ([]Asset, []error) {
+func CompareAssets(logger *Logger, root string, currentManifest Manifest, newManifest Manifest) ([]Asset, []error) {
+	counter := logger.count(len(newManifest.Assets))
 	patch := []Asset{}
 	errs := []error{}
 
-	for index, asset := range newManifest.Assets {
-		message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(newManifest.Assets))
-		message += asset.Name
+	for _, asset := range newManifest.Assets {
+		message := asset.Name
 		missing, errs := CheckForMissingFiles(root, asset)
 		// Mark as needs-patching if any files are missing.
 		if len(missing) > 0 || len(errs) > 0 {
 			// errs = append(errs, err)
 			patch = append(patch, asset)
-			message += ": \x1b[31mNeeds patching\x1b[0m"
+			message += ": " + logger.colour("Needs patching", RED)
 		} else {
-			message += ": \x1b[32mVerified\x1b[0m"
+			message += ": " + logger.colour("Verified", GREEN)
 		}
-		fmt.Println(message)
+		counter.next(message)
 	}
 
 	return patch, errs

@@ -11,31 +11,33 @@ func main() {
 
 	err := ValidateArguments(&arguments)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
+
+	logger := Logger{machine: arguments.machine}
 
 	switch arguments.method {
 		case "asset":
-			status, err = GenerateAssetFile(arguments)
+			status, err = GenerateAssetFile(&logger, arguments)
 
 		case "manifest":
-			status, err = GenerateManifestFile(arguments)
+			status, err = GenerateManifestFile(&logger, arguments)
 
 		case "install":
-			status, err = Install(arguments)
+			status, err = Install(&logger, arguments)
 
 		case "update":
-			status, err = Update(arguments)
+			status, err = Update(&logger, arguments)
 
 		case "verify":
-			status, err = Verify(arguments)
+			status, err = Verify(&logger, arguments)
 	}
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.error(err.Error())
 		os.Exit(1)
 	} else {
-		fmt.Println(status)
+		logger.print(status)
 	}
 }

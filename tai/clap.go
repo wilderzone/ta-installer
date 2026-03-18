@@ -26,6 +26,7 @@ type arguments struct {
 	path    string
 	repo    string
 	name    string
+	machine bool
 	yes     bool
 }
 
@@ -34,6 +35,7 @@ func GetArguments() arguments {
 	path := ""
 	repo := ""
 	name := ""
+	machine := false
 	yes := false
 
 	for _, argument := range os.Args[1:] {
@@ -66,14 +68,21 @@ func GetArguments() arguments {
 			yes = true
 			continue
 		}
+		// Machine-readable flag.
+		match, _ = regexp.MatchString("^-m$", argument)
+		if match {
+			machine = true
+			continue
+		}
 	}
 
 	return arguments{
-		method: method,
-		path:   path,
-		repo:   repo,
-		name:   name,
-		yes:    yes,
+		method:  method,
+		path:    path,
+		repo:    repo,
+		name:    name,
+		machine: machine,
+		yes:     yes,
 	}
 }
 

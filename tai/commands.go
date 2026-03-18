@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 )
 
 // Handle the "asset" command.
-func GenerateAssetFile(arguments arguments) (string, error) {
+func GenerateAssetFile(logger *Logger, arguments arguments) (string, error) {
 	asset, err := CreateAsset(arguments.path, arguments.name)
 	if err != nil {
 		return "", errors.New("Failed to create asset file: " + err.Error())
@@ -36,7 +35,7 @@ func GenerateAssetFile(arguments arguments) (string, error) {
 }
 
 // Handle the "manifest" command.
-func GenerateManifestFile(arguments arguments) (string, error) {
+func GenerateManifestFile(logger *Logger, arguments arguments) (string, error) {
 	manifest, err := CreateManifest(arguments.path)
 	if err != nil {
 		return "", errors.New("Failed to create manifest file: " + err.Error())
@@ -62,34 +61,34 @@ func GenerateManifestFile(arguments arguments) (string, error) {
 }
 
 // Handle the "install" command.
-func Install(arguments arguments) (string, error) {
-	manifest, err := DownloadManifest(arguments.repo, arguments.path)
+func Install(logger *Logger, arguments arguments) (string, error) {
+	manifest, err := DownloadManifest(logger, arguments.repo, arguments.path)
 	if err != nil {
 		return "", errors.New("Failed to download manifest: " + err.Error())
 	}
 
 	// Download and unpack assets.
+	counter := logger.count(len(manifest.Assets))
 	failed := []Asset{}
 	prerequisitesFailed := false
-	for index, asset := range manifest.Assets {
-		message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(manifest.Assets))
-		message += asset.Name
+	for _, asset := range manifest.Assets {
+		message := asset.Name
 		err = Download(arguments.repo, arguments.path, asset)
 		if err != nil {
-			message += ": \x1b[31mFailed\x1b[0m: " + err.Error()
+			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
 			failed = append(failed, asset)
 			if asset.Type == PREREQUISITE {
 				prerequisitesFailed = true
 			}
 		} else {
-			message += ": \x1b[32mDownloaded\x1b[0m"
+			message += ": " + logger.colour("Downloaded", GREEN)
 		}
-		fmt.Println(message)
+		counter.next(message)
 	}
 
 	// Install prerequisites.
 	if !prerequisitesFailed {
-		fmt.Println("Installing prerequisites...")
+		logger.log(INSTALLING_PREREQUISITES)
 		err = Prerequisites(arguments.path)
 		if err != nil {
 			return "", errors.New("Failed to install prerequisites: " + err.Error())
@@ -106,14 +105,14 @@ func Install(arguments arguments) (string, error) {
 }
 
 // Handle the "update" command.
-func Update(arguments arguments) (string, error) {
-	fmt.Println("Checking for updates...")
+func Update(logger *Logger, arguments arguments) (string, error) {
+	logger.log(CHECKING_FOR_UPDATES)
 
-	localManifest, err := ReadManifest(arguments.path)
+	localManifest, err := ReadManifest(logger, arguments.path)
 	if err != nil {
 		return "", errors.New("Failed to read local manifest: " + err.Error())
 	}
-	remoteManifest, err := GetManifest(arguments.repo)
+	remoteManifest, err := GetManifest(logger, arguments.repo)
 	if err != nil {
 		return "", errors.New("Failed to download manifest: " + err.Error())
 	}
@@ -122,7 +121,7 @@ func Update(arguments arguments) (string, error) {
 	if localManifest.Version >= remoteManifest.Version {
 		return fmt.Sprintf("Installation is up to date: v%d", localManifest.Version), nil
 	}
-	fmt.Printf("Update found: v%d → v%d\n", localManifest.Version, remoteManifest.Version)
+	logger.log(UPDATE_FOUND, fmt.Sprintf("v%d → v%d\n", localManifest.Version, remoteManifest.Version))
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)
@@ -130,25 +129,25 @@ func Update(arguments arguments) (string, error) {
 		return "", errors.New("Failed to save new manifest: " + err.Error())
 	}
 
-	fmt.Println("Checking assets...")
-	patch, _ := CompareAssets(arguments.path, localManifest, manifest)
+	logger.log(CHECKING_ASSETS)
+	patch, _ := CompareAssets(logger, arguments.path, localManifest, manifest)
 	if len(patch) == 0 {
 		return "Updated.", nil
 	}
 
-	fmt.Println("Patching assets...")
+	logger.log(PATCHING_ASSETS)
+	counter := logger.count(len(patch))
 	failed := []Asset{}
-	for index, asset := range patch {
-		message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(patch))
-		message += asset.Name
+	for _, asset := range patch {
+		message := asset.Name
 		err = Download(arguments.repo, arguments.path, asset)
 		if err != nil {
-			message += ": \x1b[31mFailed\x1b[0m: " + err.Error()
+			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
 			failed = append(failed, asset)
 		} else {
-			message += ": \x1b[32mPatched\x1b[0m"
+			message += ": " + logger.colour("Patched", GREEN)
 		}
-		fmt.Println(message)
+		counter.next(message)
 	}
 
 	message := "Updated."
@@ -161,44 +160,33 @@ func Update(arguments arguments) (string, error) {
 }
 
 // Handle the "verify" command.
-func Verify(arguments arguments) (string, error) {
-	manifest, err := ReadManifest(arguments.path)
+func Verify(logger *Logger, arguments arguments) (string, error) {
+	manifest, err := ReadManifest(logger, arguments.path)
 	if err != nil {
 		return "", errors.New("Failed to read local manifest: " + err.Error())
 	}
 
-	damaged, _ := CheckForDamagedAssets(arguments.path, manifest)
+	damaged, _ := CheckForDamagedAssets(logger, arguments.path, manifest)
 
 	if len(damaged) != 0 {
-		plural := "asset is damaged and needs"
-		if len(damaged) != 1 {
-			plural = "assets are damaged and need"
-		}
-		plural += " to be redownloaded. "
-		fmt.Printf("%d %s", len(damaged), plural)
+		message := logger.plural(len(damaged), "asset is damaged and needs", "assets are damaged and need") + " to be redownloaded. "
+		logger.log(ASSETS_ARE_DAMAGED, fmt.Sprintf("%d %s", len(damaged), message))
 
-		proceed := arguments.yes
-		if !proceed {
-			fmt.Print("Proceed? [y/N] ")
-			action := "n"
-			_, _ = fmt.Scanln(&action)
-			match, _ := regexp.MatchString("^[yY]", action)
-			proceed = match
-		}
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if proceed {
-			fmt.Println("Redownloading...")
+			logger.log(REDOWNLOADING)
+			counter := logger.count(len(damaged))
 			failed := []Asset{}
-			for index, asset := range damaged {
-				message := fmt.Sprintf("\x1b[2m[%d/%d]\x1b[0m ", index + 1, len(damaged))
-				message += asset.Name
+			for _, asset := range damaged {
+				message := asset.Name
 				err = Download(arguments.repo, arguments.path, asset)
 				if err != nil {
-					message += ": \x1b[31mFailed\x1b[0m: " + err.Error()
+					message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
 					failed = append(failed, asset)
 				} else {
-					message += ": \x1b[32mDownloaded\x1b[0m"
+					message += ": " + logger.colour("Downloaded", GREEN)
 				}
-				fmt.Println(message)
+				counter.next(message)
 			}
 
 			if len(failed) != 0 {

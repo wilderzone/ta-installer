@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -102,10 +101,10 @@ func CreateManifest(path string) (Manifest, error) {
 }
 
 // Read the content of the local manifest file.
-func ReadManifest(root string) (Manifest, error) {
+func ReadManifest(logger *Logger, root string) (Manifest, error) {
 	manifest := Manifest{}
 	source := filepath.Join(root, "manifest.json")
-	fmt.Println("Reading local manifest from:", source)
+	logger.log(READING_LOCAL_MANIFEST, source)
 	file, err := os.OpenFile(source, os.O_RDONLY, 0777)
 	if err != nil {
 		return manifest, err
@@ -120,14 +119,14 @@ func ReadManifest(root string) (Manifest, error) {
 }
 
 // Retrieve a manifest file from the given repo URL.
-func GetManifest(repo string) (Manifest, error) {
+func GetManifest(logger *Logger, repo string) (Manifest, error) {
 	manifest := Manifest{}
 	source, err := url.JoinPath(repo, "manifest.json")
 	if err != nil {
 		return manifest, err
 	}
 
-	fmt.Println("Retrieving manifest from:", source)
+	logger.log(RETRIEVING_MANIFEST, source)
 	response, err := http.Get(source)
 	if err != nil {
 		return manifest, err
@@ -143,7 +142,7 @@ func GetManifest(repo string) (Manifest, error) {
 }
 
 // Download a manifest file from the given repo URL.
-func DownloadManifest(repo string, root string) (Manifest, error) {
+func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error) {
 	manifest := Manifest{}
 	destination := filepath.Join(root, "manifest.json")
 	file, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC, 0777)
@@ -155,7 +154,7 @@ func DownloadManifest(repo string, root string) (Manifest, error) {
 		return manifest, err
 	}
 
-	fmt.Println("Downloading manifest from:", source)
+	logger.log(DOWNLOADING_MANIFEST, source)
 	response, err := http.Get(source)
 	if err != nil {
 		return manifest, err
