@@ -37,18 +37,28 @@ type Logger struct {
 }
 
 var (
+	ASSET_CREATED            = LogLine{machine: "ASSET_CREATED:", human: ""}
 	ASSETS_ARE_DAMAGED       = LogLine{machine: "ASSETS_ARE_DAMAGED:", human: ""}
 	CHECKING_ASSETS          = LogLine{machine: "CHECKING_ASSETS", human: "Checking assets..."}
 	CHECKING_FOR_UPDATES     = LogLine{machine: "CHECKING_FOR_UPDATES", human: "Checking for updates..."}
 	DOWNLOADING_MANIFEST     = LogLine{machine: "DOWNLOADING_MANIFEST:", human: "Downloading manifest from:"}
+	INSTALL_FAILURE          = LogLine{machine: "INSTALL_FAILURE", human: "Installation failed."}
+	INSTALL_PARTIAL          = LogLine{machine: "INSTALL_PARTIAL", human: "Partially installed. You may need to run the \"verify\" command."}
+	INSTALL_SUCCESS          = LogLine{machine: "INSTALL_SUCCESS", human: "Installed."}
+	INSTALL_UP_TO_DATE       = LogLine{machine: "INSTALL_UP_TO_DATE", human: ""}
+	INSTALL_VERIFIED         = LogLine{machine: "INSTALL_VERIFIED", human: "Installation verified."}
 	INSTALLING_PREREQUISITES = LogLine{machine: "INSTALLING_PREREQUISITES", human: "Installing prerequisites..."}
+	MANIFEST_CREATED         = LogLine{machine: "MANIFEST_CREATED:", human: ""}
 	PATCHING_ASSETS          = LogLine{machine: "PATCHING_ASSETS", human: "Patching assets..."}
 	PROGRESS                 = LogLine{machine: "PROGRESS:", human: ""}
 	PROMPT_PROCEED           = LogLine{machine: "PROMPT_PROCEED", human: "Proceed? [y/N] "}
 	READING_LOCAL_MANIFEST   = LogLine{machine: "READING_LOCAL_MANIFEST:", human: "Reading local manifest from:"}
 	REDOWNLOADING            = LogLine{machine: "REDOWNLOADING", human: "Redownloading..."}
 	RETRIEVING_MANIFEST      = LogLine{machine: "RETRIEVING_MANIFEST:", human: "Retrieving manifest from:"}
+	UPDATE_FAILURE           = LogLine{machine: "UPDATE_FAILURE", human: "Update failed."}
 	UPDATE_FOUND             = LogLine{machine: "UPDATE_FOUND:", human: "Update found:"}
+	UPDATE_PARTIAL           = LogLine{machine: "UPDATE_PARTIAL", human: "Partially updated. You may need to run the \"verify\" command."}
+	UPDATE_SUCCESS           = LogLine{machine: "UPDATE_SUCCESS", human: "Updated."}
 )
 
 const (

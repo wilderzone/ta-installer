@@ -9,62 +9,54 @@ import (
 )
 
 // Handle the "asset" command.
-func GenerateAssetFile(logger *Logger, arguments arguments) (string, error) {
+func GenerateAssetFile(logger *Logger, arguments arguments) error {
 	asset, err := CreateAsset(arguments.path, arguments.name)
 	if err != nil {
-		return "", errors.New("Failed to create asset file: " + err.Error())
+		return errors.New("Failed to create asset file: " + err.Error())
 	}
-	path := filepath.Join(arguments.path, arguments.name+".json")
+	path := filepath.Join(arguments.path, arguments.name + ".json")
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
 	if err != nil {
-		return "", errors.New("Failed to create asset file: " + err.Error())
+		return errors.New("Failed to create asset file: " + err.Error())
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
 	err = encoder.Encode(asset)
 	if err != nil {
-		return "", errors.New("Failed to encode asset file: " + err.Error())
+		return errors.New("Failed to encode asset file: " + err.Error())
 	}
-	plural := "file:"
-	if len(asset.Files) != 1 {
-		plural = "files:"
-	}
-	message := fmt.Sprint("Created asset containing", len(asset.Files), plural, "\n", path)
-	return message, nil
+	logger.log(ASSET_CREATED, "Created asset containing", len(asset.Files), logger.plural(len(asset.Files), "file: ", "files: "), path)
+	return nil
 }
 
 // Handle the "manifest" command.
-func GenerateManifestFile(logger *Logger, arguments arguments) (string, error) {
+func GenerateManifestFile(logger *Logger, arguments arguments) error {
 	manifest, err := CreateManifest(arguments.path)
 	if err != nil {
-		return "", errors.New("Failed to create manifest file: " + err.Error())
+		return errors.New("Failed to create manifest file: " + err.Error())
 	}
 	path := filepath.Join(arguments.path, "manifest.json")
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
 	if err != nil {
-		return "", errors.New("Failed to create manifest file: " + err.Error())
+		return errors.New("Failed to create manifest file: " + err.Error())
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
 	err = encoder.Encode(manifest)
 	if err != nil {
-		return "", errors.New("Failed to encode manifest file: " + err.Error())
+		return errors.New("Failed to encode manifest file: " + err.Error())
 	}
-	plural := "asset:"
-	if len(manifest.Assets) != 1 {
-		plural = "assets:"
-	}
-	message := fmt.Sprint("Created manifest containing", len(manifest.Assets), plural, "\n", path)
-	return message, nil
+	logger.log(MANIFEST_CREATED, "Created manifest containing", len(manifest.Assets), logger.plural(len(manifest.Assets), "asset: ", "assets: "), path)
+	return nil
 }
 
 // Handle the "install" command.
-func Install(logger *Logger, arguments arguments) (string, error) {
+func Install(logger *Logger, arguments arguments) error {
 	manifest, err := DownloadManifest(logger, arguments.repo, arguments.path)
 	if err != nil {
-		return "", errors.New("Failed to download manifest: " + err.Error())
+		return errors.New("Failed to download manifest: " + err.Error())
 	}
 
 	// Download and unpack assets.
@@ -91,48 +83,51 @@ func Install(logger *Logger, arguments arguments) (string, error) {
 		logger.log(INSTALLING_PREREQUISITES)
 		err = Prerequisites(arguments.path)
 		if err != nil {
-			return "", errors.New("Failed to install prerequisites: " + err.Error())
+			return errors.New("Failed to install prerequisites: " + err.Error())
 		}
 	}
 
-	message := "Installed."
 	if len(failed) == len(manifest.Assets) {
-		message = "Installation failed."
+		logger.log(INSTALL_FAILURE)
 	} else if len(failed) != 0 {
-		message = "Partially installed. You may need to run the \"verify\" command."
+		logger.log(INSTALL_PARTIAL)
+	} else {
+		logger.log(INSTALL_SUCCESS)
 	}
-	return message, nil
+	return nil
 }
 
 // Handle the "update" command.
-func Update(logger *Logger, arguments arguments) (string, error) {
+func Update(logger *Logger, arguments arguments) error {
 	logger.log(CHECKING_FOR_UPDATES)
 
 	localManifest, err := ReadManifest(logger, arguments.path)
 	if err != nil {
-		return "", errors.New("Failed to read local manifest: " + err.Error())
+		return errors.New("Failed to read local manifest: " + err.Error())
 	}
 	remoteManifest, err := GetManifest(logger, arguments.repo)
 	if err != nil {
-		return "", errors.New("Failed to download manifest: " + err.Error())
+		return errors.New("Failed to download manifest: " + err.Error())
 	}
 
 	// Compare the version fields of the local and remote manifests.
 	if localManifest.Version >= remoteManifest.Version {
-		return fmt.Sprintf("Installation is up to date: v%d", localManifest.Version), nil
+		logger.log(INSTALL_UP_TO_DATE, fmt.Sprintf("Installation is up to date: v%d", localManifest.Version))
+		return nil
 	}
 	logger.log(UPDATE_FOUND, fmt.Sprintf("v%d → v%d\n", localManifest.Version, remoteManifest.Version))
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)
 	if err != nil {
-		return "", errors.New("Failed to save new manifest: " + err.Error())
+		return errors.New("Failed to save new manifest: " + err.Error())
 	}
 
 	logger.log(CHECKING_ASSETS)
 	patch, _ := CompareAssets(logger, arguments.path, localManifest, manifest)
 	if len(patch) == 0 {
-		return "Updated.", nil
+		logger.log(UPDATE_SUCCESS)
+		return nil
 	}
 
 	logger.log(PATCHING_ASSETS)
@@ -150,20 +145,21 @@ func Update(logger *Logger, arguments arguments) (string, error) {
 		counter.next(message)
 	}
 
-	message := "Updated."
 	if len(failed) == len(manifest.Assets) {
-		message = "Update failed."
+		logger.log(UPDATE_FAILURE)
 	} else if len(failed) != 0 {
-		message = "Partially updated. You may need to run the \"verify\" command."
+		logger.log(UPDATE_PARTIAL)
+	} else {
+		logger.log(UPDATE_SUCCESS)
 	}
-	return message, nil
+	return nil
 }
 
 // Handle the "verify" command.
-func Verify(logger *Logger, arguments arguments) (string, error) {
+func Verify(logger *Logger, arguments arguments) error {
 	manifest, err := ReadManifest(logger, arguments.path)
 	if err != nil {
-		return "", errors.New("Failed to read local manifest: " + err.Error())
+		return errors.New("Failed to read local manifest: " + err.Error())
 	}
 
 	damaged, _ := CheckForDamagedAssets(logger, arguments.path, manifest)
@@ -190,11 +186,11 @@ func Verify(logger *Logger, arguments arguments) (string, error) {
 			}
 
 			if len(failed) != 0 {
-				return "", errors.New("Failed to patch.")
+				return errors.New("Failed to patch.")
 			}
 		}
 	}
 
-	message := "Installation verified."
-	return message, nil
+	logger.log(INSTALL_VERIFIED)
+	return nil
 }

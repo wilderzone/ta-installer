@@ -7,7 +7,6 @@ import (
 
 func main() {
 	arguments := GetArguments()
-	status := ""
 
 	err := ValidateArguments(&arguments)
 	if err != nil {
@@ -19,25 +18,23 @@ func main() {
 
 	switch arguments.method {
 		case "asset":
-			status, err = GenerateAssetFile(&logger, arguments)
+			err = GenerateAssetFile(&logger, arguments)
 
 		case "manifest":
-			status, err = GenerateManifestFile(&logger, arguments)
+			err = GenerateManifestFile(&logger, arguments)
 
 		case "install":
-			status, err = Install(&logger, arguments)
+			err = Install(&logger, arguments)
 
 		case "update":
-			status, err = Update(&logger, arguments)
+			err = Update(&logger, arguments)
 
 		case "verify":
-			status, err = Verify(&logger, arguments)
+			err = Verify(&logger, arguments)
 	}
 
 	if err != nil {
 		logger.error(err.Error())
 		os.Exit(1)
-	} else {
-		logger.print(status)
 	}
 }
