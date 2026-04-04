@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -16,19 +17,17 @@ type Counter struct {
 
 func (c *Counter) next(message string) {
 	c.index++
-	m := ""
-	if c.machine {
-		m += fmt.Sprintf("[%d/%d] ", c.index, c.total)
-	} else {
-		m += c.logger.colour(fmt.Sprintf("[%d/%d] ", c.index, c.total), GREY)
-	}
-	m += message
-	c.logger.log(PROGRESS, m)
+	progress := PROGRESS
+	progress.Index = c.index
+	progress.Total = c.total
+	c.logger.log(progress, message)
 }
 
 type LogLine struct {
-	human   string
-	machine string
+	Index   int    `json:"index,omitempty"`
+	Total   int    `json:"total,omitempty"`
+	Message string `json:"message"`
+	Type    string `json:"type"`
 }
 
 type Logger struct {
@@ -37,28 +36,28 @@ type Logger struct {
 }
 
 var (
-	ASSET_CREATED            = LogLine{machine: "ASSET_CREATED:", human: ""}
-	ASSETS_ARE_DAMAGED       = LogLine{machine: "ASSETS_ARE_DAMAGED:", human: ""}
-	CHECKING_ASSETS          = LogLine{machine: "CHECKING_ASSETS", human: "Checking assets..."}
-	CHECKING_FOR_UPDATES     = LogLine{machine: "CHECKING_FOR_UPDATES", human: "Checking for updates..."}
-	DOWNLOADING_MANIFEST     = LogLine{machine: "DOWNLOADING_MANIFEST:", human: "Downloading manifest from:"}
-	INSTALL_FAILURE          = LogLine{machine: "INSTALL_FAILURE", human: "Installation failed."}
-	INSTALL_PARTIAL          = LogLine{machine: "INSTALL_PARTIAL", human: "Partially installed. You may need to run the \"verify\" command."}
-	INSTALL_SUCCESS          = LogLine{machine: "INSTALL_SUCCESS", human: "Installed."}
-	INSTALL_UP_TO_DATE       = LogLine{machine: "INSTALL_UP_TO_DATE", human: ""}
-	INSTALL_VERIFIED         = LogLine{machine: "INSTALL_VERIFIED", human: "Installation verified."}
-	INSTALLING_PREREQUISITES = LogLine{machine: "INSTALLING_PREREQUISITES", human: "Installing prerequisites..."}
-	MANIFEST_CREATED         = LogLine{machine: "MANIFEST_CREATED:", human: ""}
-	PATCHING_ASSETS          = LogLine{machine: "PATCHING_ASSETS", human: "Patching assets..."}
-	PROGRESS                 = LogLine{machine: "PROGRESS:", human: ""}
-	PROMPT_PROCEED           = LogLine{machine: "PROMPT_PROCEED", human: "Proceed? [y/N] "}
-	READING_LOCAL_MANIFEST   = LogLine{machine: "READING_LOCAL_MANIFEST:", human: "Reading local manifest from:"}
-	REDOWNLOADING            = LogLine{machine: "REDOWNLOADING", human: "Redownloading..."}
-	RETRIEVING_MANIFEST      = LogLine{machine: "RETRIEVING_MANIFEST:", human: "Retrieving manifest from:"}
-	UPDATE_FAILURE           = LogLine{machine: "UPDATE_FAILURE", human: "Update failed."}
-	UPDATE_FOUND             = LogLine{machine: "UPDATE_FOUND:", human: "Update found:"}
-	UPDATE_PARTIAL           = LogLine{machine: "UPDATE_PARTIAL", human: "Partially updated. You may need to run the \"verify\" command."}
-	UPDATE_SUCCESS           = LogLine{machine: "UPDATE_SUCCESS", human: "Updated."}
+	ASSET_CREATED            = LogLine{Type: "ASSET_CREATED", Message: ""}
+	ASSETS_ARE_DAMAGED       = LogLine{Type: "ASSETS_ARE_DAMAGED", Message: ""}
+	CHECKING_ASSETS          = LogLine{Type: "CHECKING_ASSETS", Message: "Checking assets..."}
+	CHECKING_FOR_UPDATES     = LogLine{Type: "CHECKING_FOR_UPDATES", Message: "Checking for updates..."}
+	DOWNLOADING_MANIFEST     = LogLine{Type: "DOWNLOADING_MANIFEST", Message: "Downloading manifest from:"}
+	INSTALL_FAILURE          = LogLine{Type: "INSTALL_FAILURE", Message: "Installation failed."}
+	INSTALL_PARTIAL          = LogLine{Type: "INSTALL_PARTIAL", Message: "Partially installed. You may need to run the \"verify\" command."}
+	INSTALL_SUCCESS          = LogLine{Type: "INSTALL_SUCCESS", Message: "Installed."}
+	INSTALL_UP_TO_DATE       = LogLine{Type: "INSTALL_UP_TO_DATE", Message: ""}
+	INSTALL_VERIFIED         = LogLine{Type: "INSTALL_VERIFIED", Message: "Installation verified."}
+	INSTALLING_PREREQUISITES = LogLine{Type: "INSTALLING_PREREQUISITES", Message: "Installing prerequisites..."}
+	MANIFEST_CREATED         = LogLine{Type: "MANIFEST_CREATED", Message: ""}
+	PATCHING_ASSETS          = LogLine{Type: "PATCHING_ASSETS", Message: "Patching assets..."}
+	PROMPT_PROCEED           = LogLine{Type: "PROMPT_PROCEED", Message: "Proceed? [y/N] "}
+	READING_LOCAL_MANIFEST   = LogLine{Type: "READING_LOCAL_MANIFEST", Message: "Reading local manifest from:"}
+	REDOWNLOADING            = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
+	RETRIEVING_MANIFEST      = LogLine{Type: "RETRIEVING_MANIFEST", Message: "Retrieving manifest from:"}
+	UPDATE_FAILURE           = LogLine{Type: "UPDATE_FAILURE", Message: "Update failed."}
+	UPDATE_FOUND             = LogLine{Type: "UPDATE_FOUND", Message: "Update found:"}
+	UPDATE_PARTIAL           = LogLine{Type: "UPDATE_PARTIAL", Message: "Partially updated. You may need to run the \"verify\" command."}
+	UPDATE_SUCCESS           = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
+	PROGRESS                 = LogLine{Type: "PROGRESS", Index: 0, Total: 0, Message: ""}
 )
 
 const (
@@ -88,14 +87,21 @@ func (l *Logger) log(message LogLine, additional ...any) {
 		return
 	}
 
-	line := ""
+	message.Message = strings.TrimSpace(message.Message + " " + fmt.Sprint(additional...))
+
 	if l.machine {
-		line = message.machine
+		encoder := json.NewEncoder(os.Stdout)
+		err := encoder.Encode(message)
+		if err != nil {
+			l.error(err.Error())
+		}
 	} else {
-		line = message.human
+		if message.Type == "PROGRESS" {
+			counter := l.colour(fmt.Sprintf("[%d/%d] ", message.Index, message.Total), GREY)
+			message.Message = counter + message.Message
+		}
+		fmt.Println(message.Message)
 	}
-	line = strings.TrimSpace(line + " " + fmt.Sprint(additional...))
-	fmt.Println(line)
 }
 
 func (l *Logger) plural(count int, singular string, plural string) string {
@@ -116,9 +122,9 @@ func (l *Logger) print(message ...any) {
 func (l *Logger) prompt(message LogLine) bool {
 	line := ""
 	if l.machine {
-		line = message.machine
+		line = message.Type
 	} else {
-		line = message.human
+		line = message.Message
 	}
 	fmt.Print(line)
 	action := "n"
