@@ -52,6 +52,18 @@ func GenerateManifestFile(logger *Logger, arguments arguments) error {
 	return nil
 }
 
+// Handle the "check" command.
+func Check(logger *Logger, arguments arguments) error {
+	_, err := ReadManifest(logger, arguments.path)
+	if err != nil {
+		logger.log(INSTALL_NOT_FOUND)
+		return nil
+	}
+
+	logger.log(INSTALL_FOUND)
+	return nil
+}
+
 // Handle the "install" command.
 func Install(logger *Logger, arguments arguments) error {
 	manifest, err := DownloadManifest(logger, arguments.repo, arguments.path)

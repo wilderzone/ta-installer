@@ -16,10 +16,16 @@ Download and install TA into the given directory.
 tai.exe install --repo=<url> --path=<path>
 ```
 
-### Verify
-Verify an existing TA installation at the given path.
+### Check
+Check for an existing installation in the given directory.
 ```sh
-tai.exe verify --repo=<url> --path=<path>
+tai.exe check --path=<path>
+```
+
+### Verify
+Verify an existing TA installation in the given directory.
+```sh
+tai.exe verify --path=<path>
 ```
 
 ### Update

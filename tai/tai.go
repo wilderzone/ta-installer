@@ -23,6 +23,9 @@ func main() {
 		case "manifest":
 			err = GenerateManifestFile(&logger, arguments)
 
+		case "check":
+			err = Check(&logger, arguments)
+
 		case "install":
 			err = Install(&logger, arguments)
 

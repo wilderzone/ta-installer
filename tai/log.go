@@ -42,6 +42,8 @@ var (
 	CHECKING_FOR_UPDATES     = LogLine{Type: "CHECKING_FOR_UPDATES", Message: "Checking for updates..."}
 	DOWNLOADING_MANIFEST     = LogLine{Type: "DOWNLOADING_MANIFEST", Message: "Downloading manifest from:"}
 	INSTALL_FAILURE          = LogLine{Type: "INSTALL_FAILURE", Message: "Installation failed."}
+	INSTALL_FOUND            = LogLine{Type: "INSTALL_FOUND", Message: "Installation found."}
+	INSTALL_NOT_FOUND        = LogLine{Type: "INSTALL_NOT_FOUND", Message: "Installation not found."}
 	INSTALL_PARTIAL          = LogLine{Type: "INSTALL_PARTIAL", Message: "Partially installed. You may need to run the \"verify\" command."}
 	INSTALL_SUCCESS          = LogLine{Type: "INSTALL_SUCCESS", Message: "Installed."}
 	INSTALL_UP_TO_DATE       = LogLine{Type: "INSTALL_UP_TO_DATE", Message: ""}
