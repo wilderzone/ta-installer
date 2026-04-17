@@ -22,6 +22,12 @@ Check for an existing installation in the given directory.
 tai.exe check --path=<path>
 ```
 
+### Check Repository
+Check that the provided URL points to a valid repository.
+```sh
+tai.exe check-repo --repo=<url>
+```
+
 ### Verify
 Verify an existing TA installation in the given directory.
 ```sh
@@ -96,6 +102,8 @@ Passing the `-m` flag will prompt TAI to output machine-readable JSON instead. F
 - `PROMPT_PROCEED`
 - `READING_LOCAL_MANIFEST`
 - `REDOWNLOADING`
+- `REPO_FOUND`
+- `REPO_NOT_FOUND`
 - `RETRIEVING_MANIFEST`
 - `UPDATE_FAILURE`
 - `UPDATE_FOUND`

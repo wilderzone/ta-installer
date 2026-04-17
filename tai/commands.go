@@ -64,6 +64,18 @@ func Check(logger *Logger, arguments arguments) error {
 	return nil
 }
 
+// Handle the "check-repo" command.
+func CheckRepo(logger *Logger, arguments arguments) error {
+	_, err := GetManifest(logger, arguments.repo)
+	if err != nil {
+		logger.log(REPO_NOT_FOUND)
+		return nil
+	}
+
+	logger.log(REPO_FOUND)
+	return nil
+}
+
 // Handle the "install" command.
 func Install(logger *Logger, arguments arguments) error {
 	manifest, err := DownloadManifest(logger, arguments.repo, arguments.path)

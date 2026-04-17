@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"net/url"
 	"os"
@@ -15,6 +16,7 @@ var methods = [...]string{
 	"asset",
 	"manifest",
 	"check",
+	"check-repo",
 	"install",
 	"verify",
 	"patch",
@@ -104,12 +106,15 @@ func ValidateArguments(arguments *arguments) error {
 	}
 
 	// Path.
-	if !fs.ValidPath(arguments.path) {
-		return errors.New("The provided path is not valid.")
+	if arguments.method != "check-repo" {
+		if !fs.ValidPath(arguments.path) {
+			message := fmt.Sprintf("The provided path \"%s\" is not valid.", arguments.path)
+			return errors.New(message)
+		}
 	}
 
 	// Repo.
-	if arguments.method != "asset" && arguments.method != "manifest" {
+	if arguments.method != "asset" && arguments.method != "manifest" && arguments.method != "check" && arguments.method != "verify" {
 		if len(arguments.repo) == 0 {
 			arguments.repo = DEFAULT_REPO
 		}

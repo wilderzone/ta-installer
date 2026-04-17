@@ -54,6 +54,8 @@ var (
 	PROMPT_PROCEED           = LogLine{Type: "PROMPT_PROCEED", Message: "Proceed? [y/N] "}
 	READING_LOCAL_MANIFEST   = LogLine{Type: "READING_LOCAL_MANIFEST", Message: "Reading local manifest from:"}
 	REDOWNLOADING            = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
+	REPO_FOUND               = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
+	REPO_NOT_FOUND           = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
 	RETRIEVING_MANIFEST      = LogLine{Type: "RETRIEVING_MANIFEST", Message: "Retrieving manifest from:"}
 	UPDATE_FAILURE           = LogLine{Type: "UPDATE_FAILURE", Message: "Update failed."}
 	UPDATE_FOUND             = LogLine{Type: "UPDATE_FOUND", Message: "Update found:"}

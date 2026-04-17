@@ -26,6 +26,9 @@ func main() {
 		case "check":
 			err = Check(&logger, arguments)
 
+		case "check-repo":
+			err = CheckRepo(&logger, arguments)
+
 		case "install":
 			err = Install(&logger, arguments)
 
