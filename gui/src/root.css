@@ -83,6 +83,11 @@ button{
 	&:where(:focus-visible, :hover) {
 		filter: brightness(1.1);
 	}
+
+	&:disabled {
+		filter: grayscale(1);
+		pointer-events: none;
+	}
 }
 
 input {

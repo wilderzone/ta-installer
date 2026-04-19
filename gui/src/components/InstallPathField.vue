@@ -3,6 +3,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { computed, nextTick, ref } from 'vue';
 import { TAI } from '../tai';
 
+const props = defineProps<{ disabled: boolean }>();
 const model = defineModel<string>({ required: true });
 
 const installationFound = ref(false);
@@ -28,8 +29,8 @@ async function check(): Promise<void> {
 	<fieldset>
 		<legend>Install Path</legend>
 		<div class="row">
-			<input type="text" @change="check()" v-model="model">
-			<button @click="browse()">Browse</button>
+			<input type="text" :disabled @change="check()" v-model="model">
+			<button :disabled @click="browse()">Browse</button>
 		</div>
 		<p v-if="noPath" class="red">No path specified.</p>
 		<p v-else-if="installationFound" class="green">Installation found.</p>

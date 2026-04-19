@@ -13,27 +13,30 @@ export interface LogLineData {
 export class TAI {
 	private static callbacks = {
 		info: <Array<Callback>> [],
-		error: <Array<Callback>> []
+		error: <Array<Callback>> [],
+		complete: <Array<Callback>> []
 	};
 	public static log = ref<Array<LogLineData>>([]);
 	public static status = ref();
 
-	public static attach(onInfo: Callback, onError: Callback): void {
+	public static attach(onInfo: Callback, onError: Callback, onComplete: Callback): void {
 		onMounted(() => {
 			TAI.on('info', onInfo);
 			TAI.on('error', onError);
+			TAI.on('complete', onComplete);
 		});
 		onUnmounted(() => {
 			TAI.off('info', onInfo);
 			TAI.off('error', onError);
+			TAI.off('complete', onComplete);
 		});
 	}
 
-	public static on(event: 'error' | 'info', callback: Callback): void {
+	public static on(event: 'error' | 'info' | 'complete', callback: Callback): void {
 		TAI.callbacks[event].push(callback);
 	}
 
-	public static off(event: 'error' | 'info', callback: Callback): void {
+	public static off(event: 'error' | 'info' | 'complete', callback: Callback): void {
 		const index = TAI.callbacks[event].findIndex(c => c === callback);
 		TAI.callbacks[event].splice(index, 1);
 	}
@@ -107,6 +110,11 @@ export class TAI {
 			}
 			for (const callback of TAI.callbacks.info) {
 				callback(data);
+			}
+		});
+		command.on('close', () => {
+			for (const callback of TAI.callbacks.complete) {
+				callback('');
 			}
 		});
 		await command.spawn();

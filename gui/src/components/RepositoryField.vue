@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { TAI } from '../tai';
 
+const props = defineProps<{ disabled: boolean }>();
 const model = defineModel<string>({ required: true });
 
 const repositoryFound = ref(false);
@@ -21,7 +22,7 @@ onMounted(() => {
 <template>
 	<fieldset>
 		<legend>Repository</legend>
-		<input type="text" @change="check()" v-model="model">
+		<input type="text" :disabled @change="check()" v-model="model">
 		<p v-if="noUrl" class="red">No URL specified.</p>
 		<p v-else-if="repositoryFound" class="green">Repository found.</p>
 		<p v-else-if="!repositoryFound" class="red">Repository not found.</p>

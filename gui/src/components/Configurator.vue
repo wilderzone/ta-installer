@@ -10,6 +10,7 @@ import RepositoryField from './RepositoryField.vue';
 const defaultRepo = DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.live/ta';
 
 const action = ref<Action>('verify');
+const loading = ref(false);
 const path = ref('');
 const repo = ref(defaultRepo);
 const progressMax = ref(0);
@@ -36,20 +37,25 @@ function onInfo(data: string): void {
 	updateProgressBar(data);
 }
 
+function onComplete(_data: string): void {
+	loading.value = false;
+}
+
 async function run(): Promise<void> {
+	loading.value = true;
 	await TAI.run(action.value, path.value, repo.value);
 }
 
-TAI.attach(onInfo, onError);
+TAI.attach(onInfo, onError, onComplete);
 </script>
 
 <template>
 	<form class="column" action="" @submit.prevent>
-		<InstallPathField v-model="path" />
-		<RepositoryField v-model="repo" />
+		<InstallPathField :disabled="loading" v-model="path" />
+		<RepositoryField :disabled="loading" v-model="repo" />
 		<fieldset>
 			<legend>Action</legend>
-			<select v-model="action">
+			<select :disabled="loading" v-model="action">
 				<option value="install">Install</option>
 				<option value="verify">Verify</option>
 				<option value="update">Update</option>
@@ -69,7 +75,11 @@ TAI.attach(onInfo, onError);
 		</fieldset>
 		<div class="row">
 			<ProgressBar :max="progressMax" :value="progressValue"/>
-			<button type="submit" @click="run()">{{ action }}</button>
+			<button
+				type="submit"
+				:disabled="loading"
+				@click="run()"
+			>{{ action }}</button>
 		</div>
 	</form>
 </template>
