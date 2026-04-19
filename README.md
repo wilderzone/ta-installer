@@ -1,14 +1,16 @@
 # <img src="./gui/public/logo.svg" style="width: 3em;"> TA Installer
-A command line utility for managing Tribes: Ascend installations.
+A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface) utility for managing Tribes: Ascend installations.
 
 
 ```sh
 tai.exe <subcommand> --repo=<url> --path=<path>
 ```
-`--repo` is optional. TAI will retrieve files from the Wilderzone CDN by default.
+
+<img width="582" height="682" alt="image" src="https://github.com/user-attachments/assets/70cdef8a-983a-46ed-bbe8-b1598c200346" />
 
 
-## Subcommands
+## CLI Subcommands
+_For all subcommands, `--repo` is optional. TAI will retrieve files from the Wilderzone CDN by default._
 
 ### Install
 Download and install TA into the given directory.
