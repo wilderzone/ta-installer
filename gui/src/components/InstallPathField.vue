@@ -38,7 +38,7 @@ watch(() => props.refresh, () => void check());
 		<legend>Install Path</legend>
 		<div class="row">
 			<input type="text" :disabled @change="check()" v-model="model">
-			<button :disabled @click="browse()">Browse</button>
+			<button type="button" :disabled @click="browse()">Browse</button>
 		</div>
 		<p v-if="noPath" class="red">No path specified.</p>
 		<p v-else-if="installationFound" class="green">Installation found.</p>
