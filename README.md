@@ -1,4 +1,4 @@
-# TA Installer
+# <img src="./gui/public/logo.svg" style="width: 3em;"> TA Installer
 A command line utility for managing Tribes: Ascend installations.
 
 
