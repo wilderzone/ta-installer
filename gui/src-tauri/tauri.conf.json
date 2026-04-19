@@ -14,7 +14,8 @@
 			{
 				"title": "Tribes: Ascend Installer",
 				"width": 400,
-				"height": 500
+				"height": 500,
+				"resizable": false
 			}
 		],
 		"security": {

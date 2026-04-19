@@ -1,0 +1,101 @@
+:root {
+	--color-primary: #2CB788;
+	--color-secondary: #41637C;
+	--color-tertiary: hsl(205, 31%, 30%);
+	--color-background: #121212;
+	--color-border: #555;
+	--color-text: #ddd;
+	--color-text-dim: #bfbfbf;
+	--color-text-green: #4d0;
+	--color-text-red: #e40;
+	--font-size: 14px;
+	--border-radius: 4px;
+	--body-padding: 12px;
+	--gap: 8px;
+}
+
+* {
+	box-sizing: border-box;
+	color: inherit;
+	font-size: inherit;
+}
+
+html {
+	height: 100%;
+	color-scheme: dark;
+	color: var(--color-text);
+	font-family: sans-serif;
+	font-size: var(--font-size);
+	background-color: var(--color-background);
+}
+
+body {
+	height: 100%;
+	margin: 0;
+	padding: var(--body-padding);
+}
+
+.column {
+	display: flex;
+	flex-flow: column nowrap;
+	gap: var(--gap);
+	height: 100%;
+}
+
+.row {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	gap: var(--gap);
+	width: 100%;
+}
+
+fieldset {
+	--fieldset-inline-padding: 0.75rem;
+	position: relative;
+	margin: 0;
+	padding-inline: var(--fieldset-inline-padding);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+}
+
+legend {
+	color: var(--color-text-dim);
+	font-size: 0.9rem;
+}
+
+button,
+input {
+	padding: 0.2em 1ch;
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+}
+
+button{
+	&[type="submit"] {
+		min-width: 10ch;
+		padding: 0.4em 0;
+		color: black;
+		text-transform: capitalize;
+		background-color: var(--color-primary);
+	}
+
+	&:where(:focus-visible, :hover) {
+		filter: brightness(1.1);
+	}
+}
+
+input {
+	width: 100%;
+
+	&:where(:focus, :focus-visible) {
+		outline: unset;
+	}
+}
+
+select {
+	width: 100%;
+	padding: 0.2em 0;
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+}

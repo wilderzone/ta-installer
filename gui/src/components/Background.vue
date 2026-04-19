@@ -1,0 +1,16 @@
+<script setup lang="ts">
+</script>
+
+<template>
+	<div class="background"></div>
+</template>
+
+<style scoped>
+.background {
+	position: fixed;
+	inset: 0;
+	background: 85% 65% / 200% 200% no-repeat url('logo.svg');
+	opacity: 0.05;
+	pointer-events: none;
+}
+</style>
