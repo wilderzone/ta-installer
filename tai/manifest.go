@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"io/fs"
@@ -146,10 +147,6 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error) {
 	manifest := Manifest{}
 	destination := filepath.Join(root, "manifest.json")
-	file, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
-	if err != nil {
-		return manifest, err
-	}
 	source, err := url.JoinPath(repo, "manifest.json")
 	if err != nil {
 		return manifest, err
@@ -160,15 +157,24 @@ func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error
 	if err != nil {
 		return manifest, err
 	}
-	defer response.Body.Close()
 
-	_, err = io.Copy(file, response.Body)
-	file.Close()
+	bodyBytes, _ := io.ReadAll(response.Body)
+	jsonBytes := bytes.NewBuffer(bytes.Clone(bodyBytes))
+	fileBytes := bytes.NewBuffer(bytes.Clone(bodyBytes))
+	response.Body.Close()
 
-	err = json.NewDecoder(response.Body).Decode(&manifest)
+	err = json.NewDecoder(jsonBytes).Decode(&manifest)
 	if err != nil {
 		return manifest, err
 	}
+
+	// Create the manifest file.
+	file, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
+	if err != nil {
+		return manifest, err
+	}
+	_, err = io.Copy(file, fileBytes)
+	file.Close()
 
 	return manifest, nil
 }
