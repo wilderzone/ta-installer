@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { open } from '@tauri-apps/plugin-dialog';
-import { computed, nextTick, ref } from 'vue';
-import { TAI } from '../tai';
+import { computed, nextTick, ref, watch } from 'vue';
+import { DirectoryState, TAI } from '../tai';
 
-const props = defineProps<{ disabled: boolean }>();
+const props = defineProps<{ disabled: boolean, refresh: number }>();
 const model = defineModel<string>({ required: true });
+const emit = defineEmits<{ update: [state: DirectoryState] }>();
 
 const installationFound = ref(false);
 const noPath = computed(() => !model.value);
@@ -20,9 +21,16 @@ async function browse(): Promise<void> {
 
 async function check(): Promise<void> {
 	nextTick(async () => {
+		if (!model.value) {
+			emit('update', DirectoryState.Invalid);
+			return;
+		}
 		installationFound.value = await TAI.checkPath(model.value);
+		emit('update', installationFound.value ? DirectoryState.Installed : DirectoryState.Valid);
 	});
 }
+
+watch(() => props.refresh, () => void check());
 </script>
 
 <template>

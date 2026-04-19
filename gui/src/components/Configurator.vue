@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { DEV } from '../dev';
-import { type Action, TAI } from '../tai';
+import { type Action, DirectoryState, TAI } from '../tai';
 import LogLine from './LogLine.vue';
 import InstallPathField from './InstallPathField.vue';
 import ProgressBar from './ProgressBar.vue';
@@ -9,9 +9,10 @@ import RepositoryField from './RepositoryField.vue';
 
 const defaultRepo = DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.live/ta';
 
-const action = ref<Action>('verify');
+const action = ref<Action>('install');
 const loading = ref(false);
 const path = ref('');
+const refreshPath = ref(1);
 const repo = ref(defaultRepo);
 const progressMax = ref(0);
 const progressValue = ref(0);
@@ -38,7 +39,19 @@ function onInfo(data: string): void {
 }
 
 function onComplete(_data: string): void {
+	refreshPath.value++;
 	loading.value = false;
+}
+
+function onPathUpdate(state: DirectoryState): void {
+	switch (state) {
+		case DirectoryState.Installed:
+			action.value = 'verify';
+			break;
+		case DirectoryState.Valid:
+			action.value = 'install';
+			break;
+	}
 }
 
 async function run(): Promise<void> {
@@ -51,8 +64,16 @@ TAI.attach(onInfo, onError, onComplete);
 
 <template>
 	<form class="column" action="" @submit.prevent>
-		<InstallPathField :disabled="loading" v-model="path" />
-		<RepositoryField :disabled="loading" v-model="repo" />
+		<InstallPathField
+			:disabled="loading"
+			:refresh="refreshPath"
+			@update="onPathUpdate($event)"
+			v-model="path"
+		/>
+		<RepositoryField
+			:disabled="loading"
+			v-model="repo"
+		/>
 		<fieldset>
 			<legend>Action</legend>
 			<select :disabled="loading" v-model="action">

@@ -3,6 +3,12 @@ import { onMounted, onUnmounted, ref } from 'vue';
 
 export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 'uninstall';
 
+export enum DirectoryState {
+	Installed,
+	Invalid,
+	Valid
+}
+
 type Callback = (data: string) => void;
 
 export interface LogLineData {
