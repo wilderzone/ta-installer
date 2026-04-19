@@ -121,6 +121,46 @@ func Install(logger *Logger, arguments arguments) error {
 	return nil
 }
 
+// Handle the "uninstall" command.
+func Uninstall(logger *Logger, arguments arguments) error {
+	_, err := ReadManifest(logger, arguments.path)
+	if err != nil {
+		logger.log(INSTALL_NOT_FOUND)
+		return nil
+	}
+
+	logger.log(UNINSTALLING)
+
+	// Remove all entries in the specified directory.
+	entries, err := os.ReadDir(arguments.path)
+	if err != nil {
+		return errors.New("Failed to open directory: " + err.Error())
+	}
+	counter := logger.count(len(entries))
+	failed := 0
+	for _, entry := range entries {
+		message := entry.Name()
+		path := filepath.Join(arguments.path, entry.Name())
+		err = os.RemoveAll(path)
+		if err != nil {
+			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
+			failed += 1
+		} else {
+			message += ": " + logger.colour("Removed", GREEN)
+		}
+		counter.next(message)
+	}
+
+	if failed == len(entries) {
+		logger.log(UNINSTALL_FAILURE)
+	} else if failed != 0 {
+		logger.log(UNINSTALL_PARTIAL)
+	} else {
+		logger.log(UNINSTALL_SUCCESS)
+	}
+	return nil
+}
+
 // Handle the "update" command.
 func Update(logger *Logger, arguments arguments) error {
 	logger.log(CHECKING_FOR_UPDATES)

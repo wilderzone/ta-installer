@@ -114,7 +114,7 @@ func ValidateArguments(arguments *arguments) error {
 	}
 
 	// Repo.
-	if arguments.method != "asset" && arguments.method != "manifest" && arguments.method != "check" && arguments.method != "verify" {
+	if arguments.method != "asset" && arguments.method != "manifest" && arguments.method != "check" && arguments.method != "uninstall" && arguments.method != "verify" {
 		if len(arguments.repo) == 0 {
 			arguments.repo = DEFAULT_REPO
 		}

@@ -43,7 +43,7 @@ tai.exe update --repo=<url> --path=<path>
 ### Uninstall
 Remove a TA installation from the system.
 ```sh
-tai.exe uninstall --repo=<url> --path=<path>
+tai.exe uninstall --path=<path>
 ```
 
 ### Asset
@@ -105,6 +105,10 @@ Passing the `-m` flag will prompt TAI to output machine-readable JSON instead. F
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
 - `RETRIEVING_MANIFEST`
+- `UNINSTALL_FAILURE`
+- `UNINSTALL_PARTIAL`
+- `UNINSTALL_SUCCESS`
+- `UNINSTALLING`
 - `UPDATE_FAILURE`
 - `UPDATE_FOUND`
 - `UPDATE_PARTIAL`

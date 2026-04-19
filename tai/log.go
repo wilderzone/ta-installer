@@ -57,6 +57,10 @@ var (
 	REPO_FOUND               = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND           = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
 	RETRIEVING_MANIFEST      = LogLine{Type: "RETRIEVING_MANIFEST", Message: "Retrieving manifest from:"}
+	UNINSTALL_FAILURE        = LogLine{Type: "UNINSTALL_FAILURE", Message: "Failed to uninstall."}
+	UNINSTALL_PARTIAL        = LogLine{Type: "UNINSTALL_PARTIAL", Message: "Partially uninstalled. You may need to remove some files manually."}
+	UNINSTALL_SUCCESS        = LogLine{Type: "UNINSTALL_SUCCESS", Message: "Uninstalled."}
+	UNINSTALLING             = LogLine{Type: "UNINSTALLING", Message: "Uninstalling..."}
 	UPDATE_FAILURE           = LogLine{Type: "UPDATE_FAILURE", Message: "Update failed."}
 	UPDATE_FOUND             = LogLine{Type: "UPDATE_FOUND", Message: "Update found:"}
 	UPDATE_PARTIAL           = LogLine{Type: "UPDATE_PARTIAL", Message: "Partially updated. You may need to run the \"verify\" command."}

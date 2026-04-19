@@ -115,6 +115,7 @@ func ReadManifest(logger *Logger, root string) (Manifest, error) {
 		return manifest, err
 	}
 
+	file.Close()
 	return manifest, nil
 }
 
