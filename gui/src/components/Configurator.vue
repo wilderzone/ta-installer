@@ -12,6 +12,7 @@ const defaultRepo = DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.l
 const action = ref<Action>('install');
 const loading = ref(false);
 const path = ref('');
+const pathState = ref(DirectoryState.Invalid);
 const refreshPath = ref(1);
 const repo = ref(defaultRepo);
 const progressMax = ref(0);
@@ -44,6 +45,7 @@ function onComplete(_data: string): void {
 }
 
 function onPathUpdate(state: DirectoryState): void {
+	pathState.value = state;
 	switch (state) {
 		case DirectoryState.Installed:
 			action.value = 'verify';
@@ -77,10 +79,10 @@ TAI.attach(onInfo, onError, onComplete);
 		<fieldset>
 			<legend>Action</legend>
 			<select :disabled="loading" v-model="action">
-				<option value="install">Install</option>
-				<option value="verify">Verify</option>
-				<option value="update">Update</option>
-				<option value="uninstall">Uninstall</option>
+				<option :disabled="pathState !== DirectoryState.Valid" value="install">Install</option>
+				<option :disabled="pathState !== DirectoryState.Installed" value="verify">Verify</option>
+				<option :disabled="pathState !== DirectoryState.Installed" value="update">Update</option>
+				<option :disabled="pathState !== DirectoryState.Installed" value="uninstall">Uninstall</option>
 			</select>
 		</fieldset>
 		<fieldset>
@@ -98,7 +100,7 @@ TAI.attach(onInfo, onError, onComplete);
 			<ProgressBar :max="progressMax" :value="progressValue"/>
 			<button
 				type="submit"
-				:disabled="loading"
+				:disabled="loading || pathState === DirectoryState.Invalid"
 				@click="run()"
 			>{{ action }}</button>
 		</div>
