@@ -2,66 +2,33 @@
 A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface) utility for managing Tribes: Ascend installations.
 
 
-```sh
-tai.exe <subcommand> --repo=<url> --path=<path>
-```
+## GUI
 
 <img width="582" height="682" alt="image" src="https://github.com/user-attachments/assets/70cdef8a-983a-46ed-bbe8-b1598c200346" />
 
 
-## CLI Subcommands
-_For all subcommands, `--repo` is optional. TAI will retrieve files from the Wilderzone CDN by default._
+## CLI
 
-### Install
-Download and install TA into the given directory.
 ```sh
-tai.exe install --repo=<url> --path=<path>
+tai.exe <subcommand> --repo=<url> --path=<path>
 ```
 
-### Check
-Check for an existing installation in the given directory.
-```sh
-tai.exe check --path=<path>
-```
+### Subcommands
+_For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._
 
-### Check Repository
-Check that the provided URL points to a valid repository.
-```sh
-tai.exe check-repo --repo=<url>
-```
-
-### Verify
-Verify an existing TA installation in the given directory.
-```sh
-tai.exe verify --path=<path>
-```
-
-### Update
-Update an existing TA installation.
-```sh
-tai.exe update --repo=<url> --path=<path>
-```
-
-### Uninstall
-Remove a TA installation from the system.
-```sh
-tai.exe uninstall --path=<path>
-```
-
-### Asset
-Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.
-```sh
-tai.exe asset --name=<name> --path=<path>
-```
-
-### Manifest
-Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.
-```sh
-tai.exe manifest --path=<path>
-```
+| Subcommand         | Description                                                                                                                                     | Example                                            |
+| :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
+| `install`          | Download and install TA into the given directory.                                                                                               | `tai.exe install --repo=<url> --path=<path>`       |
+| `check`            | Check for an existing installation in the given directory.                                                                                      | `tai.exe check --path=<path>`                      |
+| `check-repo`       | Check that the provided URL points to a valid repository.                                                                                       | `tai.exe check-repo --repo=<url>`                  |
+| `verify`           | Verify an existing TA installation in the given directory.                                                                                      | `tai.exe verify --path=<path>`                     |
+| `update`           | Update an existing TA installation.                                                                                                             | `tai.exe update --repo=<url> --path=<path>`        |
+| `uninstall`        | Remove a TA installation from the system.                                                                                                       | `tai.exe uninstall --path=<path>`                  |
+| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                | `tai.exe asset --name=<name> --path=<path>`        |
+| `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`. | `tai.exe manifest --path=<path>`                   |
 
 
-## Output
+### Output
 
 By default, TAI will print human-readable output to the console. For example:
 ```
