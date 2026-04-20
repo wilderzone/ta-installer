@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { TAI } from '../tai';
 
-const props = defineProps<{ disabled: boolean }>();
+defineProps<{ disabled: boolean }>();
 const model = defineModel<string>({ required: true });
 
 const loading = ref(false);
