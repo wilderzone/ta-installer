@@ -6,6 +6,7 @@
   "permissions": [
     "core:default",
     "dialog:default",
+    "fs:default",
     "opener:default",
     {
       "identifier": "shell:allow-spawn",
