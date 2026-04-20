@@ -4,17 +4,26 @@ A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://
 
 ## GUI
 
+To use TAI GUI, download and run the portable `tai-gui.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
+You'll be prompted to select the folder in which to install TA, and the repository to download the game files from. Leaving the repository option as default is a good idea if you just want to download the vanilla game.
+
 <img width="582" height="682" alt="image" src="https://github.com/user-attachments/assets/70cdef8a-983a-46ed-bbe8-b1598c200346" />
 
 
 ## CLI
 
+TAI CLI is provided for use in applications that require programmatic control of the TA installation process, such as launchers.  
+To use TAI CLI, download the portable `tai-cli.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
+This executable can be bundled with your application. See the [GUI](./gui) package for an example of this kind of integration.
+
+Then run TAI, passing a subcommand and options:
 ```sh
-tai.exe <subcommand> --repo=<url> --path=<path>
+tai-cli.exe <subcommand> --repo=<url> --path=<path>
 ```
 
 ### Subcommands
-_For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._
+_For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
+_Commands such as `verify` may propmt for confirmation. Pass the `-y` flag to skip these prompts._
 
 | Subcommand         | Description                                                                                                                                     | Example                                            |
 | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
