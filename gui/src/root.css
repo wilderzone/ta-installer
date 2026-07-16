@@ -3,11 +3,12 @@
 	--color-secondary: #41637C;
 	--color-tertiary: hsl(205, 31%, 30%);
 	--color-background: #121212;
-	--color-border: #555;
+	--color-border: #333;
 	--color-text: #ddd;
 	--color-text-dim: #bfbfbf;
 	--color-text-green: #4d0;
 	--color-text-red: #e40;
+	--color-text-on-primary: #080808;
 	--font-size: 14px;
 	--border-radius: 4px;
 	--body-padding: 12px;

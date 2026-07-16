@@ -5,6 +5,8 @@ import { type Action, DirectoryState, TAI } from '../tai';
 import LogLine from './LogLine.vue';
 import InstallPathField from './InstallPathField.vue';
 import ProgressBar from './ProgressBar.vue';
+import RadioOption from './RadioOption.vue';
+import RadioRow from './RadioRow.vue';
 import RepositoryField from './RepositoryField.vue';
 
 const defaultRepo = DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.live/ta';
@@ -78,12 +80,32 @@ TAI.attach(onInfo, onError, onComplete);
 		/>
 		<fieldset>
 			<legend>Action</legend>
-			<select :disabled="loading" v-model="action">
-				<option :disabled="pathState !== DirectoryState.Valid" value="install">Install</option>
-				<option :disabled="pathState !== DirectoryState.Installed" value="verify">Verify</option>
-				<option :disabled="pathState !== DirectoryState.Installed" value="update">Update</option>
-				<option :disabled="pathState !== DirectoryState.Installed" value="uninstall">Uninstall</option>
-			</select>
+			<RadioRow
+				:disabled="loading"
+				name="action"
+				v-model="action"
+			>
+				<RadioOption
+					:disabled="pathState !== DirectoryState.Valid"
+					label="Install"
+					value="install"
+				/>
+				<RadioOption
+					:disabled="pathState !== DirectoryState.Installed"
+					label="Verify"
+					value="verify"
+				/>
+				<RadioOption
+					:disabled="pathState !== DirectoryState.Installed"
+					label="Update"
+					value="update"
+				/>
+				<RadioOption
+					:disabled="pathState !== DirectoryState.Installed"
+					label="Uninstall"
+					value="uninstall"
+				/>
+			</RadioRow>
 		</fieldset>
 		<fieldset>
 			<legend>Log</legend>
