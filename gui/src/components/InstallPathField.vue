@@ -47,18 +47,4 @@ watch(() => props.refresh, () => void check());
 </template>
 
 <style scoped>
-p {
-	margin: 0;
-	padding: var(--gap) var(--border-radius) 0;
-	font-size: 0.8rem;
-	font-style: italic;
-
-	&.green {
-		color: var(--color-text-green);
-	}
-
-	&.red {
-		color: var(--color-text-red);
-	}
-}
 </style>

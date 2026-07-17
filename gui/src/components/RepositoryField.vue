@@ -42,22 +42,4 @@ onMounted(() => {
 </template>
 
 <style scoped>
-p {
-	margin: 0;
-	padding: var(--gap) var(--border-radius) 0;
-	font-size: 0.8rem;
-	font-style: italic;
-
-	&.grey {
-		opacity: 0.5;
-	}
-
-	&.green {
-		color: var(--color-text-green);
-	}
-
-	&.red {
-		color: var(--color-text-red);
-	}
-}
 </style>
