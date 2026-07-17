@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { DEV } from '../dev';
+import { repository } from '../config.ts';
 import { type Action, DirectoryState, TAI } from '../tai';
 import LogLine from './LogLine.vue';
 import InstallPathField from './InstallPathField.vue';
 import ProgressBar from './ProgressBar.vue';
 import RadioOption from './RadioOption.vue';
 import RadioRow from './RadioRow.vue';
-import RepositoryField from './RepositoryField.vue';
-
-const defaultRepo = DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.live/ta';
+import VariantSelector from './VariantSelector.vue';
 
 const action = ref<Action>('install');
 const loading = ref(false);
 const path = ref('');
 const pathState = ref(DirectoryState.Invalid);
 const refreshPath = ref(1);
-const repo = ref(defaultRepo);
+const repo = ref('vanilla');
 const progressMax = ref(0);
 const progressValue = ref(0);
 
@@ -60,7 +58,7 @@ function onPathUpdate(state: DirectoryState): void {
 
 async function run(): Promise<void> {
 	loading.value = true;
-	await TAI.run(action.value, path.value, repo.value);
+	await TAI.run(action.value, path.value, repository[repo.value]);
 }
 
 TAI.attach(onInfo, onError, onComplete);
@@ -74,7 +72,7 @@ TAI.attach(onInfo, onError, onComplete);
 			@update="onPathUpdate($event)"
 			v-model="path"
 		/>
-		<RepositoryField
+		<VariantSelector
 			:disabled="loading"
 			v-model="repo"
 		/>
