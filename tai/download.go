@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -61,7 +62,8 @@ func Download(repo string, root string, asset Asset) error {
 }
 
 func Unpack(root string, archivePath string, asset Asset) error {
-	os.MkdirAll(filepath.Join(root, asset.Destination), os.FileMode(0777))
+	destination := filepath.Join(root, asset.Destination)
+	os.MkdirAll(destination, os.FileMode(0777))
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return err
@@ -69,7 +71,12 @@ func Unpack(root string, archivePath string, asset Asset) error {
 	defer reader.Close()
 
 	for _, file := range reader.File {
-		path := filepath.Join(root, asset.Destination, file.Name)
+		// Prevent zip-slips.
+		path := filepath.Join(destination, file.Name)
+		isWithinDestination := strings.HasPrefix(path, filepath.Clean(destination) + string(os.PathSeparator))
+		if !isWithinDestination {
+			return fmt.Errorf("illegal path in archive: %q", file.Name)
+		}
 
 		// Handle directories.
 		if file.FileInfo().IsDir() {
