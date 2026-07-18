@@ -21,7 +21,7 @@ func Download(repo string, root string, asset Asset) error {
 		return errors.New("Failed to generate UUID.")
 	}
 	tempPath := filepath.Join(root, "temp", id)
-	file, err := os.OpenFile(tempPath, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
+	file, err := os.Create(tempPath)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func Unpack(root string, archivePath string, asset Asset) error {
 		}
 
 		// Open the destination file.
-		output, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
+		output, err := os.Create(path)
 		if err != nil {
 			return err
 		}

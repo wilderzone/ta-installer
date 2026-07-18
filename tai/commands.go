@@ -16,7 +16,7 @@ func GenerateAssetFile(logger *Logger, arguments arguments) error {
 		return errors.New("Failed to create asset file: " + err.Error())
 	}
 	path := filepath.Join(arguments.path, arguments.name + ".json")
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
+	file, err := os.Create(path)
 	if err != nil {
 		return errors.New("Failed to create asset file: " + err.Error())
 	}
@@ -38,7 +38,7 @@ func GenerateManifestFile(logger *Logger, arguments arguments) error {
 		return errors.New("Failed to create manifest file: " + err.Error())
 	}
 	path := filepath.Join(arguments.path, "manifest.json")
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.FileMode(0777))
+	file, err := os.Create(path)
 	if err != nil {
 		return errors.New("Failed to create manifest file: " + err.Error())
 	}
