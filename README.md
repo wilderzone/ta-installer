@@ -26,7 +26,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 
 ### Subcommands
 _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
-_Commands such as `verify` may propmt for confirmation. Pass the `-y` flag to skip these prompts._
+_Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._
 
 | Subcommand         | Description                                                                                                                                     | Example                                                     |
 | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
