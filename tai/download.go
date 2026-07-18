@@ -16,7 +16,10 @@ import (
 
 func Download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
-	os.MkdirAll(filepath.Join(root, "temp"), os.FileMode(0777))
+	err := os.MkdirAll(filepath.Join(root, "temp"), os.FileMode(0777))
+	if err != nil {
+		return err
+	}
 	id := uuid.New().String()
 	if len(id) == 0 {
 		return errors.New("Failed to generate UUID.")
@@ -40,6 +43,9 @@ func Download(repo string, root string, asset Asset) error {
 	defer response.Body.Close()
 	_, err = io.Copy(file, response.Body)
 	file.Close()
+	if err != nil {
+		return err
+	}
 
 	// Unpack the downloaded file into the destination directory.
 	err = Unpack(root, tempPath, asset)
