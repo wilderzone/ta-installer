@@ -1,4 +1,4 @@
-import { Command } from '@tauri-apps/plugin-shell';
+import { Channel, invoke } from '@tauri-apps/api/core';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 'uninstall';
@@ -14,6 +14,24 @@ type Callback = (data: string) => void;
 export interface LogLineData {
 	type: 'error' | 'info';
 	message: string;
+}
+
+type TaiEvent =
+	| { type: 'stdout'; data: string }
+	| { type: 'stderr'; data: string }
+	| { type: 'exit'; data: number };
+
+function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void): Promise<void> {
+	return new Promise((resolve) => {
+		const channel = new Channel<TaiEvent>();
+		channel.onmessage = (event) => {
+			onMessage(event);
+			if (event.type === 'exit') {
+				resolve();
+			}
+		};
+		invoke('run_tai', { args, onEvent: channel });
+	});
 }
 
 export class TAI {
@@ -48,47 +66,30 @@ export class TAI {
 	}
 
 	public static async checkPath(path: string): Promise<boolean> {
-		return new Promise(async (resolve) => {
-			let pathValid = false;
-			const args = ['check', '-m', `--path=${path}`];
-			const command = Command.sidecar('binaries/tai', args);
-			command.stderr.on('data', () => {
-				pathValid = false;
-			});
-			command.stdout.on('data', (data) => {
-				const message = JSON.parse(data);
-				pathValid = Boolean(message?.type === 'INSTALL_FOUND');
-			});
-			command.on('close', () => {
-				resolve(pathValid);
-			});
-			command.on('error', () => {
-				resolve(pathValid);
-			});
-			await command.spawn();
+		let pathValid = false;
+		await spawn(['check', '-m', `--path=${path}`], (event) => {
+			if (event.type === 'stdout') {
+				try {
+					const message = JSON.parse(event.data);
+					pathValid = Boolean(message?.type === 'INSTALL_FOUND');
+				} catch {}
+			}
 		});
+		return pathValid;
 	}
 
 	public static async checkRepo(repo: string): Promise<boolean> {
-		return new Promise(async (resolve) => {
-			let repoValid = false;
-			const args = ['check-repo', '-m', `--repo=${repo}`];
-			const command = Command.sidecar('binaries/tai', args);
-			command.stderr.on('data', () => {
-				repoValid = false;
-			});
-			command.stdout.on('data', (data) => {
-				const message = JSON.parse(data);
-				repoValid = Boolean(message?.type === 'REPO_FOUND');
-			});
-			command.on('close', () => {
-				resolve(repoValid);
-			});
-			command.on('error', () => {
-				resolve(repoValid);
-			});
-			await command.spawn();
+		let repoValid = false;
+		await spawn(['check-repo', '-m', `--repo=${repo}`], (event) => {
+			console.log(repo, event);
+			if (event.type === 'stdout') {
+				try {
+					const message = JSON.parse(event.data);
+					repoValid = Boolean(message?.type === 'REPO_FOUND');
+				} catch {}
+			}
 		});
+		return repoValid;
 	}
 
 	public static clearLog(): void {
@@ -101,28 +102,26 @@ export class TAI {
 			args.push('-m');
 		}
 
-		const command = Command.sidecar('binaries/tai', args);
-		command.stderr.on('data', (data) => {
-			if (!machineReadable) {
-				TAI.log.value.unshift({ type: 'error', message: data });
-			}
-			for (const callback of TAI.callbacks.error) {
-				callback(data);
+		await spawn(args, (event) => {
+			if (event.type === 'stderr') {
+				if (!machineReadable) {
+					TAI.log.value.unshift({ type: 'error', message: event.data });
+				}
+				for (const callback of TAI.callbacks.error) {
+					callback(event.data);
+				}
+			} else if (event.type === 'stdout') {
+				if (!machineReadable) {
+					TAI.log.value.unshift({ type: 'info', message: event.data });
+				}
+				for (const callback of TAI.callbacks.info) {
+					callback(event.data);
+				}
+			} else if (event.type === 'exit') {
+				for (const callback of TAI.callbacks.complete) {
+					callback('');
+				}
 			}
 		});
-		command.stdout.on('data', (data) => {
-			if (!machineReadable) {
-				TAI.log.value.unshift({ type: 'info', message: data });
-			}
-			for (const callback of TAI.callbacks.info) {
-				callback(data);
-			}
-		});
-		command.on('close', () => {
-			for (const callback of TAI.callbacks.complete) {
-				callback('');
-			}
-		});
-		await command.spawn();
 	}
 }

@@ -6,17 +6,6 @@
   "permissions": [
     "core:default",
     "dialog:default",
-    "fs:default",
-    "opener:default",
-    {
-      "identifier": "shell:allow-spawn",
-      "allow": [
-        {
-          "args": true,
-          "name": "binaries/tai",
-          "sidecar": true
-        }
-      ]
-    }
+    "opener:default"
   ]
 }
