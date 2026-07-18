@@ -119,6 +119,10 @@ func Install(logger *Logger, arguments arguments) error {
 	} else {
 		logger.log(INSTALL_SUCCESS)
 	}
+
+	// Remove the temp directory. This is just courtesy cleanup - it's ok if it fails.
+	defer os.RemoveAll(filepath.Join(arguments.path, "temp"))
+
 	return nil
 }
 
