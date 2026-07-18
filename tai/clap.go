@@ -20,7 +20,6 @@ var methods = [...]string{
 	"check-repo",
 	"install",
 	"verify",
-	"patch",
 	"update",
 	"uninstall",
 }
