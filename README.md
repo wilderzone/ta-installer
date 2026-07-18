@@ -28,16 +28,17 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
 _Commands such as `verify` may propmt for confirmation. Pass the `-y` flag to skip these prompts._
 
-| Subcommand         | Description                                                                                                                                     | Example                                            |
-| :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
-| `install`          | Download and install TA into the given directory.                                                                                               | `tai.exe install --repo=<url> --path=<path>`       |
-| `check`            | Check for an existing installation in the given directory.                                                                                      | `tai.exe check --path=<path>`                      |
-| `check-repo`       | Check that the provided URL points to a valid repository.                                                                                       | `tai.exe check-repo --repo=<url>`                  |
-| `verify`           | Verify an existing TA installation in the given directory.                                                                                      | `tai.exe verify --path=<path>`                     |
-| `update`           | Update an existing TA installation.                                                                                                             | `tai.exe update --repo=<url> --path=<path>`        |
-| `uninstall`        | Remove a TA installation from the system.                                                                                                       | `tai.exe uninstall --path=<path>`                  |
-| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                | `tai.exe asset --name=<name> --path=<path>`        |
-| `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`. | `tai.exe manifest --path=<path>`                   |
+| Subcommand         | Description                                                                                                                                     | Example                                                     |
+| :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
+| `install`          | Download and install TA into the given directory.                                                                                               | `tai.exe install --repo=<url> --path=<path>`                |
+| `check`            | Check for an existing installation in the given directory.                                                                                      | `tai.exe check --path=<path>`                               |
+| `check-repo`       | Check that the provided URL points to a valid repository.                                                                                       | `tai.exe check-repo --repo=<url>`                           |
+| `verify`           | Verify an existing TA installation in the given directory.                                                                                      | `tai.exe verify --path=<path>`                              |
+| `update`           | Update an existing TA installation.                                                                                                             | `tai.exe update --repo=<url> --path=<path>`                 |
+| `uninstall`        | Remove a TA installation from the system.                                                                                                       | `tai.exe uninstall --path=<path>`                           |
+| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                | `tai.exe asset --name=<name> --path=<path>`                 |
+| `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`. | `tai.exe manifest --path=<path>`                            |
+| `list`             | List the contents of a manifest file in the given path or repo.                                                                                 | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
 
 
 ### Output
@@ -53,7 +54,7 @@ Reading local manifest from: G:\tribes\manifest.json
 ...
 ```
 
-Passing the `-m` flag will prompt TAI to output machine-readable JSON instead. For example:
+Passing the `-m` flag will instruct TAI to output machine-readable JSON instead. For example:
 ```
 > tai.exe verify -m --path="G:/tribes"
 
@@ -78,10 +79,12 @@ Passing the `-m` flag will prompt TAI to output machine-readable JSON instead. F
 - `INSTALL_UP_TO_DATE`
 - `INSTALL_VERIFIED`
 - `INSTALLING_PREREQUISITES`
+- `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
 - `PATCHING_ASSETS`
 - `PROMPT_PROCEED`
 - `READING_LOCAL_MANIFEST`
+- `READING_MANIFEST_FAILED`
 - `REDOWNLOADING`
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`

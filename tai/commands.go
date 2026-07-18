@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"text/tabwriter"
 )
 
 // Handle the "asset" command.
@@ -118,6 +119,53 @@ func Install(logger *Logger, arguments arguments) error {
 	} else {
 		logger.log(INSTALL_SUCCESS)
 	}
+	return nil
+}
+
+// Handle the "list" command.
+func List(logger *Logger, arguments arguments) error {
+	if logger.silent {
+		return nil
+	}
+
+	var manifest Manifest
+	var err error
+
+	// List packages in the specified directory.
+	if len(arguments.path) != 0 {
+		manifest, err = ReadManifest(logger, arguments.path)
+		if err != nil {
+			logger.log(INSTALL_NOT_FOUND)
+			return nil
+		}
+	}
+
+	// List packages in the specified repo.
+	if len(arguments.repo) != 0 {
+		manifest, err = GetManifest(logger, arguments.repo)
+		if err != nil {
+			logger.log(REPO_NOT_FOUND)
+			return nil
+		}
+	}
+
+	if logger.machine {
+		data, err := json.Marshal(manifest)
+		if err != nil {
+			logger.log(READING_MANIFEST_FAILED, err.Error())
+		}
+		logger.log(MANIFEST_CONTENTS, string(data))
+	} else {
+		fmt.Printf("Version: v%d\n", manifest.Version)
+		w := tabwriter.NewWriter(os.Stdout, 1, 1, 3, ' ', 0)
+		fmt.Fprint(w, "Name\tType\tFiles\t\n")
+		fmt.Fprint(w, "----\t----\t-----\t\n")
+		for _, asset := range manifest.Assets {
+			fmt.Fprintf(w, "%s\t%s\t%d\t\n", asset.Name, asset.Type, len(asset.Files))
+		}
+		w.Flush()
+	}
+
 	return nil
 }
 

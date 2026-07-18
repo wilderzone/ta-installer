@@ -15,6 +15,7 @@ const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
 var methods = [...]string{
 	"asset",
 	"manifest",
+	"list",
 	"check",
 	"check-repo",
 	"install",
@@ -103,6 +104,18 @@ func ValidateArguments(arguments *arguments) error {
 	// Method.
 	if !slices.Contains(methods[:], arguments.method) {
 		return errors.New("No subcommand provided.")
+	}
+
+	// List subcommand - validate path and repo together.
+	if arguments.method == "list" {
+		if fs.ValidPath(arguments.path) {
+			return nil
+		}
+		_, err := url.ParseRequestURI(arguments.repo)
+		if err == nil {
+			return nil
+		}
+		return errors.New("Provide an installation path or repository URL to list package contents.")
 	}
 
 	// Path.

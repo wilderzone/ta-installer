@@ -49,10 +49,12 @@ var (
 	INSTALL_UP_TO_DATE       = LogLine{Type: "INSTALL_UP_TO_DATE", Message: ""}
 	INSTALL_VERIFIED         = LogLine{Type: "INSTALL_VERIFIED", Message: "Installation verified."}
 	INSTALLING_PREREQUISITES = LogLine{Type: "INSTALLING_PREREQUISITES", Message: "Installing prerequisites..."}
+	MANIFEST_CONTENTS        = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED         = LogLine{Type: "MANIFEST_CREATED", Message: ""}
 	PATCHING_ASSETS          = LogLine{Type: "PATCHING_ASSETS", Message: "Patching assets..."}
 	PROMPT_PROCEED           = LogLine{Type: "PROMPT_PROCEED", Message: "Proceed? [y/N] "}
 	READING_LOCAL_MANIFEST   = LogLine{Type: "READING_LOCAL_MANIFEST", Message: "Reading local manifest from:"}
+	READING_MANIFEST_FAILED  = LogLine{Type: "READING_MANIFEST_FAILED", Message: "Failed to read manifest:"}
 	REDOWNLOADING            = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
 	REPO_FOUND               = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND           = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}

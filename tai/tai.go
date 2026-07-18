@@ -32,6 +32,9 @@ func main() {
 		case "install":
 			err = Install(&logger, arguments)
 
+		case "list":
+			err = List(&logger, arguments)
+
 		case "uninstall":
 			err = Uninstall(&logger, arguments)
 
