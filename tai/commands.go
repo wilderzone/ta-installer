@@ -131,17 +131,15 @@ func List(logger *Logger, arguments arguments) error {
 	var manifest Manifest
 	var err error
 
-	// List packages in the specified directory.
 	if len(arguments.path) != 0 {
+		// List manifest assets in the specified directory.
 		manifest, err = ReadManifest(logger, arguments.path)
 		if err != nil {
 			logger.log(INSTALL_NOT_FOUND)
 			return nil
 		}
-	}
-
-	// List packages in the specified repo.
-	if len(arguments.repo) != 0 {
+	} else if len(arguments.repo) != 0 {
+		// List manifest assets in the specified repo.
 		manifest, err = GetManifest(logger, arguments.repo)
 		if err != nil {
 			logger.log(REPO_NOT_FOUND)
