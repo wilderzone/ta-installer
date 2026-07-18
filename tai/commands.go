@@ -176,10 +176,14 @@ func Update(logger *Logger, arguments arguments) error {
 
 	// Compare the version fields of the local and remote manifests.
 	if localManifest.Version >= remoteManifest.Version {
-		logger.log(INSTALL_UP_TO_DATE, fmt.Sprintf("Installation is up to date: v%d", localManifest.Version))
+		version := logger.colour(fmt.Sprintf("v%d", localManifest.Version), GREEN)
+		logger.log(INSTALL_UP_TO_DATE, "Installation is up to date: " + version)
+		
 		return nil
 	}
-	logger.log(UPDATE_FOUND, fmt.Sprintf("v%d → v%d\n", localManifest.Version, remoteManifest.Version))
+	old := logger.colour(fmt.Sprintf("v%d", localManifest.Version), RED)
+	new := logger.colour(fmt.Sprintf("v%d", remoteManifest.Version), GREEN)
+	logger.log(UPDATE_FOUND, fmt.Sprintf("%s → %s\n", old, new))
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)
