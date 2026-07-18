@@ -8,7 +8,7 @@
 	--color-text-dim: #bfbfbf;
 	--color-text-green: #4d0;
 	--color-text-red: #e40;
-	--color-text-on-primary: #080808;
+	--color-text-on-primary: #000;
 	--font-size: 14px;
 	--border-radius: 4px;
 	--body-padding: 12px;
@@ -95,7 +95,7 @@ button{
 	&[type="submit"] {
 		min-width: 10ch;
 		padding: 0.4em 0;
-		color: black;
+		color: var(--color-text-on-primary);
 		text-transform: capitalize;
 		background-color: var(--color-primary);
 	}
