@@ -23,7 +23,7 @@ async function check(): Promise<void> {
 
 		loading.value = true;
 		const repo = model.value;
-		const found = await TAI.checkRepo(repo);
+		const found = await TAI.checkRepo(repository[repo]);
 		if (repo === model.value) {
 			repositoryFound.value = found;
 			loading.value = false;
