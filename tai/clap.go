@@ -139,7 +139,7 @@ func ValidateArguments(arguments *arguments) error {
 
 	// Name.
 	if arguments.method == "asset" {
-		match, _ := regexp.MatchString("[a-zA-Z0-9_]+", arguments.name)
+		match, _ := regexp.MatchString("^[a-zA-Z0-9_]+$", arguments.name)
 		if !match {
 			return errors.New("The provided asset name is not valid. Please use only letters, numbers, and underscores.")
 		}
