@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 )
@@ -99,6 +99,14 @@ func GetArguments() arguments {
 	}
 }
 
+// Validate that `path` is an absolute path for the current OS, and normalize it.
+func validatePath(path string) (string, error) {
+	if !filepath.IsAbs(path) {
+			return "", fmt.Errorf("The provided path %q must be absolute.", path)
+	}
+	return filepath.Clean(path), nil
+}
+
 func ValidateArguments(arguments *arguments) error {
 	// Method.
 	if !slices.Contains(methods[:], arguments.method) {
@@ -107,22 +115,31 @@ func ValidateArguments(arguments *arguments) error {
 
 	// List subcommand - validate path and repo together.
 	if arguments.method == "list" {
-		if fs.ValidPath(arguments.path) {
+		path, pathErr := validatePath(arguments.path)
+		if pathErr == nil {
+			arguments.path = path
 			return nil
 		}
-		_, err := url.ParseRequestURI(arguments.repo)
-		if err == nil {
+		_, repoErr := url.ParseRequestURI(arguments.repo)
+		if repoErr == nil {
 			return nil
 		}
-		return errors.New("Provide an installation path or repository URL to list package contents.")
+		if len(arguments.path) != 0 {
+			return pathErr
+		} else if len(arguments.repo) != 0 {
+			return repoErr
+		} else {
+			return errors.New("Provide an installation path or repository URL to list package contents.")
+		}
 	}
 
 	// Path.
 	if arguments.method != "check-repo" {
-		if !fs.ValidPath(arguments.path) {
-			message := fmt.Sprintf("The provided path \"%s\" is not valid.", arguments.path)
-			return errors.New(message)
+		path, err := validatePath(arguments.path)
+		if err != nil {
+			return err
 		}
+		arguments.path = path
 	}
 
 	// Repo.
