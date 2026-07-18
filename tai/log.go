@@ -12,7 +12,6 @@ type Counter struct {
 	logger  *Logger
 	index   int
 	total   int
-	machine bool
 }
 
 func (c *Counter) next(message string) {
@@ -85,7 +84,7 @@ func (l *Logger) colour(message string, colour string) string {
 }
 
 func (l *Logger) count(total int) *Counter {
-	return &Counter{logger: l, index: 0, total: total, machine: l.machine}
+	return &Counter{logger: l, index: 0, total: total}
 }
 
 func (l *Logger) error(message ...any) {
@@ -119,14 +118,6 @@ func (l *Logger) plural(count int, singular string, plural string) string {
 		return singular
 	}
 	return plural
-}
-
-func (l *Logger) print(message ...any) {
-	if l.silent {
-		return
-	}
-
-	fmt.Println(message...)
 }
 
 func (l *Logger) prompt(message LogLine) bool {
