@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -32,6 +33,9 @@ func Download(repo string, root string, asset Asset) error {
 	response, err := http.Get(source)
 	if err != nil {
 		return err
+	}
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
 	}
 	defer response.Body.Close()
 	_, err = io.Copy(file, response.Body)

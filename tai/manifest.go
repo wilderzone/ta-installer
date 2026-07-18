@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -133,6 +134,9 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 	if err != nil {
 		return manifest, err
 	}
+	if response.StatusCode != http.StatusOK {
+		return manifest, fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
+	}
 	defer response.Body.Close()
 
 	err = json.NewDecoder(response.Body).Decode(&manifest)
@@ -156,6 +160,9 @@ func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error
 	response, err := http.Get(source)
 	if err != nil {
 		return manifest, err
+	}
+	if response.StatusCode != http.StatusOK {
+		return manifest, fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
 	}
 
 	bodyBytes, _ := io.ReadAll(response.Body)
