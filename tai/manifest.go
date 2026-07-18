@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -164,24 +163,25 @@ func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error
 	if response.StatusCode != http.StatusOK {
 		return manifest, fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
 	}
+	defer response.Body.Close()
 
-	bodyBytes, _ := io.ReadAll(response.Body)
-	jsonBytes := bytes.NewBuffer(bytes.Clone(bodyBytes))
-	fileBytes := bytes.NewBuffer(bytes.Clone(bodyBytes))
-	response.Body.Close()
+	// Read the response.
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return manifest, err
+	}
 
-	err = json.NewDecoder(jsonBytes).Decode(&manifest)
+	// Unmarshal the JSON payload into the manifest struct.
+	err = json.Unmarshal(body, &manifest);
 	if err != nil {
 		return manifest, err
 	}
 
 	// Create the manifest file.
-	file, err := os.Create(destination)
+	err = os.WriteFile(destination, body, os.FileMode(0644));
 	if err != nil {
 		return manifest, err
 	}
-	_, err = io.Copy(file, fileBytes)
-	file.Close()
 
 	return manifest, nil
 }
