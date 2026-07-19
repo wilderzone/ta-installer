@@ -2,12 +2,15 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strings"
 )
 
 const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
@@ -34,69 +37,61 @@ type arguments struct {
 	yes     bool
 }
 
-func GetArguments() arguments {
-	method := ""
-	path := ""
-	repo := ""
-	name := ""
-	machine := false
-	silent := false
-	yes := false
+// Write a usage summary to the given writer.
+func usage(w io.Writer) {
+	fmt.Fprint(w, "Usage: tai <subcommand> [flags]\n\n")
+	fmt.Fprintf(w, "Subcommands:\n  %s\n\n", strings.Join(methods[:], ", "))
+	fmt.Fprint(w, "Flags:\n")
+	fmt.Fprint(w, "  --path=<path>  The installation directory.\n")
+	fmt.Fprint(w, "  --repo=<url>   The repository URL to download from.\n")
+	fmt.Fprint(w, "  -m             Output machine-readable JSON.\n")
+	fmt.Fprint(w, "  -s             Suppress all output.\n")
+	fmt.Fprint(w, "  -y             Skip confirmation prompts.\n")
+}
 
-	for _, argument := range os.Args[1:] {
-		// Method.
-		if len(method) == 0 && slices.Contains(methods[:], argument) {
-			method = argument
-			continue
-		}
-		// Path.
-		match, _ := regexp.MatchString("^--path=", argument)
-		if len(path) == 0 && match {
-			path = argument[7:]
-			continue
-		}
-		// Repo.
-		match, _ = regexp.MatchString("^--repo=", argument)
-		if len(repo) == 0 && match {
-			repo = argument[7:]
-			continue
-		}
-		// Name.
-		match, _ = regexp.MatchString("^--name=", argument)
-		if len(name) == 0 && match {
-			name = argument[7:]
-			continue
-		}
-		// Yes shortcut.
-		match, _ = regexp.MatchString("^-y$", argument)
-		if match {
-			yes = true
-			continue
-		}
-		// Machine-readable flag.
-		match, _ = regexp.MatchString("^-m$", argument)
-		if match {
-			machine = true
-			continue
-		}
-		// Silent flag.
-		match, _ = regexp.MatchString("^-s$", argument)
-		if match {
-			silent = true
-			yes = true
-			continue
-		}
+func GetArguments() (arguments, error) {
+	args := arguments{}
+
+	// The subcommand must be the first argument.
+	if len(os.Args) < 2 {
+		return args, errors.New("No subcommand provided.")
+	}
+	args.method = os.Args[1]
+	if !slices.Contains(methods[:], args.method) {
+		return args, fmt.Errorf("Unknown subcommand %q.", args.method)
 	}
 
-	return arguments{
-		method:  method,
-		path:    path,
-		repo:    repo,
-		name:    name,
-		machine: machine,
-		silent:  silent,
-		yes:     yes,
+	// Parse the remaining flags. Repeated flags take their last occurrence.
+	fs := flag.NewFlagSet(args.method, flag.ContinueOnError)
+	fs.SetOutput(io.Discard) // Errors are surfaced to the caller instead.
+	fs.StringVar(&args.path, "path", "", "")
+	fs.StringVar(&args.repo, "repo", "", "")
+	fs.StringVar(&args.name, "name", "", "")
+	fs.BoolVar(&args.machine, "m", false, "")
+	fs.BoolVar(&args.silent, "s", false, "")
+	fs.BoolVar(&args.yes, "y", false, "")
+
+	err := fs.Parse(os.Args[2:])
+	if err != nil {
+		// `-h`/`--help` is not a failure: print usage and exit cleanly.
+		if errors.Is(err, flag.ErrHelp) {
+			usage(os.Stdout)
+			os.Exit(0)
+		}
+		return args, err
 	}
+
+	// Reject stray positional arguments (e.g. `tai install extrajunk`).
+	if fs.NArg() > 0 {
+		return args, fmt.Errorf("Unexpected argument %q.", fs.Arg(0))
+	}
+
+	// Silent mode can't answer prompts, so it implies -y.
+	if args.silent {
+		args.yes = true
+	}
+
+	return args, nil
 }
 
 // Validate that `path` is an absolute path for the current OS, and normalize it.
@@ -108,11 +103,6 @@ func validatePath(path string) (string, error) {
 }
 
 func ValidateArguments(arguments *arguments) error {
-	// Method.
-	if !slices.Contains(methods[:], arguments.method) {
-		return errors.New("No subcommand provided.")
-	}
-
 	// List subcommand - validate path and repo together.
 	if arguments.method == "list" {
 		path, pathErr := validatePath(arguments.path)
