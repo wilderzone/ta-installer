@@ -10,18 +10,17 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 func Download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
-	err := os.MkdirAll(filepath.Join(root, "temp"), os.FileMode(0777))
+	tempDirectory := filepath.Join(root, "temp")
+	err := os.MkdirAll(tempDirectory, os.FileMode(0777))
 	if err != nil {
 		return fmt.Errorf("create temp directory: %w", err)
 	}
-	tempPath := filepath.Join(root, "temp", uuid.New().String())
-	file, err := os.Create(tempPath)
+	file, err := os.CreateTemp(tempDirectory, "download-*")
+	fileName := file.Name()
 	if err != nil {
 		return fmt.Errorf("create temp file: %w", err)
 	}
@@ -38,17 +37,20 @@ func Download(repo string, root string, asset Asset) error {
 	}
 	defer response.Body.Close()
 	_, err = io.Copy(file, response.Body)
-	file.Close()
 	if err != nil {
 		return fmt.Errorf("download %s: %w", source, err)
 	}
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("close temp file: %w", err)
+	}
 
 	// Unpack the downloaded file into the destination directory.
-	err = Unpack(root, tempPath, asset)
+	err = Unpack(root, fileName, asset)
 	if err != nil {
 		return fmt.Errorf("unpack %s: %w", asset.Name, err)
 	}
-	err = os.Remove(tempPath)
+	err = os.Remove(fileName)
 	if err != nil {
 		return fmt.Errorf("remove temp file: %w", err)
 	}
