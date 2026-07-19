@@ -27,6 +27,38 @@ var methods = [...]string{
 	"uninstall",
 }
 
+// commandSpec describes which arguments a subcommand requires.
+type commandSpec struct {
+	needsPath  bool // Requires a valid absolute installation path.
+	needsRepo  bool // Requires a valid repository URL (defaulted when empty).
+	needsName  bool // Requires a valid asset name.
+	pathOrRepo bool // Requires either a path or a repo (overrides the flags above).
+}
+
+var commands = map[string]commandSpec{
+	"asset":      {needsPath: true, needsName: true},
+	"manifest":   {needsPath: true},
+	"list":       {pathOrRepo: true},
+	"check":      {needsPath: true},
+	"check-repo": {needsRepo: true},
+	"install":    {needsPath: true, needsRepo: true},
+	"verify":     {needsPath: true, needsRepo: true},
+	"update":     {needsPath: true, needsRepo: true},
+	"uninstall":  {needsPath: true},
+}
+
+// Guard against `methods` and `commands` drifting out of sync.
+func init() {
+	if len(methods) != len(commands) {
+		panic("methods and commands are out of sync")
+	}
+	for _, method := range methods {
+		if _, ok := commands[method]; !ok {
+			panic("missing command spec for subcommand: " + method)
+		}
+	}
+}
+
 type arguments struct {
 	method  string
 	path    string
@@ -102,29 +134,36 @@ func validatePath(path string) (string, error) {
 	return filepath.Clean(path), nil
 }
 
+// Validate a command that accepts either an installation path or a repo URL.
+func validatePathOrRepo(arguments *arguments) error {
+	path, pathErr := validatePath(arguments.path)
+	if pathErr == nil {
+		arguments.path = path
+		return nil
+	}
+	_, repoErr := url.ParseRequestURI(arguments.repo)
+	if repoErr == nil {
+		return nil
+	}
+	if len(arguments.path) != 0 {
+		return pathErr
+	} else if len(arguments.repo) != 0 {
+		return repoErr
+	} else {
+		return errors.New("Provide an installation path or repository URL to list package contents.")
+	}
+}
+
 func ValidateArguments(arguments *arguments) error {
-	// List subcommand - validate path and repo together.
-	if arguments.method == "list" {
-		path, pathErr := validatePath(arguments.path)
-		if pathErr == nil {
-			arguments.path = path
-			return nil
-		}
-		_, repoErr := url.ParseRequestURI(arguments.repo)
-		if repoErr == nil {
-			return nil
-		}
-		if len(arguments.path) != 0 {
-			return pathErr
-		} else if len(arguments.repo) != 0 {
-			return repoErr
-		} else {
-			return errors.New("Provide an installation path or repository URL to list package contents.")
-		}
+	spec := commands[arguments.method]
+
+	// Some commands accept either a path or a repo (e.g. `list`).
+	if spec.pathOrRepo {
+		return validatePathOrRepo(arguments)
 	}
 
 	// Path.
-	if arguments.method != "check-repo" {
+	if spec.needsPath {
 		path, err := validatePath(arguments.path)
 		if err != nil {
 			return err
@@ -133,7 +172,7 @@ func ValidateArguments(arguments *arguments) error {
 	}
 
 	// Repo.
-	if arguments.method != "asset" && arguments.method != "manifest" && arguments.method != "check" && arguments.method != "uninstall" && arguments.method != "verify" {
+	if spec.needsRepo {
 		if len(arguments.repo) == 0 {
 			arguments.repo = DEFAULT_REPO
 		}
@@ -144,7 +183,7 @@ func ValidateArguments(arguments *arguments) error {
 	}
 
 	// Name.
-	if arguments.method == "asset" {
+	if spec.needsName {
 		match, _ := regexp.MatchString("^[a-zA-Z0-9_]+$", arguments.name)
 		if !match {
 			return errors.New("The provided asset name is not valid. Please use only letters, numbers, and underscores.")
