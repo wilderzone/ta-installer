@@ -7,15 +7,21 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type Counter struct {
-	logger  *Logger
-	index   int
-	total   int
+	logger *Logger
+	mu     sync.Mutex
+	index  int
+	total  int
 }
 
+// next advances the counter and logs a progress line. It is safe to call from
+// multiple goroutines; the lock also serialises the progress output.
 func (c *Counter) next(message string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.index++
 	progress := PROGRESS
 	progress.Index = c.index

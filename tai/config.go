@@ -4,6 +4,11 @@ const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
 const MANIFEST_NAME = "manifest.json"
 const TEMP_DIRECTORY = "temp"
 
+// Maximum number of assets to process concurrently. Downloads are network-bound
+// (kept modest to avoid hammering the CDN); verification is disk/CPU-bound.
+const DOWNLOAD_CONCURRENCY = 4
+const VERIFY_CONCURRENCY = 4
+
 var PREREQUISITES = Asset{
 	Name:        "Prerequisites",
 	Type:        "prerequisite",

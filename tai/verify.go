@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // ChecksumReader streams r through SHA256 and returns the hex-encoded digest,
@@ -107,19 +108,22 @@ func describe(results []FileResult) string {
 // (e.g. "Damaged" for verify, "Needs patching" for update).
 func checkAssets(logger *Logger, root string, manifest Manifest, damagedLabel string) []Asset {
 	counter := logger.count(len(manifest.Assets))
+	var mu sync.Mutex
 	damaged := []Asset{}
 
-	for _, asset := range manifest.Assets {
+	parallel(manifest.Assets, VERIFY_CONCURRENCY, func(asset Asset) {
 		results := verifyAsset(root, asset)
 		message := asset.Name
 		if len(results) == 0 {
 			message += ": " + logger.colour("Verified", GREEN)
 		} else {
+			mu.Lock()
 			damaged = append(damaged, asset)
+			mu.Unlock()
 			message += ": " + logger.colour(damagedLabel, RED) + " " + logger.colour(describe(results), GREY)
 		}
 		counter.next(message)
-	}
+	})
 
 	return damaged
 }

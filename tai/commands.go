@@ -7,8 +7,31 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"text/tabwriter"
 )
+
+// downloadAssets downloads and unpacks each asset concurrently, logging per-asset
+// progress with the given success label, and returns the assets that failed.
+func downloadAssets(logger *Logger, arguments arguments, assets []Asset, successLabel string) []Asset {
+	counter := logger.count(len(assets))
+	var mu sync.Mutex
+	failed := []Asset{}
+	parallel(assets, DOWNLOAD_CONCURRENCY, func(asset Asset) {
+		message := asset.Name
+		err := Download(arguments.repo, arguments.path, asset)
+		if err != nil {
+			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
+			mu.Lock()
+			failed = append(failed, asset)
+			mu.Unlock()
+		} else {
+			message += ": " + logger.colour(successLabel, GREEN)
+		}
+		counter.next(message)
+	})
+	return failed
+}
 
 // Handle the "asset" command.
 func GenerateAssetFile(logger *Logger, arguments arguments) error {
@@ -91,19 +114,7 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Download and unpack assets.
-	counter := logger.count(len(manifest.Assets))
-	failed := []Asset{}
-	for _, asset := range manifest.Assets {
-		message := asset.Name
-		err = Download(arguments.repo, arguments.path, asset)
-		if err != nil {
-			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
-			failed = append(failed, asset)
-		} else {
-			message += ": " + logger.colour("Downloaded", GREEN)
-		}
-		counter.next(message)
-	}
+	failed := downloadAssets(logger, arguments, manifest.Assets, "Downloaded")
 
 	// Install prerequisites.
 	err = Prerequisites(logger, arguments)
@@ -264,19 +275,7 @@ func Update(logger *Logger, arguments arguments) error {
 	}
 
 	logger.log(PATCHING_ASSETS)
-	counter := logger.count(len(patch))
-	failed := []Asset{}
-	for _, asset := range patch {
-		message := asset.Name
-		err = Download(arguments.repo, arguments.path, asset)
-		if err != nil {
-			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
-			failed = append(failed, asset)
-		} else {
-			message += ": " + logger.colour("Patched", GREEN)
-		}
-		counter.next(message)
-	}
+	failed := downloadAssets(logger, arguments, patch, "Patched")
 
 	if len(failed) == len(manifest.Assets) {
 		logger.log(UPDATE_FAILURE)
@@ -307,20 +306,7 @@ func Verify(logger *Logger, arguments arguments) error {
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if proceed {
 			logger.log(REDOWNLOADING)
-			counter := logger.count(len(damaged))
-			failed := []Asset{}
-			for _, asset := range damaged {
-				message := asset.Name
-				err = Download(arguments.repo, arguments.path, asset)
-				if err != nil {
-					message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
-					failed = append(failed, asset)
-				} else {
-					message += ": " + logger.colour("Downloaded", GREEN)
-				}
-				counter.next(message)
-			}
-
+			failed := downloadAssets(logger, arguments, damaged, "Downloaded")
 			if len(failed) != 0 {
 				return userErrorf(nil, "Some assets couldn't be re-downloaded. Run `verify` again to retry.")
 			}
