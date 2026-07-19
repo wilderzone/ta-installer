@@ -55,11 +55,15 @@ func CreateAsset(path string, name string) (Asset, error) {
 		}
 
 		if !entry.IsDir() {
-			data, err := fs.ReadFile(f, path)
+			source, err := f.Open(path)
 			if err != nil {
 				return err
 			}
-			checksum := Checksum(data)
+			defer source.Close()
+			checksum, err := ChecksumReader(source)
+			if err != nil {
+				return err
+			}
 			file := File{
 				Checksum: checksum,
 				File: path,

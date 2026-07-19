@@ -5,18 +5,32 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// Calculate the SHA256 checksum for a given file.
-func Checksum(file []byte) string {
+// ChecksumReader streams r through SHA256 and returns the hex-encoded digest,
+// without buffering the whole input in memory.
+func ChecksumReader(r io.Reader) (string, error) {
 	hash := sha256.New()
-	hash.Write(file)
-	bytes := hash.Sum(nil)
-	return hex.EncodeToString(bytes)
+	if _, err := io.Copy(hash, r); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+// ChecksumFile returns the SHA256 digest of the file at path, streaming it
+// rather than reading it entirely into memory.
+func ChecksumFile(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	return ChecksumReader(file)
 }
 
 // FileState describes the outcome of verifying a single file against the manifest.
@@ -45,13 +59,13 @@ func verifyAsset(root string, asset Asset) []FileResult {
 
 	for _, entry := range asset.Files {
 		path := filepath.Join(root, asset.Destination, entry.File)
-		content, err := os.ReadFile(path)
+		checksum, err := ChecksumFile(path)
 		switch {
 		case errors.Is(err, fs.ErrNotExist):
 			results = append(results, FileResult{File: entry, State: FileMissing})
 		case err != nil:
 			results = append(results, FileResult{File: entry, State: FileUnreadable, Err: err})
-		case Checksum(content) != entry.Checksum:
+		case checksum != entry.Checksum:
 			results = append(results, FileResult{File: entry, State: FileCorrupt})
 		}
 	}
