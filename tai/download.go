@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,18 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	if err == nil {
+		return true // File exists.
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false // File explicitly does not exist.
+	}
+	// File may or may not exist (e.g., permission denied, disk failure).
+	return false 
+}
 
 func Download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
@@ -113,19 +126,44 @@ func Unpack(root string, archivePath string, asset Asset) error {
 	return nil
 }
 
-func Prerequisites(root string) error {
-	prerequisite1 := filepath.Join(root, "Binaries", "Redist", "directx_Jun2010_redist.exe")
-	command1 := exec.Command(prerequisite1, "/T:" + filepath.Join(root, TEMP_DIRECTORY, "dx"), "/Q")
-	err := command1.Run()
-	if err != nil {
-		return fmt.Errorf("extract DirectX redistributable: %w", err)
+func Prerequisites(logger *Logger, arguments arguments) error {
+	// Check if d3dx9 is already installed.
+	d3dx9Path := filepath.Join("C:", "Windows", "SysWOW64", "d3dx9_24.dll")
+	d3dExists := fileExists(d3dx9Path)
+	if d3dExists {
+		return nil
 	}
 
-	prerequisite2 := filepath.Join(root, TEMP_DIRECTORY, "dx", "DXSETUP.exe")
+	logger.log(PREREQUISITES_REQUIRED)
+
+	// TODO: Gain elevated permissions.
+
+	// Download the prerequisites asset.
+	logger.log(PREREQUISITES_DOWNLOADING)
+	err := Download(arguments.repo, arguments.path, PREREQUISITES)
+	if err != nil {
+		return userErrorf(err, "Couldn't install the DirectX 9 package.")
+	}
+
+	// Run both DX9 installation stages.
+	prerequisite1 := filepath.Join(arguments.path, "Binaries", "Redist", "directx_Jun2010_redist.exe")
+	command1 := exec.Command(prerequisite1, "/T:" + filepath.Join(arguments.path, TEMP_DIRECTORY, "dx"), "/Q")
+	err = command1.Run()
+	if err != nil {
+		return fmt.Errorf("extract DirectX 9 redistributable: %w", err)
+	}
+
+	prerequisite2 := filepath.Join(arguments.path, TEMP_DIRECTORY, "dx", "DXSETUP.exe")
 	command2 := exec.Command(prerequisite2, "/silent")
 	err = command2.Run()
 	if err != nil {
-		return fmt.Errorf("run DirectX setup: %w", err)
+		return fmt.Errorf("run DirectX 9 setup: %w", err)
+	}
+
+	// Check if d3dx9 installed successfully.
+	d3dExists = fileExists(d3dx9Path)
+	if d3dExists {
+		return nil
 	}
 
 	return nil

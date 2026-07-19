@@ -93,16 +93,12 @@ func Install(logger *Logger, arguments arguments) error {
 	// Download and unpack assets.
 	counter := logger.count(len(manifest.Assets))
 	failed := []Asset{}
-	prerequisitesFailed := false
 	for _, asset := range manifest.Assets {
 		message := asset.Name
 		err = Download(arguments.repo, arguments.path, asset)
 		if err != nil {
 			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
 			failed = append(failed, asset)
-			if asset.Type == PREREQUISITE {
-				prerequisitesFailed = true
-			}
 		} else {
 			message += ": " + logger.colour("Downloaded", GREEN)
 		}
@@ -110,12 +106,9 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Install prerequisites.
-	if !prerequisitesFailed {
-		logger.log(INSTALLING_PREREQUISITES)
-		err = Prerequisites(arguments.path)
-		if err != nil {
-			return userErrorf(err, "The game files were installed, but a prerequisite (DirectX) failed to install.")
-		}
+	err = Prerequisites(logger, arguments)
+	if err != nil {
+		return userErrorf(err, "The game files were installed, but DirectX 9 failed to install. You may need to run the installer again as administrator.")
 	}
 
 	if len(failed) == len(manifest.Assets) {
