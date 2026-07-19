@@ -38,7 +38,7 @@ func GenerateManifestFile(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't read the asset files in %s to build the manifest.", arguments.path)
 	}
-	path := filepath.Join(arguments.path, "manifest.json")
+	path := filepath.Join(arguments.path, MANIFEST_NAME)
 	file, err := os.Create(path)
 	if err != nil {
 		return userErrorf(err, "Couldn't create the manifest file at %s.", path)
@@ -127,7 +127,7 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Remove the temp directory. This is just courtesy cleanup - it's ok if it fails.
-	defer os.RemoveAll(filepath.Join(arguments.path, "temp"))
+	defer os.RemoveAll(filepath.Join(arguments.path, TEMP_DIRECTORY))
 
 	return nil
 }

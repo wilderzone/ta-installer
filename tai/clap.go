@@ -13,8 +13,6 @@ import (
 	"strings"
 )
 
-const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
-
 var methods = [...]string{
 	"asset",
 	"manifest",

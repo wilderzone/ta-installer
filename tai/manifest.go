@@ -104,7 +104,7 @@ func CreateManifest(path string) (Manifest, error) {
 // Read the content of the local manifest file.
 func ReadManifest(logger *Logger, root string) (Manifest, error) {
 	manifest := Manifest{}
-	source := filepath.Join(root, "manifest.json")
+	source := filepath.Join(root, MANIFEST_NAME)
 	logger.log(READING_LOCAL_MANIFEST, source)
 	file, err := os.OpenFile(source, os.O_RDONLY, os.FileMode(0777))
 	if err != nil {
@@ -124,7 +124,7 @@ func ReadManifest(logger *Logger, root string) (Manifest, error) {
 // Retrieve a manifest file from the given repo URL.
 func GetManifest(logger *Logger, repo string) (Manifest, error) {
 	manifest := Manifest{}
-	source, err := url.JoinPath(repo, "manifest.json")
+	source, err := url.JoinPath(repo, MANIFEST_NAME)
 	if err != nil {
 		return manifest, fmt.Errorf("build manifest URL: %w", err)
 	}
@@ -150,8 +150,8 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 // Download a manifest file from the given repo URL.
 func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error) {
 	manifest := Manifest{}
-	destination := filepath.Join(root, "manifest.json")
-	source, err := url.JoinPath(repo, "manifest.json")
+	destination := filepath.Join(root, MANIFEST_NAME)
+	source, err := url.JoinPath(repo, MANIFEST_NAME)
 	if err != nil {
 		return manifest, fmt.Errorf("build manifest URL: %w", err)
 	}
@@ -189,7 +189,7 @@ func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error
 
 // Save a manifest file to disk.
 func StoreManifest(manifest Manifest, root string) (Manifest, error) {
-	destination := filepath.Join(root, "manifest.json")
+	destination := filepath.Join(root, MANIFEST_NAME)
 	file, err := os.Create(destination)
 	if err != nil {
 		return manifest, fmt.Errorf("create manifest %s: %w", destination, err)

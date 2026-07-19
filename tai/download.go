@@ -14,7 +14,7 @@ import (
 
 func Download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
-	tempDirectory := filepath.Join(root, "temp")
+	tempDirectory := filepath.Join(root, TEMP_DIRECTORY)
 	err := os.MkdirAll(tempDirectory, os.FileMode(0777))
 	if err != nil {
 		return fmt.Errorf("create temp directory: %w", err)
@@ -115,13 +115,13 @@ func Unpack(root string, archivePath string, asset Asset) error {
 
 func Prerequisites(root string) error {
 	prerequisite1 := filepath.Join(root, "Binaries", "Redist", "directx_Jun2010_redist.exe")
-	command1 := exec.Command(prerequisite1, "/T:" + filepath.Join(root, "temp", "dx"), "/Q")
+	command1 := exec.Command(prerequisite1, "/T:" + filepath.Join(root, TEMP_DIRECTORY, "dx"), "/Q")
 	err := command1.Run()
 	if err != nil {
 		return fmt.Errorf("extract DirectX redistributable: %w", err)
 	}
 
-	prerequisite2 := filepath.Join(root, "temp", "dx", "DXSETUP.exe")
+	prerequisite2 := filepath.Join(root, TEMP_DIRECTORY, "dx", "DXSETUP.exe")
 	command2 := exec.Command(prerequisite2, "/silent")
 	err = command2.Run()
 	if err != nil {
