@@ -108,15 +108,16 @@ func ReadManifest(logger *Logger, root string) (Manifest, error) {
 	logger.log(READING_LOCAL_MANIFEST, source)
 	file, err := os.OpenFile(source, os.O_RDONLY, os.FileMode(0777))
 	if err != nil {
-		return manifest, err
+		// %w keeps fs.ErrNotExist detectable by callers via errors.Is.
+		return manifest, fmt.Errorf("open manifest %s: %w", source, err)
 	}
+	defer file.Close()
 
 	err = json.NewDecoder(file).Decode(&manifest)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("decode manifest %s: %w", source, err)
 	}
 
-	file.Close()
 	return manifest, nil
 }
 
@@ -125,22 +126,22 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 	manifest := Manifest{}
 	source, err := url.JoinPath(repo, "manifest.json")
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("build manifest URL: %w", err)
 	}
 
 	logger.log(RETRIEVING_MANIFEST, source)
 	response, err := http.Get(source)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("request %s: %w", source, err)
 	}
 	if response.StatusCode != http.StatusOK {
-		return manifest, fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
+		return manifest, fmt.Errorf("request %s: unexpected status %s", source, response.Status)
 	}
 	defer response.Body.Close()
 
 	err = json.NewDecoder(response.Body).Decode(&manifest)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("decode manifest from %s: %w", source, err)
 	}
 
 	return manifest, nil
@@ -152,35 +153,35 @@ func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error
 	destination := filepath.Join(root, "manifest.json")
 	source, err := url.JoinPath(repo, "manifest.json")
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("build manifest URL: %w", err)
 	}
 
 	logger.log(DOWNLOADING_MANIFEST, source)
 	response, err := http.Get(source)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("request %s: %w", source, err)
 	}
 	if response.StatusCode != http.StatusOK {
-		return manifest, fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
+		return manifest, fmt.Errorf("request %s: unexpected status %s", source, response.Status)
 	}
 	defer response.Body.Close()
 
 	// Read the response.
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("read manifest from %s: %w", source, err)
 	}
 
 	// Unmarshal the JSON payload into the manifest struct.
-	err = json.Unmarshal(body, &manifest);
+	err = json.Unmarshal(body, &manifest)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("decode manifest from %s: %w", source, err)
 	}
 
 	// Create the manifest file.
-	err = os.WriteFile(destination, body, os.FileMode(0644));
+	err = os.WriteFile(destination, body, os.FileMode(0644))
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("write manifest to %s: %w", destination, err)
 	}
 
 	return manifest, nil
@@ -191,7 +192,7 @@ func StoreManifest(manifest Manifest, root string) (Manifest, error) {
 	destination := filepath.Join(root, "manifest.json")
 	file, err := os.Create(destination)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("create manifest %s: %w", destination, err)
 	}
 	defer file.Close()
 
@@ -199,7 +200,7 @@ func StoreManifest(manifest Manifest, root string) (Manifest, error) {
 	encoder.SetIndent("", "\t")
 	err = encoder.Encode(manifest)
 	if err != nil {
-		return manifest, err
+		return manifest, fmt.Errorf("encode manifest %s: %w", destination, err)
 	}
 
 	return manifest, nil

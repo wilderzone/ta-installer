@@ -51,7 +51,7 @@ func main() {
 	}
 
 	if err != nil {
-		logger.error(err.Error())
+		logger.fail(err)
 		os.Exit(1)
 	}
 }

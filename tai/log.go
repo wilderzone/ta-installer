@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -67,6 +68,7 @@ var (
 	UPDATE_PARTIAL           = LogLine{Type: "UPDATE_PARTIAL", Message: "Partially updated. You may need to run the \"verify\" command."}
 	UPDATE_SUCCESS           = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
 	PROGRESS                 = LogLine{Type: "PROGRESS", Index: 0, Total: 0, Message: ""}
+	ERROR                    = LogLine{Type: "ERROR", Message: ""}
 )
 
 const (
@@ -89,6 +91,26 @@ func (l *Logger) count(total int) *Counter {
 
 func (l *Logger) error(message ...any) {
 	fmt.Fprintln(os.Stderr, message...)
+}
+
+// fail renders a top-level error for the user. It is the single place where
+// errors are turned into user-facing output. Errors always go to stderr, keeping
+// stdout clean for data and progress logs.
+func (l *Logger) fail(err error) {
+	if l.machine {
+		// Structured error line on stderr, so it never corrupts stdout data.
+		line := ERROR
+		line.Message = err.Error()
+		json.NewEncoder(os.Stderr).Encode(line)
+		return
+	}
+
+	var userError *UserError
+	if errors.As(err, &userError) {
+		l.error(l.colour(userError.Message, RED))
+	} else {
+		l.error(l.colour("Something went wrong: ", RED) + err.Error())
+	}
 }
 
 func (l *Logger) log(message LogLine, additional ...any) {

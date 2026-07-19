@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"text/tabwriter"
@@ -13,19 +14,19 @@ import (
 func GenerateAssetFile(logger *Logger, arguments arguments) error {
 	asset, err := CreateAsset(arguments.path, arguments.name)
 	if err != nil {
-		return errors.New("Failed to create asset file: " + err.Error())
+		return userErrorf(err, "Couldn't read the files in %s to build the asset.", arguments.path)
 	}
 	path := filepath.Join(arguments.path, arguments.name + ".json")
 	file, err := os.Create(path)
 	if err != nil {
-		return errors.New("Failed to create asset file: " + err.Error())
+		return userErrorf(err, "Couldn't create the asset file at %s.", path)
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
 	err = encoder.Encode(asset)
 	if err != nil {
-		return errors.New("Failed to encode asset file: " + err.Error())
+		return userErrorf(err, "Couldn't write the asset file at %s.", path)
 	}
 	logger.log(ASSET_CREATED, "Created asset containing", len(asset.Files), logger.plural(len(asset.Files), "file: ", "files: "), path)
 	return nil
@@ -35,19 +36,19 @@ func GenerateAssetFile(logger *Logger, arguments arguments) error {
 func GenerateManifestFile(logger *Logger, arguments arguments) error {
 	manifest, err := CreateManifest(arguments.path)
 	if err != nil {
-		return errors.New("Failed to create manifest file: " + err.Error())
+		return userErrorf(err, "Couldn't read the asset files in %s to build the manifest.", arguments.path)
 	}
 	path := filepath.Join(arguments.path, "manifest.json")
 	file, err := os.Create(path)
 	if err != nil {
-		return errors.New("Failed to create manifest file: " + err.Error())
+		return userErrorf(err, "Couldn't create the manifest file at %s.", path)
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
 	err = encoder.Encode(manifest)
 	if err != nil {
-		return errors.New("Failed to encode manifest file: " + err.Error())
+		return userErrorf(err, "Couldn't write the manifest file at %s.", path)
 	}
 	logger.log(MANIFEST_CREATED, "Created manifest containing", len(manifest.Assets), logger.plural(len(manifest.Assets), "asset: ", "assets: "), path)
 	return nil
@@ -56,9 +57,14 @@ func GenerateManifestFile(logger *Logger, arguments arguments) error {
 // Handle the "check" command.
 func Check(logger *Logger, arguments arguments) error {
 	_, err := ReadManifest(logger, arguments.path)
-	if err != nil {
+	if errors.Is(err, fs.ErrNotExist) {
+		// No manifest means no installation. This is an expected outcome.
 		logger.log(INSTALL_NOT_FOUND)
 		return nil
+	}
+	if err != nil {
+		// The manifest exists but couldn't be read - a genuine problem.
+		return userErrorf(err, "Found an installation at %s, but its manifest couldn't be read.", arguments.path)
 	}
 
 	logger.log(INSTALL_FOUND)
@@ -81,7 +87,7 @@ func CheckRepo(logger *Logger, arguments arguments) error {
 func Install(logger *Logger, arguments arguments) error {
 	manifest, err := DownloadManifest(logger, arguments.repo, arguments.path)
 	if err != nil {
-		return errors.New("Failed to download manifest: " + err.Error())
+		return userErrorf(err, "Couldn't download the game files from %s. Check your connection and that the repository URL is correct.", arguments.repo)
 	}
 
 	// Download and unpack assets.
@@ -108,7 +114,7 @@ func Install(logger *Logger, arguments arguments) error {
 		logger.log(INSTALLING_PREREQUISITES)
 		err = Prerequisites(arguments.path)
 		if err != nil {
-			return errors.New("Failed to install prerequisites: " + err.Error())
+			return userErrorf(err, "The game files were installed, but a prerequisite (DirectX) failed to install.")
 		}
 	}
 
@@ -138,9 +144,12 @@ func List(logger *Logger, arguments arguments) error {
 	if len(arguments.path) != 0 {
 		// List manifest assets in the specified directory.
 		manifest, err = ReadManifest(logger, arguments.path)
-		if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
 			logger.log(INSTALL_NOT_FOUND)
 			return nil
+		}
+		if err != nil {
+			return userErrorf(err, "The installation at %s has a manifest that couldn't be read.", arguments.path)
 		}
 	} else if len(arguments.repo) != 0 {
 		// List manifest assets in the specified repo.
@@ -174,9 +183,12 @@ func List(logger *Logger, arguments arguments) error {
 // Handle the "uninstall" command.
 func Uninstall(logger *Logger, arguments arguments) error {
 	_, err := ReadManifest(logger, arguments.path)
-	if err != nil {
+	if errors.Is(err, fs.ErrNotExist) {
 		logger.log(INSTALL_NOT_FOUND)
 		return nil
+	}
+	if err != nil {
+		return userErrorf(err, "Found an installation at %s, but its manifest couldn't be read.", arguments.path)
 	}
 
 	logger.log(UNINSTALLING)
@@ -184,7 +196,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	// Remove all entries in the specified directory.
 	entries, err := os.ReadDir(arguments.path)
 	if err != nil {
-		return errors.New("Failed to open directory: " + err.Error())
+		return userErrorf(err, "Couldn't read the installation directory %s.", arguments.path)
 	}
 	counter := logger.count(len(entries))
 	failed := 0
@@ -216,12 +228,15 @@ func Update(logger *Logger, arguments arguments) error {
 	logger.log(CHECKING_FOR_UPDATES)
 
 	localManifest, err := ReadManifest(logger, arguments.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return userErrorf(err, "No installation found at %s. Run `install` first.", arguments.path)
+	}
 	if err != nil {
-		return errors.New("Failed to read local manifest: " + err.Error())
+		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
 	}
 	remoteManifest, err := GetManifest(logger, arguments.repo)
 	if err != nil {
-		return errors.New("Failed to download manifest: " + err.Error())
+		return userErrorf(err, "Couldn't check for updates from %s. Check your connection and that the repository URL is correct.", arguments.repo)
 	}
 
 	// Compare the version fields of the local and remote manifests.
@@ -238,11 +253,11 @@ func Update(logger *Logger, arguments arguments) error {
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)
 	if err != nil {
-		return errors.New("Failed to save new manifest: " + err.Error())
+		return userErrorf(err, "Couldn't save the updated manifest to %s.", arguments.path)
 	}
 
 	logger.log(CHECKING_ASSETS)
-	patch, _ := CompareAssets(logger, arguments.path, localManifest, manifest)
+	patch := checkAssets(logger, arguments.path, manifest, "Needs patching")
 	if len(patch) == 0 {
 		logger.log(UPDATE_SUCCESS)
 		return nil
@@ -276,11 +291,14 @@ func Update(logger *Logger, arguments arguments) error {
 // Handle the "verify" command.
 func Verify(logger *Logger, arguments arguments) error {
 	manifest, err := ReadManifest(logger, arguments.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return userErrorf(err, "No installation found at %s to verify.", arguments.path)
+	}
 	if err != nil {
-		return errors.New("Failed to read local manifest: " + err.Error())
+		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
 	}
 
-	damaged, _ := CheckForDamagedAssets(logger, arguments.path, manifest)
+	damaged := checkAssets(logger, arguments.path, manifest, "Damaged")
 
 	if len(damaged) != 0 {
 		message := logger.plural(len(damaged), "asset is damaged and needs", "assets are damaged and need") + " to be redownloaded. "
@@ -304,7 +322,7 @@ func Verify(logger *Logger, arguments arguments) error {
 			}
 
 			if len(failed) != 0 {
-				return errors.New("Failed to patch.")
+				return userErrorf(nil, "Some assets couldn't be re-downloaded. Run `verify` again to retry.")
 			}
 		}
 	}

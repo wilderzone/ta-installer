@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,43 +18,39 @@ func Download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
 	err := os.MkdirAll(filepath.Join(root, "temp"), os.FileMode(0777))
 	if err != nil {
-		return err
+		return fmt.Errorf("create temp directory: %w", err)
 	}
-	id := uuid.New().String()
-	if len(id) == 0 {
-		return errors.New("Failed to generate UUID.")
-	}
-	tempPath := filepath.Join(root, "temp", id)
+	tempPath := filepath.Join(root, "temp", uuid.New().String())
 	file, err := os.Create(tempPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("create temp file: %w", err)
 	}
 	source, err := url.JoinPath(repo, asset.Source)
 	if err != nil {
-		return err
+		return fmt.Errorf("build source URL: %w", err)
 	}
 	response, err := http.Get(source)
 	if err != nil {
-		return err
+		return fmt.Errorf("request %s: %w", source, err)
 	}
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Unexpected status %s for request to \"%s\".", response.Status, source)
+		return fmt.Errorf("request %s: unexpected status %s", source, response.Status)
 	}
 	defer response.Body.Close()
 	_, err = io.Copy(file, response.Body)
 	file.Close()
 	if err != nil {
-		return err
+		return fmt.Errorf("download %s: %w", source, err)
 	}
 
 	// Unpack the downloaded file into the destination directory.
 	err = Unpack(root, tempPath, asset)
 	if err != nil {
-		return err
+		return fmt.Errorf("unpack %s: %w", asset.Name, err)
 	}
 	err = os.Remove(tempPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("remove temp file: %w", err)
 	}
 
 	return nil
@@ -63,10 +58,13 @@ func Download(repo string, root string, asset Asset) error {
 
 func Unpack(root string, archivePath string, asset Asset) error {
 	destination := filepath.Join(root, asset.Destination)
-	os.MkdirAll(destination, os.FileMode(0777))
+	err := os.MkdirAll(destination, os.FileMode(0777))
+	if err != nil {
+		return fmt.Errorf("create destination directory: %w", err)
+	}
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("open archive: %w", err)
 	}
 	defer reader.Close()
 
@@ -82,7 +80,7 @@ func Unpack(root string, archivePath string, asset Asset) error {
 		if file.FileInfo().IsDir() {
 			err = os.MkdirAll(path, os.FileMode(0777))
 			if err != nil {
-				return err
+				return fmt.Errorf("create directory %s: %w", file.Name, err)
 			}
 			continue
 		}
@@ -90,14 +88,14 @@ func Unpack(root string, archivePath string, asset Asset) error {
 		// Open the destination file.
 		output, err := os.Create(path)
 		if err != nil {
-			return err
+			return fmt.Errorf("create %s: %w", file.Name, err)
 		}
 
 		// Open the archived file.
 		archived, err := file.Open()
 		if err != nil {
 			output.Close()
-			return err
+			return fmt.Errorf("read %s from archive: %w", file.Name, err)
 		}
 
 		// Copy the file content.
@@ -106,7 +104,7 @@ func Unpack(root string, archivePath string, asset Asset) error {
 		archived.Close()
 
 		if err != nil {
-			return err
+			return fmt.Errorf("write %s: %w", file.Name, err)
 		}
 	}
 
@@ -118,14 +116,14 @@ func Prerequisites(root string) error {
 	command1 := exec.Command(prerequisite1, "/T:" + filepath.Join(root, "temp", "dx"), "/Q")
 	err := command1.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("extract DirectX redistributable: %w", err)
 	}
 
 	prerequisite2 := filepath.Join(root, "temp", "dx", "DXSETUP.exe")
 	command2 := exec.Command(prerequisite2, "/silent")
 	err = command2.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("run DirectX setup: %w", err)
 	}
 
 	return nil

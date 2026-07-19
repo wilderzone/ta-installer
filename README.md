@@ -73,6 +73,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `CHECKING_ASSETS`
 - `CHECKING_FOR_UPDATES`
 - `DOWNLOADING_MANIFEST`
+- `ERROR`
 - `INSTALL_FAILURE`
 - `INSTALL_PARTIAL`
 - `INSTALL_SUCCESS`
