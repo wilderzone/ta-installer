@@ -108,7 +108,7 @@ func Install(logger *Logger, arguments arguments) error {
 	// Install prerequisites.
 	err = Prerequisites(logger, arguments)
 	if err != nil {
-		return userErrorf(err, "The game files were installed, but DirectX 9 failed to install. You may need to run the installer again as administrator.")
+		return userErrorOr(err, "The game files were installed, but DirectX 9 couldn't be installed. The game may not start until DirectX 9 is present.")
 	}
 
 	if len(failed) == len(manifest.Assets) {
