@@ -148,7 +148,7 @@ func validatePathOrRepo(arguments *arguments) error {
 	if len(arguments.path) != 0 {
 		return pathErr
 	} else if len(arguments.repo) != 0 {
-		return repoErr
+		return fmt.Errorf("The provided repo URL %q is not valid.", arguments.repo)
 	} else {
 		return errors.New("Provide an installation path or repository URL to list package contents.")
 	}
