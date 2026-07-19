@@ -184,11 +184,18 @@ func List(logger *Logger, arguments arguments) error {
 func Uninstall(logger *Logger, arguments arguments) error {
 	_, err := ReadManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
+		// No manifest means no installation. This is an expected outcome.
 		logger.log(INSTALL_NOT_FOUND)
 		return nil
 	}
 	if err != nil {
-		return userErrorf(err, "Found an installation at %s, but its manifest couldn't be read.", arguments.path)
+		// The manifest is present but unreadable. We can still remove the
+		// installation, but confirm first since we can't verify what we're deleting.
+		logger.log(MANIFEST_UNREADABLE, fmt.Sprintf("The installation's manifest at %s couldn't be read.", arguments.path))
+		proceed := arguments.yes || logger.prompt(PROMPT_UNINSTALL_ANYWAY)
+		if !proceed {
+			return nil
+		}
 	}
 
 	logger.log(UNINSTALLING)
