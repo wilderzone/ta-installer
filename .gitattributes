@@ -1,0 +1,17 @@
+# Normalize all text files to LF in the repository, regardless of platform.
+* text=auto eol=lf
+
+# Binary assets — never normalize these.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.ai    binary
+*.exe   binary
+*.dll   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
