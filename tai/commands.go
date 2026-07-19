@@ -277,7 +277,7 @@ func Update(logger *Logger, arguments arguments) error {
 	logger.log(PATCHING_ASSETS)
 	failed := downloadAssets(logger, arguments, patch, "Patched")
 
-	if len(failed) == len(manifest.Assets) {
+	if len(failed) == len(patch) {
 		logger.log(UPDATE_FAILURE)
 	} else if len(failed) != 0 {
 		logger.log(UPDATE_PARTIAL)
