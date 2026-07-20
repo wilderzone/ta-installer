@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"text/tabwriter"
 )
@@ -164,6 +165,23 @@ func List(logger *Logger, arguments arguments) error {
 		}
 	}
 
+	// Filter the manifest's assets based on the provided include/exclude arguments.
+	// Include is applied first, then exclude. Empty include means include all.
+	// Empty exclude means exclude nothing.
+	if len(arguments.include) != 0 || len(arguments.exclude) != 0 {
+		var included = []Asset{}
+		for _, asset := range manifest.Assets {
+			t := string(asset.Type)
+			include := len(arguments.include) == 0 || slices.Contains(arguments.include, t)
+			exclude := slices.Contains(arguments.exclude, t)
+			if include && !exclude {
+				included = append(included, asset)
+			}
+		}
+		manifest.Assets = included
+	}
+
+	// Output the manifest's contents.
 	if logger.machine {
 		data, err := json.Marshal(manifest)
 		if err != nil {

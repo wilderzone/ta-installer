@@ -62,6 +62,8 @@ type arguments struct {
 	path    string
 	repo    string
 	name    string
+	include []string
+	exclude []string
 	machine bool
 	silent  bool
 	yes     bool
@@ -100,6 +102,20 @@ func GetArguments() (arguments, error) {
 	fs.BoolVar(&args.machine, "m", false, "")
 	fs.BoolVar(&args.silent, "s", false, "")
 	fs.BoolVar(&args.yes, "y", false, "")
+	fs.Func("include", "", func(value string) error {
+		args.include = strings.Split(value, ",")
+		args.include = slices.DeleteFunc(args.include, func(value string) bool {
+			return value == ""
+		})
+		return nil
+	})
+	fs.Func("exclude", "", func(value string) error {
+		args.exclude = strings.Split(value, ",")
+		args.exclude = slices.DeleteFunc(args.exclude, func(value string) bool {
+			return value == ""
+		})
+		return nil
+	})
 
 	err := fs.Parse(os.Args[2:])
 	if err != nil {
