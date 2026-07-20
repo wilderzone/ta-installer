@@ -32,12 +32,13 @@ func createShortcuts(logger *Logger, root string) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
 	target := filepath.Join(cwd, "TribesAscend.exe")
 	icon := fmt.Sprintf("%s,0", target)
+	logs := filepath.Join(root, LOGS_DIRECTORY, LOG_NAME)
 
 	sc := shortcut.Shortcut{
 		ShortcutPath:     "",
 		Target:           target,
 		IconLocation:     icon,
-		Arguments:        SHORTCUT_ARGUMENTS,
+		Arguments:        fmt.Sprintf(SHORTCUT_ARGUMENTS, logs),
 		Description:      SHORTCUT_DESCRIPTION,
 		Hotkey:           "",
 		WindowStyle:      "1",

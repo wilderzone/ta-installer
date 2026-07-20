@@ -117,6 +117,12 @@ func Install(logger *Logger, arguments arguments) error {
 	// Download and unpack assets.
 	failed := downloadAssets(logger, arguments, manifest.Assets, "Downloaded")
 
+	// Create the logs directory.
+	err = os.MkdirAll(filepath.Join(arguments.path, LOGS_DIRECTORY), os.FileMode(0755))
+	if err != nil {
+		return fmt.Errorf("create logs directory: %w", err)
+	}
+
 	// Create shortcuts.
 	if arguments.shortcuts {
 		err := createShortcuts(logger, arguments.path)
