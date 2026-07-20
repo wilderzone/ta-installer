@@ -125,12 +125,8 @@ func Install(logger *Logger, arguments arguments) error {
 
 	// Create shortcuts.
 	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
-	if err != nil {
-		if arguments.shortcuts {
-			return userErrorf(err, "Failed to create shortcuts.")
-		} else {
-			return err
-		}
+	if err != nil && arguments.shortcuts {
+		logger.log(SHORTCUTS_FAILURE)
 	}
 
 	// Install prerequisites.
