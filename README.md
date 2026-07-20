@@ -30,15 +30,28 @@ _Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to sk
 
 | Subcommand         | Description                                                                                                                                                          | Example                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
-| `install`          | Download and install TA into the given directory.                                                                                                                    | `tai.exe install --repo=<url> --path=<path>`                |
+| `install`          | Download and install TA into the given directory.                                                                                                                    | `tai.exe install --path=<path> --repo=<url>`                |
 | `check`            | Check for an existing installation in the given directory.                                                                                                           | `tai.exe check --path=<path>`                               |
 | `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai.exe check-repo --repo=<url>`                           |
-| `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai.exe verify --repo=<url> --path=<path>`                 |
-| `update`           | Update an existing TA installation.                                                                                                                                  | `tai.exe update --repo=<url> --path=<path>`                 |
+| `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai.exe verify --path=<path> --repo=<url>`                 |
+| `update`           | Update an existing TA installation.                                                                                                                                  | `tai.exe update --path=<path> --repo=<url>`                 |
 | `uninstall`        | Remove a TA installation from the system.                                                                                                                            | `tai.exe uninstall --path=<path>`                           |
-| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai.exe asset --name=<name> --path=<path>`                 |
+| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai.exe manifest --path=<path>`                            |
 | `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type with `--include=<type1,type2,etc>` and `--exclude=<type1,type2,etc>` | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
+
+
+### Flags
+| Flag               | Options                                             | Description                                                                                       |
+| :----------------- | :-------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.          |
+| `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                   |
+| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                      |
+| `--include`        | A comma-separated list of asset types.              | Filter the results of the `list` subcommand by including only the provided asset types.           |
+| `--exclude`        | A comma-separated list of asset types.              | Filter the results of the `list` subcommand by excluding all of the provided assets types.        |
+| `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                      |
+| `-s`               | _NA_                                                | Run silently.                                                                                     |
+| `-y`               | _NA_                                                | Automatically approve prompts.                                                                    |
 
 
 ### Output
