@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"slices"
 	"sync"
 	"text/tabwriter"
 )
@@ -109,13 +108,36 @@ func CheckRepo(logger *Logger, arguments arguments) error {
 
 // Handle the "install" command.
 func Install(logger *Logger, arguments arguments) error {
-	manifest, err := DownloadManifest(logger, arguments.repo, arguments.path)
+	manifest, err := GetManifest(logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't download the game files from %s. Check your connection and that the repository URL is correct.", arguments.repo)
 	}
 
-	// Download and unpack assets.
-	failed := downloadAssets(logger, arguments, manifest.Assets, "Downloaded")
+	// Determine the subset of assets to install.
+	subset := filterAssets(manifest.Assets, arguments.include, arguments.exclude)
+	if len(subset) == 0 {
+		return userErrorf(nil, "No assets matched the given filter.")
+	}
+
+	// Merge with any existing installation so repeated installs are additive.
+	// Keep the existing (older) version so a later `update` still reconciles every
+	// asset; a fresh install adopts the remote version.
+	existing, existErr := ReadManifest(logger, arguments.path)
+	if existErr == nil {
+		manifest.Assets = mergeAssets(existing.Assets, subset)
+		manifest.Version = min(existing.Version, manifest.Version)
+	} else {
+		manifest.Assets = subset
+	}
+
+	// Persist the manifest before downloading, so an interrupted install is still recognised.
+	_, err = StoreManifest(manifest, arguments.path)
+	if err != nil {
+		return userErrorf(err, "Couldn't save the manifest to %s.", arguments.path)
+	}
+
+	// Download and unpack the newly-selected subset.
+	failed := downloadAssets(logger, arguments, subset, "Downloaded")
 
 	// Create the logs directory.
 	err = os.MkdirAll(filepath.Join(arguments.path, LOGS_DIRECTORY), os.FileMode(0755))
@@ -135,7 +157,7 @@ func Install(logger *Logger, arguments arguments) error {
 		return userErrorOr(err, "The game files were installed, but DirectX 9 couldn't be installed. The game may not start until DirectX 9 is present.")
 	}
 
-	if len(failed) == len(manifest.Assets) {
+	if len(failed) == len(subset) {
 		logger.log(INSTALL_FAILURE)
 	} else if len(failed) != 0 {
 		logger.log(INSTALL_PARTIAL)
@@ -178,20 +200,7 @@ func List(logger *Logger, arguments arguments) error {
 	}
 
 	// Filter the manifest's assets based on the provided include/exclude arguments.
-	// Include is applied first, then exclude. Empty include means include all.
-	// Empty exclude means exclude nothing.
-	if len(arguments.include) != 0 || len(arguments.exclude) != 0 {
-		var included = []Asset{}
-		for _, asset := range manifest.Assets {
-			t := string(asset.Type)
-			include := len(arguments.include) == 0 || slices.Contains(arguments.include, t)
-			exclude := slices.Contains(arguments.exclude, t)
-			if include && !exclude {
-				included = append(included, asset)
-			}
-		}
-		manifest.Assets = included
-	}
+	manifest.Assets = filterAssets(manifest.Assets, arguments.include, arguments.exclude)
 
 	// Output the manifest's contents.
 	if logger.machine {
@@ -290,6 +299,10 @@ func Update(logger *Logger, arguments arguments) error {
 	old := logger.colour(fmt.Sprintf("v%d", localManifest.Version), RED)
 	new := logger.colour(fmt.Sprintf("v%d", remoteManifest.Version), GREEN)
 	logger.log(UPDATE_FOUND, fmt.Sprintf("%s → %s\n", old, new))
+
+	// Restrict the update to the assets that are actually installed, so a subset
+	// install is not re-expanded to the full catalogue.
+	remoteManifest.Assets = intersectByName(remoteManifest.Assets, localManifest.Assets)
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)

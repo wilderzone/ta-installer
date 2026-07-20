@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 type AssetType string
@@ -133,7 +133,7 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 		return manifest, fmt.Errorf("build manifest URL: %w", err)
 	}
 
-	logger.log(RETRIEVING_MANIFEST, source)
+	logger.log(DOWNLOADING_MANIFEST, source)
 	response, err := http.Get(source)
 	if err != nil {
 		return manifest, fmt.Errorf("request %s: %w", source, err)
@@ -151,44 +151,70 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 	return manifest, nil
 }
 
-// Download a manifest file from the given repo URL.
-func DownloadManifest(logger *Logger, repo string, root string) (Manifest, error) {
-	manifest := Manifest{}
-	destination := filepath.Join(root, MANIFEST_NAME)
-	source, err := url.JoinPath(repo, MANIFEST_NAME)
-	if err != nil {
-		return manifest, fmt.Errorf("build manifest URL: %w", err)
+// filterAssets returns the assets that satisfy the include/exclude terms. A term
+// matches an asset by its type (e.g. "dlc") or its exact name (e.g. "Foo Bar").
+// Include is applied first (an empty include list means "include all"), then
+// exclude. Matching is case-sensitive.
+func filterAssets(assets []Asset, include []string, exclude []string) []Asset {
+	if len(include) == 0 && len(exclude) == 0 {
+		return assets
 	}
+	matches := func(asset Asset, terms []string) bool {
+		return slices.Contains(terms, string(asset.Type)) || slices.Contains(terms, asset.Name)
+	}
+	filtered := []Asset{}
+	for _, asset := range assets {
+		included := len(include) == 0 || matches(asset, include)
+		if included && !matches(asset, exclude) {
+			filtered = append(filtered, asset)
+		}
+	}
+	return filtered
+}
 
-	logger.log(DOWNLOADING_MANIFEST, source)
-	response, err := http.Get(source)
-	if err != nil {
-		return manifest, fmt.Errorf("request %s: %w", source, err)
+// intersectByName returns the assets from `available` whose name matches one of
+// the `installed` assets, preserving the order of `available`.
+func intersectByName(available []Asset, installed []Asset) []Asset {
+	names := make(map[string]bool, len(installed))
+	for _, asset := range installed {
+		names[asset.Name] = true
 	}
-	if response.StatusCode != http.StatusOK {
-		return manifest, fmt.Errorf("request %s: unexpected status %s", source, response.Status)
+	result := []Asset{}
+	for _, asset := range available {
+		if names[asset.Name] {
+			result = append(result, asset)
+		}
 	}
-	defer response.Body.Close()
+	return result
+}
 
-	// Read the response.
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return manifest, fmt.Errorf("read manifest from %s: %w", source, err)
+// mergeAssets returns the union of the already-installed `existing` assets and the
+// newly-installed `added` assets, keyed by name, so that repeated installs are
+// additive. For a name present in both, the `added` definition wins (it was just
+// downloaded). Existing assets keep their original order; genuinely new assets are
+// appended.
+func mergeAssets(existing []Asset, added []Asset) []Asset {
+	addedByName := make(map[string]Asset, len(added))
+	for _, asset := range added {
+		addedByName[asset.Name] = asset
 	}
-
-	// Unmarshal the JSON payload into the manifest struct.
-	err = json.Unmarshal(body, &manifest)
-	if err != nil {
-		return manifest, fmt.Errorf("decode manifest from %s: %w", source, err)
+	merged := []Asset{}
+	seen := make(map[string]bool, len(existing)+len(added))
+	for _, asset := range existing {
+		if replacement, ok := addedByName[asset.Name]; ok {
+			merged = append(merged, replacement)
+		} else {
+			merged = append(merged, asset)
+		}
+		seen[asset.Name] = true
 	}
-
-	// Create the manifest file.
-	err = os.WriteFile(destination, body, os.FileMode(0644))
-	if err != nil {
-		return manifest, fmt.Errorf("write manifest to %s: %w", destination, err)
+	for _, asset := range added {
+		if !seen[asset.Name] {
+			merged = append(merged, asset)
+			seen[asset.Name] = true
+		}
 	}
-
-	return manifest, nil
+	return merged
 }
 
 // Save a manifest file to disk.

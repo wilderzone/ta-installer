@@ -69,7 +69,6 @@ var (
 	REDOWNLOADING             = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
 	REPO_FOUND                = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND            = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
-	RETRIEVING_MANIFEST       = LogLine{Type: "RETRIEVING_MANIFEST", Message: "Retrieving manifest from:"}
 	SHORTCUTS_CREATING        = LogLine{Type: "SHORTCUTS_CREATING", Message: "Creating shortcuts..."}
 	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. You may need to re-run the installer with admin permissions to create shortcuts."}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}

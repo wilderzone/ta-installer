@@ -26,11 +26,12 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 
 ### Subcommands
 _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
-_Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._
+_Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._  
+_`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Map Pack"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._
 
 | Subcommand         | Description                                                                                                                                                          | Example                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
-| `install`          | Download and install TA into the given directory.                                                                                                                    | `tai.exe install --path=<path> --repo=<url>`                |
+| `install`          | Download and install TA into the given directory. Install a subset of assets with `--include`/`--exclude` (see above).                                               | `tai.exe install --path=<path> --exclude=dlc`               |
 | `check`            | Check for an existing installation in the given directory.                                                                                                           | `tai.exe check --path=<path>`                               |
 | `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai.exe check-repo --repo=<url>`                           |
 | `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai.exe verify --path=<path> --repo=<url>`                 |
@@ -38,20 +39,20 @@ _Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to sk
 | `uninstall`        | Remove a TA installation from the system.                                                                                                                            | `tai.exe uninstall --path=<path>`                           |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai.exe manifest --path=<path>`                            |
-| `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type with `--include=<type1,type2,etc>` and `--exclude=<type1,type2,etc>` | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
+| `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
 
 
 ### Flags
-| Flag               | Options                                             | Description                                                                                       |
-| :----------------- | :-------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.          |
-| `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                   |
-| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                      |
-| `--include`        | A comma-separated list of asset types.              | Filter the results of the `list` subcommand by including only the provided asset types.           |
-| `--exclude`        | A comma-separated list of asset types.              | Filter the results of the `list` subcommand by excluding all of the provided assets types.        |
-| `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                      |
-| `-s`               | _NA_                                                | Run silently.                                                                                     |
-| `-y`               | _NA_                                                | Automatically approve prompts.                                                                    |
+| Flag               | Options                                             | Description                                                                                                     |
+| :----------------- | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.                        |
+| `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                                 |
+| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
+| `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets.                |
+| `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets.              |
+| `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                                    |
+| `-s`               | _NA_                                                | Run silently.                                                                                                   |
+| `-y`               | _NA_                                                | Automatically approve prompts.                                                                                  |
 
 
 ### Output
@@ -107,7 +108,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REDOWNLOADING`
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
-- `RETRIEVING_MANIFEST`
 - `SHORTCUTS_CREATING`
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_SUCCESS`

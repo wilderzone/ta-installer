@@ -83,6 +83,19 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "  -y                       Skip confirmation prompts.\n")
 }
 
+// parseList splits a comma-separated flag value into trimmed, non-empty terms.
+// TrimSpace only trims the ends of each term, so an asset name with internal
+// spaces (e.g. "Arx Novena") is preserved.
+func parseList(value string) []string {
+	terms := strings.Split(value, ",")
+	for i := range terms {
+		terms[i] = strings.TrimSpace(terms[i])
+	}
+	return slices.DeleteFunc(terms, func(term string) bool {
+		return term == ""
+	})
+}
+
 func GetArguments() (arguments, error) {
 	args := arguments{}
 
@@ -106,17 +119,11 @@ func GetArguments() (arguments, error) {
 	fs.BoolVar(&args.silent, "s", false, "")
 	fs.BoolVar(&args.yes, "y", false, "")
 	fs.Func("include", "", func(value string) error {
-		args.include = strings.Split(value, ",")
-		args.include = slices.DeleteFunc(args.include, func(value string) bool {
-			return value == ""
-		})
+		args.include = parseList(value)
 		return nil
 	})
 	fs.Func("exclude", "", func(value string) error {
-		args.exclude = strings.Split(value, ",")
-		args.exclude = slices.DeleteFunc(args.exclude, func(value string) bool {
-			return value == ""
-		})
+		args.exclude = parseList(value)
 		return nil
 	})
 
