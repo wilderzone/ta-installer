@@ -58,15 +58,16 @@ func init() {
 }
 
 type arguments struct {
-	method  string
-	path    string
-	repo    string
-	name    string
-	include []string
-	exclude []string
-	machine bool
-	silent  bool
-	yes     bool
+	method    string
+	path      string
+	repo      string
+	name      string
+	include   []string
+	exclude   []string
+	shortcuts bool
+	machine   bool
+	silent    bool
+	yes       bool
 }
 
 // Write a usage summary to the given writer.
@@ -74,11 +75,12 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "Usage: tai <subcommand> [flags]\n\n")
 	fmt.Fprintf(w, "Subcommands:\n  %s\n\n", strings.Join(methods[:], ", "))
 	fmt.Fprint(w, "Flags:\n")
-	fmt.Fprint(w, "  --path=<path>  The installation directory.\n")
-	fmt.Fprint(w, "  --repo=<url>   The repository URL to download from.\n")
-	fmt.Fprint(w, "  -m             Output machine-readable JSON.\n")
-	fmt.Fprint(w, "  -s             Suppress all output.\n")
-	fmt.Fprint(w, "  -y             Skip confirmation prompts.\n")
+	fmt.Fprint(w, "  --path=<path>            The installation directory.\n")
+	fmt.Fprint(w, "  --repo=<url>             The repository URL to download from.\n")
+	fmt.Fprint(w, "  --shortcuts=true|false   Create Desktop and Start Menu shortcuts for the game (when installing).\n")
+	fmt.Fprint(w, "  -m                       Output machine-readable JSON.\n")
+	fmt.Fprint(w, "  -s                       Suppress all output.\n")
+	fmt.Fprint(w, "  -y                       Skip confirmation prompts.\n")
 }
 
 func GetArguments() (arguments, error) {
@@ -99,6 +101,7 @@ func GetArguments() (arguments, error) {
 	fs.StringVar(&args.path, "path", "", "")
 	fs.StringVar(&args.repo, "repo", "", "")
 	fs.StringVar(&args.name, "name", "", "")
+	fs.BoolVar(&args.shortcuts, "shortcuts", true, "")
 	fs.BoolVar(&args.machine, "m", false, "")
 	fs.BoolVar(&args.silent, "s", false, "")
 	fs.BoolVar(&args.yes, "y", false, "")

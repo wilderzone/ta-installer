@@ -95,6 +95,8 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
 - `RETRIEVING_MANIFEST`
+- `SHORTCUTS_CREATING`
+- `SHORTCUTS_SUCCESS`
 - `UNINSTALL_FAILURE`
 - `UNINSTALL_PARTIAL`
 - `UNINSTALL_SUCCESS`

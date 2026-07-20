@@ -117,6 +117,14 @@ func Install(logger *Logger, arguments arguments) error {
 	// Download and unpack assets.
 	failed := downloadAssets(logger, arguments, manifest.Assets, "Downloaded")
 
+	// Create shortcuts.
+	if arguments.shortcuts {
+		err := createShortcuts(logger, arguments.path)
+		if err != nil {
+			return userErrorf(err, "Failed to create shortcuts.")
+		}
+	}
+
 	// Install prerequisites.
 	err = Prerequisites(logger, arguments)
 	if err != nil {
