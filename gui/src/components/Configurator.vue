@@ -76,7 +76,7 @@ TAI.attach(onInfo, onError, onComplete);
 			:disabled="loading"
 			v-model="repo"
 		/>
-		<fieldset>
+		<fieldset class="borderless">
 			<legend>Action</legend>
 			<RadioRow
 				:disabled="loading"
@@ -131,6 +131,12 @@ TAI.attach(onInfo, onError, onComplete);
 fieldset:has(output) {
 	height: 100%;
 	min-height: 0;
+	margin-top: var(--gap);
+	padding-inline: var(--fieldset-inline-padding);
+
+	& legend {
+		padding-inline: 0;
+	}
 }
 
 output {
@@ -150,6 +156,7 @@ button.clear {
 	place-items: center;
 	width: 1.5em;
 	height: 1.5em;
+	min-height: 1.5em;
 	padding: 0;
 	color: var(--color-text);
 	font-size: 0.8rem;

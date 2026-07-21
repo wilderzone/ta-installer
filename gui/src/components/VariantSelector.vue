@@ -39,7 +39,7 @@ watch(model, () => {
 </script>
 
 <template>
-	<fieldset>
+	<fieldset class="borderless">
 		<legend>Variant</legend>
 		<RadioRow
 			:disabled

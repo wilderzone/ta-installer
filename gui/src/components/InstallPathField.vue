@@ -34,7 +34,7 @@ watch(() => props.refresh, () => void check());
 </script>
 
 <template>
-	<fieldset>
+	<fieldset class="borderless">
 		<legend>Install Path</legend>
 		<div class="row">
 			<input type="text" :disabled @change="check()" v-model="model">

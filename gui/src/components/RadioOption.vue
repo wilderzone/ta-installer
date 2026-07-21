@@ -83,7 +83,6 @@ function change(event: Event, value: string): void {
 
 	&:has(input:disabled) {
 		filter: grayscale(1);
-		/* pointer-events: none; */
 
 		&::before,
 		& span {

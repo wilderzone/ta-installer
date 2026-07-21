@@ -6,13 +6,13 @@
 	--color-border: #333;
 	--color-text: #ddd;
 	--color-text-dim: #bfbfbf;
-	--color-text-green: #4d0;
-	--color-text-red: #e40;
+	--color-text-green: #4c0;
+	--color-text-red: #f41;
 	--color-text-on-primary: #000;
 	--font-size: 14px;
 	--border-radius: 4px;
 	--body-padding: 12px;
-	--gap: 8px;
+	--gap: 10px;
 }
 
 * {
@@ -55,13 +55,17 @@ fieldset {
 	--fieldset-inline-padding: 0.75rem;
 	position: relative;
 	margin: 0;
-	padding-inline: var(--fieldset-inline-padding);
+	padding-inline: 0;
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius);
 
+	&.borderless {
+		border: unset;
+	}
+
 	& > p {
 		margin: 0;
-		padding: var(--gap) var(--border-radius) 0;
+		padding: calc(var(--gap) / 2) var(--fieldset-inline-padding) 0;
 		font-size: 0.8rem;
 		font-style: italic;
 
@@ -82,16 +86,19 @@ fieldset {
 legend {
 	color: var(--color-text-dim);
 	font-size: 0.9rem;
+	font-style: italic;
+	padding-inline: var(--fieldset-inline-padding);
 }
 
 button,
 input {
+	min-height: 28px;
 	padding: 0.2em 1ch;
 	border: 1px solid transparent;
 	border-radius: var(--border-radius);
 }
 
-button{
+button {
 	&[type="submit"] {
 		min-width: 10ch;
 		padding: 0.4em 0;
