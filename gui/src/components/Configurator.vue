@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { repository } from '../config.ts';
 import { type Action, DirectoryState, TAI } from '../tai';
 import LogLine from './LogLine.vue';
@@ -17,6 +17,44 @@ const refreshPath = ref(1);
 const repo = ref('vanilla');
 const progressMax = ref(0);
 const progressValue = ref(0);
+
+const installButtonDisabled = computed(() => {
+	switch (pathState.value) {
+		case DirectoryState.Valid:
+			return false;
+		case DirectoryState.Invalid:
+			return 'Select a valid installation path before installing.';
+		case DirectoryState.Installed:
+			return 'An installation is already present at the selected path.';
+	}
+});
+
+const verifyButtonDisabled = computed(() => {
+	switch (pathState.value) {
+		case DirectoryState.Installed:
+			return false;
+		default:
+			return 'You need to install the game before it can be verified.';
+	}
+});
+
+const updateButtonDisabled = computed(() => {
+	switch (pathState.value) {
+		case DirectoryState.Installed:
+			return false;
+		default:
+			return 'You need to install the game before it can be updated.';
+	}
+});
+
+const uninstallButtonDisabled = computed(() => {
+	switch (pathState.value) {
+		case DirectoryState.Installed:
+			return false;
+		default:
+			return 'You need to install the game before it can be uninstalled.';
+	}
+});
 
 function updateProgressBar(data: string | 0): void {
 	if (data === 0) {
@@ -48,7 +86,9 @@ function onPathUpdate(state: DirectoryState): void {
 	pathState.value = state;
 	switch (state) {
 		case DirectoryState.Installed:
-			action.value = 'verify';
+			if (action.value === 'install') {
+				action.value = 'verify';
+			}
 			break;
 		case DirectoryState.Valid:
 			action.value = 'install';
@@ -84,22 +124,22 @@ TAI.attach(onInfo, onError, onComplete);
 				v-model="action"
 			>
 				<RadioOption
-					:disabled="pathState !== DirectoryState.Valid"
+					:disabled="installButtonDisabled"
 					label="Install"
 					value="install"
 				/>
 				<RadioOption
-					:disabled="pathState !== DirectoryState.Installed"
+					:disabled="verifyButtonDisabled"
 					label="Verify"
 					value="verify"
 				/>
 				<RadioOption
-					:disabled="pathState !== DirectoryState.Installed"
+					:disabled="updateButtonDisabled"
 					label="Update"
 					value="update"
 				/>
 				<RadioOption
-					:disabled="pathState !== DirectoryState.Installed"
+					:disabled="uninstallButtonDisabled"
 					label="Uninstall"
 					value="uninstall"
 				/>
