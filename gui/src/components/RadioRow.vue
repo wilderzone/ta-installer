@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { provide } from 'vue';
+import { computed, provide } from 'vue';
 
 const props = defineProps<{ disabled: boolean, name: string }>();
 const model = defineModel<string>({ required: true });
 const hash = crypto.randomUUID();
+const disabled = computed(() => props.disabled);
+const name = computed(() => props.name);
 
 provide('radio-select', select);
 provide('radio-selected', model);
-provide('radio-disabled', props.disabled);
+provide('radio-disabled', disabled);
 provide('radio-hash', hash);
-provide('radio-name', props.name);
+provide('radio-name', name);
 
 function select(value: unknown): void {
 	if (typeof value === 'string') {

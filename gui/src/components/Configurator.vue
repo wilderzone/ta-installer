@@ -17,6 +17,7 @@ const refreshPath = ref(1);
 const repo = ref('vanilla');
 const progressMax = ref(0);
 const progressValue = ref(0);
+const isCustomRepo = computed(() => repo.value === 'custom');
 
 const installButtonDisabled = computed(() => {
 	switch (pathState.value) {
@@ -119,7 +120,7 @@ TAI.attach(onInfo, onError, onComplete);
 		<fieldset class="borderless">
 			<legend>Action</legend>
 			<RadioRow
-				:disabled="loading"
+				:disabled="loading || isCustomRepo"
 				name="action"
 				v-model="action"
 			>
@@ -160,7 +161,7 @@ TAI.attach(onInfo, onError, onComplete);
 			<ProgressBar :max="progressMax" :value="progressValue"/>
 			<button
 				type="submit"
-				:disabled="loading || pathState === DirectoryState.Invalid"
+				:disabled="loading || pathState === DirectoryState.Invalid || isCustomRepo"
 				@click="run()"
 			>{{ action }}</button>
 		</div>

@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { computed, inject, Ref } from 'vue';
 
 const props = defineProps<{ disabled?: boolean | string; label: string; value: string; }>();
 const selected = inject<string>('radio-selected');
 const select = inject<(value: string) => void>('radio-select');
-const disabled = inject<boolean>('radio-disabled');
+const disabled = inject<Ref<boolean>>('radio-disabled');
 const hash = inject<string>('radio-hash');
-const name = inject<string>('radio-name');
-const disabledMessage = computed(() => typeof props.disabled === 'string' ? props.disabled : undefined);
+const name = inject<Ref<string>>('radio-name');
+const disabledMessage = computed(() => {
+	const rowDisabled = disabled?.value;
+	if (typeof props.disabled === 'string' && !rowDisabled) {
+		return props.disabled;
+	} else {
+		return undefined
+	}
+});
 
 function change(event: Event, value: string): void {
 	const target = event.target;
