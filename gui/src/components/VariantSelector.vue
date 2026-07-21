@@ -13,6 +13,12 @@ const loading = ref(false);
 const isCustom = ref(false);
 const repositoryFound = ref(false);
 
+async function delay(duration: number): Promise<void> {
+	return new Promise(resolve => {
+		window.setTimeout(resolve, duration);
+	});
+}
+
 async function check(): Promise<void> {
 	nextTick(async () => {
 		if (model.value === 'custom') {
@@ -24,6 +30,7 @@ async function check(): Promise<void> {
 		loading.value = true;
 		const repo = model.value;
 		const found = await TAI.checkRepo(repository[repo]);
+		await delay(500);
 		if (repo === model.value) {
 			repositoryFound.value = found;
 			loading.value = false;
