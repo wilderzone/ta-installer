@@ -256,12 +256,20 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	// filter selects every asset).
 	toRemove := filterAssets(installed.Assets, arguments.remove, arguments.keep)
 	if filterProvided && len(toRemove) == 0 {
-		return userErrorf(nil, "No installed assets matched — nothing to uninstall.")
+		return userErrorf(nil, "No installed assets matched the provided filters. Nothing will be uninstalled.")
 	}
 
 	// If nothing would remain installed, remove the entire installation.
 	survivors := differenceByName(installed.Assets, toRemove)
-	if len(survivors) == 0 {
+	if filterProvided && len(survivors) == 0 {
+		logger.log(UNINSTALL_MATCHED_ALL)
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+		if proceed {
+			return removeInstallation(logger, arguments.path)
+		} else {
+			return userErrorf(nil, "Uninstall cancelled.")
+		}
+	} else if len(survivors) == 0 {
 		return removeInstallation(logger, arguments.path)
 	}
 

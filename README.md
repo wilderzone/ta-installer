@@ -115,6 +115,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
 - `UNINSTALL_FAILURE`
+- `UNINSTALL_MATCHED_ALL`
 - `UNINSTALL_PARTIAL`
 - `UNINSTALL_SUCCESS`
 - `UNINSTALLING`
