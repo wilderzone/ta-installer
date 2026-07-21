@@ -36,7 +36,7 @@ _`install` and `list` accept `--include` and `--exclude` lists of comma-separate
 | `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai.exe check-repo --repo=<url>`                           |
 | `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai.exe verify --path=<path> --repo=<url>`                 |
 | `update`           | Update an existing TA installation.                                                                                                                                  | `tai.exe update --path=<path> --repo=<url>`                 |
-| `uninstall`        | Remove a TA installation from the system.                                                                                                                            | `tai.exe uninstall --path=<path>`                           |
+| `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. A full uninstall also removes the Start Menu and Desktop shortcuts.                         | `tai.exe uninstall --path=<path> --remove=dlc`              |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai.exe manifest --path=<path>`                            |
 | `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
@@ -50,6 +50,8 @@ _`install` and `list` accept `--include` and `--exclude` lists of comma-separate
 | `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
 | `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets.                |
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets.              |
+| `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets.                                                                             |
+| `--keep`           | A comma-separated list of asset names or types.     | Uninstall everything except the provided assets.                                                                |
 | `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                                    |
 | `-s`               | _NA_                                                | Run silently.                                                                                                   |
 | `-y`               | _NA_                                                | Automatically approve prompts.                                                                                  |
@@ -110,6 +112,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REPO_NOT_FOUND`
 - `SHORTCUTS_CREATING`
 - `SHORTCUTS_FAILURE`
+- `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
 - `UNINSTALL_FAILURE`
 - `UNINSTALL_PARTIAL`

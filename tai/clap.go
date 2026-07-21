@@ -64,6 +64,8 @@ type arguments struct {
 	name      string
 	include   []string
 	exclude   []string
+	remove    []string
+	keep      []string
 	shortcuts bool
 	machine   bool
 	silent    bool
@@ -78,6 +80,8 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "  --path=<path>            The installation directory.\n")
 	fmt.Fprint(w, "  --repo=<url>             The repository URL to download from.\n")
 	fmt.Fprint(w, "  --shortcuts=true|false   Create Desktop and Start Menu shortcuts for the game (when installing).\n")
+	fmt.Fprint(w, "  --remove=<a,b,...>       Uninstall only these assets (by type or name).\n")
+	fmt.Fprint(w, "  --keep=<a,b,...>         Uninstall everything except these assets (by type or name).\n")
 	fmt.Fprint(w, "  -m                       Output machine-readable JSON.\n")
 	fmt.Fprint(w, "  -s                       Suppress all output.\n")
 	fmt.Fprint(w, "  -y                       Skip confirmation prompts.\n")
@@ -124,6 +128,14 @@ func GetArguments() (arguments, error) {
 	})
 	fs.Func("exclude", "", func(value string) error {
 		args.exclude = parseList(value)
+		return nil
+	})
+	fs.Func("remove", "", func(value string) error {
+		args.remove = parseList(value)
+		return nil
+	})
+	fs.Func("keep", "", func(value string) error {
+		args.keep = parseList(value)
 		return nil
 	})
 

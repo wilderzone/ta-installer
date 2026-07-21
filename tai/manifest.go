@@ -188,6 +188,22 @@ func intersectByName(available []Asset, installed []Asset) []Asset {
 	return result
 }
 
+// differenceByName returns the assets from `all` whose name is not among the
+// `removed` assets, preserving the order of `all`.
+func differenceByName(all []Asset, removed []Asset) []Asset {
+	names := make(map[string]bool, len(removed))
+	for _, asset := range removed {
+		names[asset.Name] = true
+	}
+	result := []Asset{}
+	for _, asset := range all {
+		if !names[asset.Name] {
+			result = append(result, asset)
+		}
+	}
+	return result
+}
+
 // mergeAssets returns the union of the already-installed `existing` assets and the
 // newly-installed `added` assets, keyed by name, so that repeated installs are
 // additive. For a name present in both, the `added` definition wins (it was just

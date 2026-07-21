@@ -72,6 +72,7 @@ var (
 	SHORTCUTS_CREATING        = LogLine{Type: "SHORTCUTS_CREATING", Message: "Creating shortcuts..."}
 	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. You may need to re-run the installer with admin permissions to create shortcuts."}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
+	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}
 	UNINSTALL_FAILURE         = LogLine{Type: "UNINSTALL_FAILURE", Message: "Failed to uninstall."}
 	UNINSTALL_PARTIAL         = LogLine{Type: "UNINSTALL_PARTIAL", Message: "Partially uninstalled. You may need to remove some files manually."}
 	UNINSTALL_SUCCESS         = LogLine{Type: "UNINSTALL_SUCCESS", Message: "Uninstalled."}

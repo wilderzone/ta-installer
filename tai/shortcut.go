@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,6 +11,41 @@ import (
 
 	"github.com/jxeng/shortcut"
 )
+
+// removeShortcuts deletes the shortcuts created by createShortcuts. It is
+// best-effort: shortcuts that are already gone are ignored, and it returns the
+// first real error so the caller can warn without aborting the uninstall.
+func removeShortcuts(root string) error {
+	var firstErr error
+	remove := func(path string) {
+		err := os.Remove(path)
+		if err != nil && !errors.Is(err, fs.ErrNotExist) && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	// The in-directory shortcut (may already be gone if the directory was cleared).
+	remove(filepath.Join(root, SHORTCUT_NAME))
+
+	// The Desktop shortcut.
+	if desktop, err := getSpecialFolder("Desktop"); err == nil {
+		remove(filepath.Join(desktop, SHORTCUT_NAME))
+	} else if firstErr == nil {
+		firstErr = err
+	}
+
+	// The Start Menu folder (removes the folder and the shortcut inside it).
+	if startMenu, err := getSpecialFolder("StartMenu"); err == nil {
+		err = os.RemoveAll(filepath.Join(startMenu, "Programs", SHORTCUT_DIRECTORY))
+		if err != nil && firstErr == nil {
+			firstErr = err
+		}
+	} else if firstErr == nil {
+		firstErr = err
+	}
+
+	return firstErr
+}
 
 // getSpecialFolder retrieves the real path for a given "Special Folder" in Windows.
 // For a list of all Special Folders see: https://learn.microsoft.com/en-us/dotnet/api/system.environment.specialfolder

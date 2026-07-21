@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"text/tabwriter"
 )
@@ -225,34 +226,95 @@ func List(logger *Logger, arguments arguments) error {
 
 // Handle the "uninstall" command.
 func Uninstall(logger *Logger, arguments arguments) error {
-	_, err := ReadManifest(logger, arguments.path)
+	filterProvided := len(arguments.remove) != 0 || len(arguments.keep) != 0
+
+	installed, err := ReadManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
 		// No manifest means no installation. This is an expected outcome.
 		logger.log(INSTALL_NOT_FOUND)
 		return nil
 	}
 	if err != nil {
-		// The manifest is present but unreadable. We can still remove the
-		// installation, but confirm first since we can't verify what we're deleting.
+		// The manifest is present but unreadable.
+		if filterProvided {
+			// A surgical uninstall needs the manifest to know which files to remove.
+			return userErrorf(err, "Can't remove a subset: the installation's manifest at %s is unreadable.", arguments.path)
+		}
+		// A full uninstall can still proceed, but confirm first.
 		logger.log(MANIFEST_UNREADABLE, fmt.Sprintf("The installation's manifest at %s couldn't be read.", arguments.path))
 		proceed := arguments.yes || logger.prompt(PROMPT_UNINSTALL_ANYWAY)
 		if !proceed {
 			return nil
 		}
+		return removeInstallation(logger, arguments.path)
 	}
 
+	// Determine which assets to remove. `--remove` maps to include and `--keep` to
+	// exclude, so filterAssets yields the delete-set for every combination (and no
+	// filter selects every asset).
+	toRemove := filterAssets(installed.Assets, arguments.remove, arguments.keep)
+	if filterProvided && len(toRemove) == 0 {
+		return userErrorf(nil, "No installed assets matched — nothing to uninstall.")
+	}
+
+	// If nothing would remain installed, remove the entire installation.
+	survivors := differenceByName(installed.Assets, toRemove)
+	if len(survivors) == 0 {
+		return removeInstallation(logger, arguments.path)
+	}
+
+	// Surgically remove only the selected assets' files.
+	logger.log(UNINSTALLING)
+	survivorFiles := assetFilePaths(arguments.path, survivors)
+	counter := logger.count(len(toRemove))
+	failed := 0
+	prune := map[string]bool{}
+	for _, asset := range toRemove {
+		message := asset.Name
+		err := removeAssetFiles(arguments.path, asset, survivorFiles, prune)
+		if err != nil {
+			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
+			failed += 1
+		} else {
+			message += ": " + logger.colour("Removed", GREEN)
+		}
+		counter.next(message)
+	}
+	pruneEmptyDirectories(arguments.path, prune)
+
+	// Rewrite the manifest so it reflects the assets that remain installed. Keep the
+	// existing version - the surviving assets are unchanged.
+	_, err = StoreManifest(Manifest{Assets: survivors, Version: installed.Version}, arguments.path)
+	if err != nil {
+		return userErrorf(err, "Removed the assets, but couldn't update the manifest at %s.", arguments.path)
+	}
+
+	if failed == len(toRemove) {
+		logger.log(UNINSTALL_FAILURE)
+	} else if failed != 0 {
+		logger.log(UNINSTALL_PARTIAL)
+	} else {
+		logger.log(UNINSTALL_SUCCESS)
+	}
+	return nil
+}
+
+// removeInstallation clears the entire install directory and the external
+// shortcuts. Used when no subset is requested, or when nothing would remain
+// installed after a filtered uninstall.
+func removeInstallation(logger *Logger, root string) error {
 	logger.log(UNINSTALLING)
 
 	// Remove all entries in the specified directory.
-	entries, err := os.ReadDir(arguments.path)
+	entries, err := os.ReadDir(root)
 	if err != nil {
-		return userErrorf(err, "Couldn't read the installation directory %s.", arguments.path)
+		return userErrorf(err, "Couldn't read the installation directory %s.", root)
 	}
 	counter := logger.count(len(entries))
 	failed := 0
 	for _, entry := range entries {
 		message := entry.Name()
-		path := filepath.Join(arguments.path, entry.Name())
+		path := filepath.Join(root, entry.Name())
 		err = os.RemoveAll(path)
 		if err != nil {
 			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
@@ -263,6 +325,11 @@ func Uninstall(logger *Logger, arguments arguments) error {
 		counter.next(message)
 	}
 
+	// Remove the external Start Menu and Desktop shortcuts (best-effort).
+	if err := removeShortcuts(root); err != nil {
+		logger.log(SHORTCUTS_REMOVE_FAILURE)
+	}
+
 	if failed == len(entries) {
 		logger.log(UNINSTALL_FAILURE)
 	} else if failed != 0 {
@@ -271,6 +338,58 @@ func Uninstall(logger *Logger, arguments arguments) error {
 		logger.log(UNINSTALL_SUCCESS)
 	}
 	return nil
+}
+
+// assetFilePaths returns the set of on-disk paths for every file in the given assets.
+func assetFilePaths(root string, assets []Asset) map[string]bool {
+	paths := map[string]bool{}
+	for _, asset := range assets {
+		for _, file := range asset.Files {
+			paths[filepath.Join(root, asset.Destination, file.File)] = true
+		}
+	}
+	return paths
+}
+
+// removeAssetFiles deletes an asset's files from disk, skipping any path still
+// owned by a surviving asset. Parent directories of removed files are recorded in
+// `prune` for later empty-directory cleanup. Returns the first error encountered.
+func removeAssetFiles(root string, asset Asset, keep map[string]bool, prune map[string]bool) error {
+	var firstErr error
+	for _, file := range asset.Files {
+		path := filepath.Join(root, asset.Destination, file.File)
+		if keep[path] {
+			continue // Shared with a surviving asset.
+		}
+		err := os.Remove(path)
+		if err != nil && !errors.Is(err, fs.ErrNotExist) && firstErr == nil {
+			firstErr = err
+		}
+		prune[filepath.Dir(path)] = true
+	}
+	return firstErr
+}
+
+// pruneEmptyDirectories removes now-empty directories (deepest first), climbing up
+// toward `root` but never removing `root` itself. Best-effort: a non-empty directory
+// fails os.Remove harmlessly and stops the climb.
+func pruneEmptyDirectories(root string, dirs map[string]bool) {
+	root = filepath.Clean(root)
+	ordered := make([]string, 0, len(dirs))
+	for dir := range dirs {
+		ordered = append(ordered, filepath.Clean(dir))
+	}
+	// Deepest paths first, so children are removed before their parents.
+	slices.SortFunc(ordered, func(a string, b string) int {
+		return len(b) - len(a)
+	})
+	for _, start := range ordered {
+		for dir := start; dir != root; dir = filepath.Dir(dir) {
+			if os.Remove(dir) != nil {
+				break
+			}
+		}
+	}
 }
 
 // Handle the "update" command.
