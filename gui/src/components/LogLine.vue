@@ -20,7 +20,9 @@ const message = computed(() => {
 
 <style scoped>
 .logline {
+	flex-shrink: 0;
 	margin: 0;
+	min-height: calc(1em + 2px);
 	padding: 2px var(--fieldset-inline-padding);
 	font-size: 0.8rem;
 

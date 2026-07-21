@@ -102,6 +102,10 @@ export class TAI {
 			args.push('-m');
 		}
 
+		if (TAI.log.value.length) {
+			TAI.log.value.unshift({ type: 'info', message: '' });
+		}
+
 		await spawn(args, (event) => {
 			if (event.type === 'stderr') {
 				if (!machineReadable) {
