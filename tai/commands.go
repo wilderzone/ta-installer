@@ -137,6 +137,8 @@ func Install(logger *Logger, arguments arguments) error {
 		return userErrorf(err, "Couldn't save the manifest to %s.", arguments.path)
 	}
 
+	logger.log(INSTALLING)
+
 	// Download and unpack the newly-selected subset.
 	failed := downloadAssets(logger, arguments, subset, "Downloaded")
 

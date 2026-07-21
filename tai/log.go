@@ -54,6 +54,7 @@ var (
 	INSTALL_SUCCESS           = LogLine{Type: "INSTALL_SUCCESS", Message: "Installed."}
 	INSTALL_UP_TO_DATE        = LogLine{Type: "INSTALL_UP_TO_DATE", Message: ""}
 	INSTALL_VERIFIED          = LogLine{Type: "INSTALL_VERIFIED", Message: "Installation verified."}
+	INSTALLING                = LogLine{Type: "INSTALLING", Message: "Installing..."}
 	MANIFEST_CONTENTS         = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED          = LogLine{Type: "MANIFEST_CREATED", Message: ""}
 	MANIFEST_UNREADABLE       = LogLine{Type: "MANIFEST_UNREADABLE", Message: ""}
