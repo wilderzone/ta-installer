@@ -40,7 +40,7 @@ watch(model, () => {
 
 <template>
 	<fieldset class="borderless">
-		<legend>Variant</legend>
+		<legend>Game Type</legend>
 		<RadioRow
 			:disabled
 			name="variant"
@@ -61,8 +61,8 @@ watch(model, () => {
 		</RadioRow>
 		<p v-if="loading" class="grey">Checking...</p>
 		<p v-else-if="isCustom" class="grey">To install a custom variant, please follow the <a :href="repository.custom" target="_blank" rel="noreferrer">TAI CLI instructions</a>.</p>
-		<p v-else-if="repositoryFound" class="green">Repository found.</p>
-		<p v-else-if="!repositoryFound" class="red">Repository not found. Please check your internet connection.</p>
+		<p v-else-if="repositoryFound" class="green">Game files available.</p>
+		<p v-else-if="!repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
 	</fieldset>
 </template>
 
