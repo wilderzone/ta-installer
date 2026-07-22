@@ -52,7 +52,8 @@ func GenerateAssetFile(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't write the asset file at %s.", path)
 	}
-	logger.log(ASSET_CREATED, "Created asset containing", len(asset.Files), logger.plural(len(asset.Files), "file: ", "files: "), path)
+	message := fmt.Sprintf("Created asset containing %d %s: %s", len(asset.Files), logger.plural(len(asset.Files), "file", "files"), path)
+	logger.log(ASSET_CREATED, message)
 	return nil
 }
 
@@ -74,7 +75,8 @@ func GenerateManifestFile(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't write the manifest file at %s.", path)
 	}
-	logger.log(MANIFEST_CREATED, "Created manifest containing", len(manifest.Assets), logger.plural(len(manifest.Assets), "asset: ", "assets: "), path)
+	message := fmt.Sprintf("Created manifest containing %d %s: %s", len(manifest.Assets), logger.plural(len(manifest.Assets), "asset", "assets"), path)
+	logger.log(MANIFEST_CREATED, message)
 	return nil
 }
 
