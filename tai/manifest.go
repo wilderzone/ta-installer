@@ -20,15 +20,20 @@ const (
 
 type Asset struct {
 	// The unique name of the asset.
-	Name        string    `json:"name"`
+	Name         string    `json:"name"`
 	// The asset type.
-	Type        AssetType `json:"type"`
+	Type         AssetType `json:"type"`
 	// The location of the asset's remote source.
-	Source      string    `json:"source"`
+	Source       string    `json:"source"`
 	// The location of the asset's local destination.
-	Destination string    `json:"destination"`
+	Destination  string    `json:"destination"`
+	// The names of any other assets that this asset depends on.
+	Dependencies []string  `json:"dependencies"`
+	// Whether this asset was installed to satisfy another asset's dependency, rather
+	// than being asked for directly. Only ever set in a local manifest.
+	Automatic    bool      `json:"automatic,omitempty"`
 	// The files contained within the asset.
-	Files       []File    `json:"files"`
+	Files        []File    `json:"files"`
 }
 
 type File struct {
@@ -47,6 +52,7 @@ type Manifest struct {
 func CreateAsset(path string, name string) (Asset, error) {
 	asset := Asset{}
 	asset.Name = name
+	asset.Dependencies = []string{}
 
 	f := os.DirFS(path)
 	err := fs.WalkDir(f, ".", func(path string, entry fs.DirEntry, err error) error {
@@ -151,21 +157,22 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 	return manifest, nil
 }
 
-// filterAssets returns the assets that satisfy the include/exclude terms. A term
-// matches an asset by its type (e.g. "dlc") or its exact name (e.g. "Foo Bar").
-// Include is applied first (an empty include list means "include all"), then
-// exclude. Matching is case-sensitive.
+// matchesTerms reports whether any of the given filter terms matches the asset, by
+// its type (e.g. "dlc") or its exact name (e.g. "Foo Bar"). Matching is case-sensitive.
+func matchesTerms(asset Asset, terms []string) bool {
+	return slices.Contains(terms, string(asset.Type)) || slices.Contains(terms, asset.Name)
+}
+
+// filterAssets returns the assets that satisfy the include/exclude terms. Include is
+// applied first (an empty include list means "include all"), then exclude.
 func filterAssets(assets []Asset, include []string, exclude []string) []Asset {
 	if len(include) == 0 && len(exclude) == 0 {
 		return assets
 	}
-	matches := func(asset Asset, terms []string) bool {
-		return slices.Contains(terms, string(asset.Type)) || slices.Contains(terms, asset.Name)
-	}
 	filtered := []Asset{}
 	for _, asset := range assets {
-		included := len(include) == 0 || matches(asset, include)
-		if included && !matches(asset, exclude) {
+		included := len(include) == 0 || matchesTerms(asset, include)
+		if included && !matchesTerms(asset, exclude) {
 			filtered = append(filtered, asset)
 		}
 	}
@@ -231,6 +238,38 @@ func mergeAssets(existing []Asset, added []Asset) []Asset {
 		}
 	}
 	return merged
+}
+
+// applyAutomatic stamps the `Automatic` flag onto each asset, returning a new slice.
+// An asset named in `explicit` was asked for directly, so it is never automatic (which
+// also promotes an asset that was previously pulled in as a dependency); an asset
+// already recorded in `previous` keeps the flag it had; anything else is new and only
+// present to satisfy a dependency.
+//
+// Repository manifests never carry the flag, and mergeAssets lets the freshly
+// downloaded definition win, so it has to be re-applied whenever the local manifest is
+// rewritten.
+func applyAutomatic(assets []Asset, explicit []Asset, previous []Asset) []Asset {
+	requested := make(map[string]bool, len(explicit))
+	for _, asset := range explicit {
+		requested[asset.Name] = true
+	}
+	installed := make(map[string]bool, len(previous))
+	for _, asset := range previous {
+		installed[asset.Name] = asset.Automatic
+	}
+
+	stamped := make([]Asset, 0, len(assets))
+	for _, asset := range assets {
+		if requested[asset.Name] {
+			asset.Automatic = false
+		} else {
+			automatic, known := installed[asset.Name]
+			asset.Automatic = !known || automatic
+		}
+		stamped = append(stamped, asset)
+	}
+	return stamped
 }
 
 // Save a manifest file to disk.

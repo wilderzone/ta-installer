@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"text/tabwriter"
 )
@@ -63,6 +64,11 @@ func GenerateManifestFile(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't read the asset files in %s to build the manifest.", arguments.path)
 	}
+	// Catch a broken dependency graph here, rather than mid-install.
+	err = validateDependencies(manifest.Assets)
+	if err != nil {
+		return userErrorf(err, "The asset files in %s have a dependency problem: %s", arguments.path, err.Error())
+	}
 	path := filepath.Join(arguments.path, MANIFEST_NAME)
 	file, err := os.Create(path)
 	if err != nil {
@@ -113,25 +119,49 @@ func CheckRepo(logger *Logger, arguments arguments) error {
 func Install(logger *Logger, arguments arguments) error {
 	manifest, err := GetManifest(logger, arguments.repo)
 	if err != nil {
-		return userErrorf(err, "Couldn't download the game files from %s. Check your connection and that the repository URL is correct.", arguments.repo)
+		return userErrorf(err, "Couldn't download the game files from %s. Check your internet connection and that the repository URL is correct.", arguments.repo)
 	}
 
-	// Determine the subset of assets to install.
-	subset := filterAssets(manifest.Assets, arguments.include, arguments.exclude)
-	if len(subset) == 0 {
+	// Determine the filtered subset of assets.
+	explicit := filterAssets(manifest.Assets, arguments.include, arguments.exclude)
+	if len(explicit) == 0 {
 		return userErrorf(nil, "No assets matched the given filter.")
+	}
+
+	// Pull in the dependencies of those assets.
+	closure, err := resolveDependencies(manifest.Assets, explicit)
+	if err != nil {
+		return userErrorf(err, "The repository at %s lists assets that can't be installed together. Please report this to the repository's maintainer.", arguments.repo)
+	}
+	required := differenceByName(closure, explicit)
+
+	// `--include` only under-specifies the selection, so missing dependencies are added
+	// to it. `--exclude` is the user explicitly ruling an asset out, so silently
+	// installing it anyway would be wrong.
+	for _, asset := range required {
+		if matchesTerms(asset, arguments.exclude) {
+			return userErrorf(nil, "Can't install %q: it requires %q, which --exclude omits. Remove %q from --exclude to continue.", dependentOf(closure, asset.Name), asset.Name, asset.Name)
+		}
+	}
+	if len(required) != 0 {
+		logger.log(INSTALLING_DEPENDENCIES, assetNames(required))
 	}
 
 	// Merge with any existing installation so repeated installs are additive.
 	// Keep the existing (older) version so a later `update` still reconciles every
 	// asset; a fresh install adopts the remote version.
+	// Only trust the existing manifest if it read cleanly - a half-decoded one would
+	// misreport both what is installed and how it got there.
 	existing, existErr := ReadManifest(logger, arguments.path)
+	installed := []Asset{}
 	if existErr == nil {
-		manifest.Assets = mergeAssets(existing.Assets, subset)
+		installed = existing.Assets
+		manifest.Assets = mergeAssets(installed, closure)
 		manifest.Version = min(existing.Version, manifest.Version)
 	} else {
-		manifest.Assets = subset
+		manifest.Assets = closure
 	}
+	manifest.Assets = applyAutomatic(manifest.Assets, explicit, installed)
 
 	// Persist the manifest before downloading, so an interrupted install is still recognised.
 	_, err = StoreManifest(manifest, arguments.path)
@@ -141,7 +171,24 @@ func Install(logger *Logger, arguments arguments) error {
 
 	logger.log(INSTALLING)
 
-	// Download and unpack the newly-selected subset.
+	// Download the selected assets, plus any dependency that isn't installed yet. An
+	// already-installed dependency is left alone - reinstalling it could mean
+	// re-downloading the entire game just to add a small asset, and repairing a damaged
+	// asset is `verify`'s job.
+	requested := make(map[string]bool, len(explicit))
+	for _, asset := range explicit {
+		requested[asset.Name] = true
+	}
+	present := make(map[string]bool, len(installed))
+	for _, asset := range installed {
+		present[asset.Name] = true
+	}
+	subset := []Asset{}
+	for _, asset := range closure {
+		if requested[asset.Name] || !present[asset.Name] {
+			subset = append(subset, asset)
+		}
+	}
 	failed := downloadAssets(logger, arguments, subset, "Downloaded")
 
 	// Create the logs directory.
@@ -217,10 +264,10 @@ func List(logger *Logger, arguments arguments) error {
 	} else {
 		fmt.Printf("Version: v%d\n", manifest.Version)
 		w := tabwriter.NewWriter(os.Stdout, 1, 1, 3, ' ', 0)
-		fmt.Fprint(w, "Name\tType\tFiles\t\n")
-		fmt.Fprint(w, "----\t----\t-----\t\n")
+		fmt.Fprint(w, "Name\tType\tFiles\tRequires\t\n")
+		fmt.Fprint(w, "----\t----\t-----\t--------\t\n")
 		for _, asset := range manifest.Assets {
-			fmt.Fprintf(w, "%s\t%s\t%d\t\n", asset.Name, asset.Type, len(asset.Files))
+			fmt.Fprintf(w, "%s\t%s\t%d\t%s\t\n", asset.Name, asset.Type, len(asset.Files), strings.Join(asset.Dependencies, ", "))
 		}
 		w.Flush()
 	}
@@ -256,23 +303,49 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	// Determine which assets to remove. `--remove` maps to include and `--keep` to
 	// exclude, so filterAssets yields the delete-set for every combination (and no
 	// filter selects every asset).
-	toRemove := filterAssets(installed.Assets, arguments.remove, arguments.keep)
+	// Clone the result: with no filter, filterAssets returns its input, and the appends
+	// below would otherwise write through to the manifest's own assets.
+	toRemove := slices.Clone(filterAssets(installed.Assets, arguments.remove, arguments.keep))
 	if filterProvided && len(toRemove) == 0 {
 		return userErrorf(nil, "No installed assets matched the provided filters. Nothing will be uninstalled.")
 	}
 
+	// An asset left without something it depends on wouldn't work, so anything that
+	// requires a removed asset has to be removed as well.
+	dependents := dependentsOf(installed.Assets, toRemove)
+	toRemove = append(toRemove, dependents...)
+
+	// Assets that were only installed to satisfy a dependency are pruned once nothing
+	// needs them any more.
+	survivors, orphans := pruneOrphans(differenceByName(installed.Assets, toRemove))
+	toRemove = append(toRemove, orphans...)
+
+	if len(dependents) != 0 {
+		logger.log(UNINSTALL_DEPENDENTS, assetNames(dependents))
+	}
+	if len(orphans) != 0 {
+		logger.log(UNINSTALL_ORPHANS, assetNames(orphans))
+	}
+
 	// If nothing would remain installed, remove the entire installation.
-	survivors := differenceByName(installed.Assets, toRemove)
-	if filterProvided && len(survivors) == 0 {
-		logger.log(UNINSTALL_MATCHED_ALL)
+	if len(survivors) == 0 {
+		if filterProvided {
+			logger.log(UNINSTALL_MATCHED_ALL)
+			proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+			if !proceed {
+				return userErrorf(nil, "Uninstall cancelled.")
+			}
+		}
+		return removeInstallation(logger, arguments.path)
+	}
+
+	// Confirm before removing assets the filters didn't name. Orphaned dependencies
+	// aren't confirmed - they were TAI's own doing, not the user's.
+	if len(dependents) != 0 {
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
-		if proceed {
-			return removeInstallation(logger, arguments.path)
-		} else {
+		if !proceed {
 			return userErrorf(nil, "Uninstall cancelled.")
 		}
-	} else if len(survivors) == 0 {
-		return removeInstallation(logger, arguments.path)
 	}
 
 	// Surgically remove only the selected assets' files.
@@ -432,8 +505,16 @@ func Update(logger *Logger, arguments arguments) error {
 	logger.log(UPDATE_FOUND, fmt.Sprintf("%s → %s\n", old, new))
 
 	// Restrict the update to the assets that are actually installed, so a subset
-	// install is not re-expanded to the full catalogue.
-	remoteManifest.Assets = intersectByName(remoteManifest.Assets, localManifest.Assets)
+	// install is not re-expanded to the full catalogue. Resolving from there picks up
+	// any dependency the new version has added, which would otherwise leave the
+	// installation broken. The flags have to be re-applied because the remote manifest
+	// doesn't carry them.
+	installedAssets := intersectByName(remoteManifest.Assets, localManifest.Assets)
+	closure, err := resolveDependencies(remoteManifest.Assets, installedAssets)
+	if err != nil {
+		return userErrorf(err, "The repository at %s lists assets that can't be installed together. Please report this to the repository's maintainer.", arguments.repo)
+	}
+	remoteManifest.Assets = applyAutomatic(closure, explicitAssets(localManifest.Assets), localManifest.Assets)
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := StoreManifest(remoteManifest, arguments.path)

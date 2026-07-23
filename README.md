@@ -27,16 +27,17 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 ### Subcommands
 _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
 _Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._  
-_`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Map Pack"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._
+_`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Map Pack"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._  
+_Assets can depend on other assets, and TAI manages those relationships for you: `install` also installs whatever the selected assets require, and `uninstall` also removes assets that are no longer required. See [Dependencies](#dependencies) for more information._
 
 | Subcommand         | Description                                                                                                                                                          | Example                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
-| `install`          | Download and install TA into the given directory. Install a subset of assets with `--include`/`--exclude` (see above).                                               | `tai.exe install --path=<path> --exclude=dlc`               |
+| `install`          | Download and install TA into the given directory. Install a subset of assets with `--include`/`--exclude` (see above). Any assets the selection requires are installed too. | `tai.exe install --path=<path> --exclude=dlc`               |
 | `check`            | Check for an existing installation in the given directory.                                                                                                           | `tai.exe check --path=<path>`                               |
 | `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai.exe check-repo --repo=<url>`                           |
 | `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai.exe verify --path=<path> --repo=<url>`                 |
 | `update`           | Update an existing TA installation.                                                                                                                                  | `tai.exe update --path=<path> --repo=<url>`                 |
-| `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. A full uninstall also removes the Start Menu and Desktop shortcuts.                         | `tai.exe uninstall --path=<path> --remove=dlc`              |
+| `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai.exe uninstall --path=<path> --remove=dlc`              |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai.exe manifest --path=<path>`                            |
 | `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
@@ -48,13 +49,39 @@ _`install` and `list` accept `--include` and `--exclude` lists of comma-separate
 | `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.                        |
 | `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                                 |
 | `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
-| `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets.                |
-| `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets.              |
-| `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets.                                                                             |
+| `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets. Assets that the provided assets require are installed as well. |
+| `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
+| `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
 | `--keep`           | A comma-separated list of asset names or types.     | Uninstall everything except the provided assets.                                                                |
 | `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                                    |
 | `-s`               | _NA_                                                | Run silently.                                                                                                   |
 | `-y`               | _NA_                                                | Automatically approve prompts.                                                                                  |
+
+
+### Dependencies
+
+Some assets don't function until other assets are present. An asset file declares this in
+its `dependencies` array, which holds the exact names of the assets it requires:
+
+```json
+{
+	"name": "Arx Novena",
+	"type": "dlc",
+	"dependencies": ["Core", "Map Textures"],
+	...
+}
+```
+
+The `manifest` subcommand validates these relationships when a repository is built, so a
+misspelled name or a circular dependency is caught before the manifest is published.
+
+TAI resolves the graph automatically:
+- `install` also installs everything the selected assets require. A required asset that is already installed is left alone rather than downloaded again.
+- Because `--exclude` is an explicit instruction, excluding an asset that the selection requires raises an error, instead of silently overriding.
+- `uninstall` also removes anything that requires the assets being removed, after asking for confirmation.
+- `uninstall` then prunes assets that TAI installed only to satisfy a dependency, if they are no longer required. Assets that were asked for by name, and foundational `core` and `prerequisite` assets, are never pruned this way.
+
+The local `manifest.json` records this by marking dependency-installed assets with `"automatic": true` (repository manifests don't carry this field).
 
 
 ### Output
@@ -98,6 +125,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `INSTALL_UP_TO_DATE`
 - `INSTALL_VERIFIED`
 - `INSTALLING`
+- `INSTALLING_DEPENDENCIES`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
 - `MANIFEST_UNREADABLE`
@@ -107,6 +135,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `PREREQUISITES_INSTALLING`
 - `PREREQUISITES_REQUIRED`
 - `PROMPT_PROCEED`
+- `PROMPT_REMOVE_DEPENDENTS`
 - `PROMPT_UNINSTALL_ANYWAY`
 - `READING_LOCAL_MANIFEST`
 - `READING_MANIFEST_FAILED`
@@ -117,8 +146,10 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
+- `UNINSTALL_DEPENDENTS`
 - `UNINSTALL_FAILURE`
 - `UNINSTALL_MATCHED_ALL`
+- `UNINSTALL_ORPHANS`
 - `UNINSTALL_PARTIAL`
 - `UNINSTALL_SUCCESS`
 - `UNINSTALLING`
