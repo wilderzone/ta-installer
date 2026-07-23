@@ -32,15 +32,15 @@ _Assets can depend on other assets, and TAI manages those relationships for you:
 
 | Subcommand         | Description                                                                                                                                                          | Example                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
-| `install`          | Download and install TA into the given directory. Install a subset of assets with `--include`/`--exclude` (see above). Any assets the selection requires are installed too. | `tai.exe install --path=<path> --exclude=dlc`               |
-| `check`            | Check for an existing installation in the given directory.                                                                                                           | `tai.exe check --path=<path>`                               |
-| `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai.exe check-repo --repo=<url>`                           |
-| `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai.exe verify --path=<path> --repo=<url>`                 |
-| `update`           | Update an existing TA installation.                                                                                                                                  | `tai.exe update --path=<path> --repo=<url>`                 |
-| `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai.exe uninstall --path=<path> --remove=dlc`              |
-| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai.exe asset --path=<path> --name=<name>`                 |
-| `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai.exe manifest --path=<path>`                            |
-| `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai.exe list --path=<path>` or `tai.exe list --repo=<url>` |
+| `install`          | Download and install TA into the given directory. Install a subset of assets with `--include`/`--exclude` (see above). Any assets the selection requires are installed too. | `tai-cli.exe install --path=<path> --exclude=dlc`               |
+| `check`            | Check for an existing installation in the given directory.                                                                                                           | `tai-cli.exe check --path=<path>`                               |
+| `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai-cli.exe check-repo --repo=<url>`                           |
+| `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai-cli.exe verify --path=<path> --repo=<url>`                 |
+| `update`           | Update an existing TA installation.                                                                                                                                  | `tai-cli.exe update --path=<path> --repo=<url>`                 |
+| `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai-cli.exe uninstall --path=<path> --remove=dlc`              |
+| `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai-cli.exe asset --path=<path> --name=<name>`                 |
+| `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai-cli.exe manifest --path=<path>`                            |
+| `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai-cli.exe list --path=<path>` or `tai-cli.exe list --repo=<url>` |
 
 
 ### Flags
@@ -88,7 +88,7 @@ The local `manifest.json` records this by marking dependency-installed assets wi
 
 By default, TAI will print human-readable output to the console. For example:
 ```
-> tai.exe verify --path="G:/tribes"
+> tai-cli.exe verify --path="G:/tribes"
 
 Reading local manifest from: G:\tribes\manifest.json
 [1/34] Prerequisites: Verified
@@ -99,7 +99,7 @@ Reading local manifest from: G:\tribes\manifest.json
 
 Passing the `-m` flag will instruct TAI to output machine-readable JSON instead. For example:
 ```
-> tai.exe verify -m --path="G:/tribes"
+> tai-cli.exe verify -m --path="G:/tribes"
 
 {"type":"READING_LOCAL_MANIFEST","message":"Reading local manifest from: G:\\tribes\\manifest.json"}
 {"type":"PROGRESS","index":1,"total":34,"message":"Prerequisites: Verified"}
