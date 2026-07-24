@@ -94,8 +94,9 @@ Reading local manifest from: G:\tribes\manifest.json
 [1/34] Prerequisites: Verified
 [2/34] Core: Verified
 [3/34] Engine: Verified
-...
+⠋ [3/34] Verifying...
 ```
+While a slow step is running, an animated spinner is shown on the last line, so it's clear that TAI is still working during long pauses. It is only drawn when the output is an interactive terminal; when the output is piped or redirected, or when `-m` or `-s` is passed, it is omitted entirely.
 
 Passing the `-m` flag will instruct TAI to output machine-readable JSON instead. For example:
 ```

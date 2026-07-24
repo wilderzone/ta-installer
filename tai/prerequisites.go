@@ -25,7 +25,9 @@ func Prerequisites(logger *Logger, arguments arguments) error {
 
 	// Download the prerequisites asset.
 	logger.log(PREREQUISITES_DOWNLOADING)
+	spinner := logger.spin("")
 	err := Download(arguments.repo, arguments.path, PREREQUISITES)
+	spinner.stop()
 	if err != nil {
 		return userErrorf(err, "Couldn't install the DirectX 9 package.")
 	}

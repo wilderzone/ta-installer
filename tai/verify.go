@@ -107,7 +107,8 @@ func describe(results []FileResult) string {
 // re-downloaded. `damagedLabel` is the word shown for a damaged asset
 // (e.g. "Damaged" for verify, "Needs patching" for update).
 func checkAssets(logger *Logger, root string, manifest Manifest, damagedLabel string) []Asset {
-	counter := logger.count(len(manifest.Assets))
+	counter := logger.count(len(manifest.Assets), "Verifying")
+	defer counter.done()
 	var mu sync.Mutex
 	damaged := []Asset{}
 

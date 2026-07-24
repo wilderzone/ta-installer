@@ -16,7 +16,8 @@ import (
 // downloadAssets downloads and unpacks each asset concurrently, logging per-asset
 // progress with the given success label, and returns the assets that failed.
 func downloadAssets(logger *Logger, arguments arguments, assets []Asset, successLabel string) []Asset {
-	counter := logger.count(len(assets))
+	counter := logger.count(len(assets), "Downloading")
+	defer counter.done()
 	var mu sync.Mutex
 	failed := []Asset{}
 	parallel(assets, DOWNLOAD_CONCURRENCY, func(asset Asset) {
@@ -351,7 +352,8 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	// Surgically remove only the selected assets' files.
 	logger.log(UNINSTALLING)
 	survivorFiles := assetFilePaths(arguments.path, survivors)
-	counter := logger.count(len(toRemove))
+	counter := logger.count(len(toRemove), "Removing")
+	defer counter.done()
 	failed := 0
 	prune := map[string]bool{}
 	for _, asset := range toRemove {
@@ -395,7 +397,8 @@ func removeInstallation(logger *Logger, root string) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't read the installation directory %s.", root)
 	}
-	counter := logger.count(len(entries))
+	counter := logger.count(len(entries), "Removing")
+	defer counter.done()
 	failed := 0
 	for _, entry := range entries {
 		message := entry.Name()
