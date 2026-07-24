@@ -172,6 +172,12 @@ func Install(logger *Logger, arguments arguments) error {
 
 	logger.log(INSTALLING)
 
+	// Download the installation utilities.
+	err = DownloadInstallationUtilities(logger, arguments)
+	if err != nil {
+		return userErrorf(err, "Couldn't download the installation utilities package. Uninstalling the game via the Windows Settings menu or Control Panel may not be possible.")
+	}
+
 	// Download the selected assets, plus any dependency that isn't installed yet. An
 	// already-installed dependency is left alone - reinstalling it could mean
 	// re-downloading the entire game just to add a small asset, and repairing a damaged

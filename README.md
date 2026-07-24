@@ -158,5 +158,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UPDATE_FOUND`
 - `UPDATE_PARTIAL`
 - `UPDATE_SUCCESS`
+- `UTILITIES_SUCCESS`
 - `PROGRESS`
 </details>
