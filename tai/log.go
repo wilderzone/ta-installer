@@ -118,6 +118,7 @@ var (
 	UPDATE_FOUND              = LogLine{Type: "UPDATE_FOUND", Message: "Update found:"}
 	UPDATE_PARTIAL            = LogLine{Type: "UPDATE_PARTIAL", Message: "Partially updated. You may need to run the \"verify\" command."}
 	UPDATE_SUCCESS            = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
+	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't download the installation utilities package. Uninstalling the game via the Windows Settings menu or Control Panel may not be possible."}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
 	PROGRESS                  = LogLine{Type: "PROGRESS", Index: 0, Total: 0, Message: ""}
 	ERROR                     = LogLine{Type: "ERROR", Message: ""}

@@ -170,13 +170,14 @@ func Install(logger *Logger, arguments arguments) error {
 		return userErrorf(err, "Couldn't save the manifest to %s.", arguments.path)
 	}
 
-	logger.log(INSTALLING)
-
 	// Download the installation utilities.
 	err = DownloadInstallationUtilities(logger, arguments)
 	if err != nil {
-		return userErrorf(err, "Couldn't download the installation utilities package. Uninstalling the game via the Windows Settings menu or Control Panel may not be possible.")
+		// Installation utilities are non-essential, so shouldn't throw an actual error.
+		logger.log(UTILITIES_FAILURE)
 	}
+
+	logger.log(INSTALLING)
 
 	// Download the selected assets, plus any dependency that isn't installed yet. An
 	// already-installed dependency is left alone - reinstalling it could mean

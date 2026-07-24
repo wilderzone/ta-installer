@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"path/filepath"
+
+	"github.com/jxeng/shortcut"
 )
 
 func DownloadInstallationUtilities(logger *Logger, arguments arguments) error {
@@ -16,6 +19,12 @@ func DownloadInstallationUtilities(logger *Logger, arguments arguments) error {
 	spinner.stop()
 	if err != nil {
 		return err
+	}
+
+	// Create a shortcut in the root directory for convenience.
+	err = createUninstallShortcut(arguments.path)
+	if err != nil {
+		return fmt.Errorf("create uninstall shortcut: %w", err)
 	}
 
 	// TODO: Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
@@ -34,4 +43,28 @@ func installationUtilitiesAreMissing(arguments arguments) bool {
 	}
 
 	return false
+}
+
+func createUninstallShortcut(root string) error {
+	cwd := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY)
+	target := filepath.Join(cwd, "uninstall.exe")
+	path := filepath.Join(root, "Uninstall.lnk")
+
+	sc := shortcut.Shortcut{
+		ShortcutPath:     path,
+		Target:           target,
+		IconLocation:     "%SystemRoot%\\System32\\SHELL32.dll,2",
+		Arguments:        "",
+		Description:      "Uninstall Tribes: Ascend",
+		Hotkey:           "",
+		WindowStyle:      "1",
+		WorkingDirectory: cwd,
+	}
+
+	err := shortcut.Create(sc)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
