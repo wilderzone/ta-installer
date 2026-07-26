@@ -2,6 +2,7 @@ package main
 
 const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
 const MANIFEST_NAME = "manifest.json"
+const PRODUCT_NAME = "Tribes: Ascend"
 const SHORTCUT_ARGUMENTS = "-hostx=18.197.240.229 -abslog=%q"
 const SHORTCUT_DESCRIPTION = "Tribes: Ascend"
 const SHORTCUT_DIRECTORY = "Tribes Ascend"
@@ -11,7 +12,6 @@ const INSTALLATION_UTILITIES_DIRECTORY = "Installer"
 const LOGS_DIRECTORY = "Logs"
 const TEMP_DIRECTORY = "Temp"
 const UNINSTALLER_REGISTRY_PATH = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Tribes Ascend`
-const UNINSTALLER_DISPLAY_NAME = "Tribes: Ascend"
 const UNINSTALLER_DISPLAY_VERSION = "0.1.0"
 const UNINSTALLER_ABOUT_LINK = "https://github.com/wilderzone/ta-installer"
 const UNINSTALLER_HELP_LINK = "https://github.com/wilderzone/ta-installer"
@@ -30,11 +30,12 @@ var INSTALLATION_UTILITIES = Asset{
 	Destination: "/Installer",
 	Files: []File{
 		{
-			Checksum: "651dc1d9186cc2ce4a6dd2d36b22a44318e85e52a4825dd2e0b6d592757e2e27",
+			// TODO: Resolve this cyclic dependency.
+			Checksum: "0271954e372627dd96f357ef84467f579634c95c150fcb9c353cf2764e9c5c12",
 			File: "tai-cli.exe",
 		},
 		{
-			Checksum: "5fa6d0694c007b848584d622b045ede3b3af459cf6dfd5abdd53c7ab2d680de4",
+			Checksum: "dcbcdb8096e08237996145083c2462ef820987465887abda1016acfd24640230",
 			File: "uninstall.exe",
 		},
 		{

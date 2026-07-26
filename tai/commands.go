@@ -347,10 +347,11 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	if len(survivors) == 0 {
 		if filterProvided {
 			logger.log(UNINSTALL_MATCHED_ALL)
-			proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
-			if !proceed {
-				return userErrorf(nil, "Uninstall cancelled.")
-			}
+		}
+		logger.log(UNINSTALL_EVERYTHING)
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+		if !proceed {
+			return userErrorf(nil, "Uninstall cancelled.")
 		}
 		return removeInstallation(logger, arguments.path)
 	}

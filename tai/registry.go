@@ -27,7 +27,7 @@ func addUninstallerToRegistry(root string) error {
 		return err
 	}
 
-	err = key.SetStringValue("DisplayName", UNINSTALLER_DISPLAY_NAME)
+	err = key.SetStringValue("DisplayName", PRODUCT_NAME)
 	if err != nil {
 		return err
 	}

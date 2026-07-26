@@ -108,6 +108,7 @@ var (
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
 	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}
 	UNINSTALL_DEPENDENTS      = LogLine{Type: "UNINSTALL_DEPENDENTS", Message: "Uninstalling the selected assets will also remove these assets:"}
+	UNINSTALL_EVERYTHING      = LogLine{Type: "UNINSTALL_EVERYTHING", Message: fmt.Sprintf("Are you sure you want to uninstall %s?", PRODUCT_NAME)}
 	UNINSTALL_FAILURE         = LogLine{Type: "UNINSTALL_FAILURE", Message: "Failed to uninstall."}
 	UNINSTALL_MATCHED_ALL     = LogLine{Type: "UNINSTALL_MATCHED_ALL", Message: "The provided filters match all assets. This will remove the entire installation."}
 	UNINSTALL_ORPHANS         = LogLine{Type: "UNINSTALL_ORPHANS", Message: "Also removing assets that are no longer needed:"}

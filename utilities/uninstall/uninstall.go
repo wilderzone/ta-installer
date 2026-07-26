@@ -59,6 +59,8 @@ func run() int {
 	// Stream the CLI's output straight to this console so progress appears live and errors are shown.
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
+	// Connect the console's keyboard input too, so the user can answer any prompts the CLI raises.
+	command.Stdin = os.Stdin
 	err = command.Run()
 	if err != nil {
 		return 1
