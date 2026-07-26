@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,6 +11,10 @@ import (
 
 const CLI_EXE = "tai-cli.exe"
 const MANIFEST = "manifest.json"
+
+type arguments struct {
+	silent    bool
+}
 
 func main() {
 	// Always pause before exiting, so the window stays open long enough for the user
@@ -22,6 +28,16 @@ func main() {
 // run does the work and returns a process exit code. It never calls os.Exit itself, so
 // every path back to main() goes through the pause.
 func run() int {
+	// Parse command-line arguments.
+	args := arguments{}
+	fs := flag.NewFlagSet("uninstall", flag.ContinueOnError)
+	fs.SetOutput(io.Discard) // Errors are surfaced to the caller instead.
+	fs.BoolVar(&args.silent, "s", false, "")
+	err := fs.Parse(os.Args[1:])
+	if err != nil {
+		return 1
+	}
+
 	// Get the path to this executable.
 	exePath, err := os.Executable()
 	if err != nil {
@@ -53,9 +69,16 @@ func run() int {
 	}
 	fmt.Println("Game found.")
 
-	// No %q: exec.Command passes each argument straight to the process without a shell,
-	// so quoting would be taken as part of the path.
-	command := exec.Command(cli, "uninstall", "-y", "--path=" + game)
+	// Using `+` instead of `%q`: exec.Command passes each argument straight to the
+	// process without a shell, so quoting would be taken as part of the path.
+	arguments := []string{
+		"uninstall",
+		"--path=" + game,
+	}
+	if args.silent {
+		arguments = append(arguments, "-s")
+	}
+	command := exec.Command(cli, arguments...)
 	// Stream the CLI's output straight to this console so progress appears live and errors are shown.
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
