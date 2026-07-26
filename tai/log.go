@@ -111,7 +111,7 @@ var (
 	UNINSTALL_FAILURE         = LogLine{Type: "UNINSTALL_FAILURE", Message: "Failed to uninstall."}
 	UNINSTALL_MATCHED_ALL     = LogLine{Type: "UNINSTALL_MATCHED_ALL", Message: "The provided filters match all assets. This will remove the entire installation."}
 	UNINSTALL_ORPHANS         = LogLine{Type: "UNINSTALL_ORPHANS", Message: "Also removing assets that are no longer needed:"}
-	UNINSTALL_PARTIAL         = LogLine{Type: "UNINSTALL_PARTIAL", Message: "Partially uninstalled. You may need to remove some files manually."}
+	UNINSTALL_PARTIAL         = LogLine{Type: "UNINSTALL_PARTIAL", Message: "Partially uninstalled. You may need to manually remove some files from:"}
 	UNINSTALL_SUCCESS         = LogLine{Type: "UNINSTALL_SUCCESS", Message: "Uninstalled."}
 	UNINSTALLING              = LogLine{Type: "UNINSTALLING", Message: "Uninstalling..."}
 	UPDATE_FAILURE            = LogLine{Type: "UPDATE_FAILURE", Message: "Update failed."}

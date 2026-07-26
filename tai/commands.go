@@ -390,7 +390,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 		logger.log(UNINSTALL_FAILURE)
 	} else if failed != 0 {
 		removeUninstallerFromRegistry()
-		logger.log(UNINSTALL_PARTIAL)
+		logger.log(UNINSTALL_PARTIAL, arguments.path)
 	} else {
 		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_SUCCESS)
@@ -434,7 +434,7 @@ func removeInstallation(logger *Logger, root string) error {
 		logger.log(UNINSTALL_FAILURE)
 	} else if failed != 0 {
 		removeUninstallerFromRegistry()
-		logger.log(UNINSTALL_PARTIAL)
+		logger.log(UNINSTALL_PARTIAL, root)
 	} else {
 		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_SUCCESS)
