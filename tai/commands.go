@@ -171,8 +171,8 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Download the installation utilities.
-	err = DownloadInstallationUtilities(logger, arguments)
-	if err != nil {
+	utilitiesErr := DownloadInstallationUtilities(logger, arguments)
+	if utilitiesErr != nil {
 		// Installation utilities are non-essential, so shouldn't throw an actual error.
 		logger.log(UTILITIES_FAILURE)
 	} else {
@@ -218,6 +218,11 @@ func Install(logger *Logger, arguments arguments) error {
 	err = Prerequisites(logger, arguments)
 	if err != nil {
 		return userErrorOr(err, "The game files were installed, but DirectX 9 couldn't be installed. The game may not start until DirectX 9 is present.")
+	}
+
+	// Recalculate the size of the installation.
+	if utilitiesErr == nil {
+		addUninstallerToRegistry(arguments.path)
 	}
 
 	if len(failed) == len(subset) {
