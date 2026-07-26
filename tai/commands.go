@@ -305,7 +305,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 		// The manifest is present but unreadable.
 		if filterProvided {
 			// A surgical uninstall needs the manifest to know which files to remove.
-			return userErrorf(err, "Can't remove a subset: the installation's manifest at %s is unreadable.", arguments.path)
+			return userErrorf(err, "Can't remove a subset of the installed assets: the installation's manifest at %s is unreadable.", arguments.path)
 		}
 		// A full uninstall can still proceed, but confirm first.
 		logger.log(MANIFEST_UNREADABLE, fmt.Sprintf("The installation's manifest at %s couldn't be read.", arguments.path))
