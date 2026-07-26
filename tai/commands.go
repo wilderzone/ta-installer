@@ -181,9 +181,11 @@ func Install(logger *Logger, arguments arguments) error {
 	if utilitiesErr != nil {
 		// Installation utilities are non-essential, so shouldn't throw an actual error.
 		logger.log(UTILITIES_FAILURE)
+		logger.detail("download installation utilities", utilitiesErr)
 	} else {
 		// Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
-		addUninstallerToRegistry(arguments.path)
+		err := addUninstallerToRegistry(arguments.path)
+		logger.detail("add uninstaller to registry", err)
 	}
 
 	logger.log(INSTALLING)
@@ -218,6 +220,7 @@ func Install(logger *Logger, arguments arguments) error {
 	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
 	if err != nil && arguments.shortcuts {
 		logger.log(SHORTCUTS_FAILURE)
+		logger.detail("create shortcuts", err)
 	}
 
 	// Install prerequisites.
@@ -228,7 +231,8 @@ func Install(logger *Logger, arguments arguments) error {
 
 	// Recalculate the size of the installation.
 	if utilitiesErr == nil {
-		addUninstallerToRegistry(arguments.path)
+		err := addUninstallerToRegistry(arguments.path)
+		logger.detail("add uninstaller to registry", err)
 	}
 
 	if len(failed) == len(subset) {
@@ -401,10 +405,12 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	if failed == len(toRemove) {
 		logger.log(UNINSTALL_FAILURE)
 	} else if failed != 0 {
-		removeUninstallerFromRegistry()
+		err := removeUninstallerFromRegistry()
+		logger.detail("remove uninstaller from registry", err)
 		logger.log(UNINSTALL_PARTIAL, arguments.path)
 	} else {
-		removeUninstallerFromRegistry()
+		err := removeUninstallerFromRegistry()
+		logger.detail("remove uninstaller from registry", err)
 		logger.log(UNINSTALL_SUCCESS)
 	}
 	return nil
@@ -455,15 +461,18 @@ func removeInstallation(logger *Logger, root string) error {
 	// Remove the external Start Menu and Desktop shortcuts (best-effort).
 	if err := removeShortcuts(root); err != nil {
 		logger.log(SHORTCUTS_REMOVE_FAILURE)
+		logger.detail("remove shortcuts", err)
 	}
 
 	if failed == 0 {
-		removeUninstallerFromRegistry()
+		err := removeUninstallerFromRegistry()
+		logger.detail("remove uninstaller from registry", err)
 		logger.log(UNINSTALL_SUCCESS)
 	} else if failed == len(targets) {
 		logger.log(UNINSTALL_FAILURE)
 	} else {
-		removeUninstallerFromRegistry()
+		err := removeUninstallerFromRegistry()
+		logger.detail("remove uninstaller from registry", err)
 		logger.log(UNINSTALL_PARTIAL, root)
 	}
 	return nil
@@ -600,7 +609,8 @@ func Update(logger *Logger, arguments arguments) error {
 		logger.log(UPDATE_PARTIAL)
 	} else {
 		// Update the uninstaller's Registry entry.
-		addUninstallerToRegistry(arguments.path)
+		err := addUninstallerToRegistry(arguments.path)
+		logger.detail("add uninstaller to registry", err)
 		logger.log(UPDATE_SUCCESS)
 	}
 	return nil
@@ -630,7 +640,8 @@ func Verify(logger *Logger, arguments arguments) error {
 				return userErrorf(nil, "Some assets couldn't be re-downloaded. Run `verify` again to retry.")
 			} else {
 				// Update the uninstaller's Registry entry.
-				addUninstallerToRegistry(arguments.path)
+				err := addUninstallerToRegistry(arguments.path)
+				logger.detail("add uninstaller to registry", err)
 			}
 		}
 	}

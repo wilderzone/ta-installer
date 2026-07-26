@@ -53,6 +53,9 @@ func Prerequisites(logger *Logger, arguments arguments) error {
 	// such as 3010 (success, reboot required).
 	prerequisite2 := filepath.Join(arguments.path, TEMP_DIRECTORY, "dx", "DXSETUP.exe")
 	setupErr := runElevated(prerequisite2, "/silent")
+	// The exit code is only a hint (see above), so this error is otherwise dropped when the
+	// runtime turns out to be present. Surface it for debugging regardless.
+	logger.detail("directx 9 setup", setupErr)
 
 	// Confirm the runtime the game actually needs is present.
 	d3dExists = fileExists(d3dx9Path)

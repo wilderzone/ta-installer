@@ -54,6 +54,7 @@ type LogLine struct {
 type Logger struct {
 	machine bool
 	silent  bool
+	verbose bool
 	// mu serialises writes to stdout, so spinner frames are never interleaved
 	// with log lines. It also guards the spinner's own fields.
 	mu      sync.Mutex
@@ -256,6 +257,20 @@ func (l *Logger) error(message ...any) {
 	fmt.Fprintln(os.Stderr, message...)
 }
 
+// detail surfaces an otherwise-swallowed error on stderr, but only in verbose (-v) mode.
+// The regular codepaths deliberately hide these (eg, a failed best-effort step) so this
+// is the escape hatch when debugging, without cluttering normal output. A nil error is
+// tolerated, so a best-effort call can be wrapped directly at the point it's ignored:
+//
+//	logger.detail("add uninstaller to registry", addUninstallerToRegistry(path))
+func (l *Logger) detail(context string, err error) {
+	if err == nil || !l.verbose {
+		return
+	}
+	l.stopSpinner() // Keep the diagnostic line from fighting the spinner.
+	l.error(l.colour(context + ": " + err.Error(), GREY))
+}
+
 // fail renders a top-level error for the user. It is the single place where
 // errors are turned into user-facing output. Errors always go to stderr, keeping
 // stdout clean for data and progress logs.
@@ -275,6 +290,13 @@ func (l *Logger) fail(err error) {
 		l.error(l.colour(userError.Message, RED))
 	} else {
 		l.error(l.colour("Something went wrong: ", RED) + err.Error())
+	}
+
+	// In verbose mode, reveal the technical cause that the friendly message hides.
+	if l.verbose {
+		if cause := errors.Unwrap(err); cause != nil {
+			l.error(l.colour("cause: " + cause.Error(), GREY))
+		}
 	}
 }
 

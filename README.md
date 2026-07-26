@@ -55,6 +55,7 @@ _Assets can depend on other assets, and TAI manages those relationships for you:
 | `--keep`           | A comma-separated list of asset names or types.     | Uninstall everything except the provided assets.                                                                |
 | `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                                    |
 | `-s`               | _NA_                                                | Run silently.                                                                                                   |
+| `-v`               | _NA_                                                | Enable verbose logging of otherwise-hidden errors (such as failed best-effort steps) to stderr, for debugging.  |
 | `-y`               | _NA_                                                | Automatically approve prompts.                                                                                  |
 
 

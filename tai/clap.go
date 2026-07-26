@@ -69,6 +69,7 @@ type arguments struct {
 	shortcuts bool
 	machine   bool
 	silent    bool
+	verbose   bool
 	yes       bool
 }
 
@@ -86,6 +87,7 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "  --keep=<a,b,...>         Uninstall everything except these assets (by type or name).\n")
 	fmt.Fprint(w, "  -m                       Output machine-readable JSON.\n")
 	fmt.Fprint(w, "  -s                       Suppress all output.\n")
+	fmt.Fprint(w, "  -v                       Enable verbose logging of otherwise-hidden errors, for debugging.\n")
 	fmt.Fprint(w, "  -y                       Skip confirmation prompts.\n")
 }
 
@@ -123,6 +125,7 @@ func GetArguments() (arguments, error) {
 	fs.BoolVar(&args.shortcuts, "shortcuts", true, "")
 	fs.BoolVar(&args.machine, "m", false, "")
 	fs.BoolVar(&args.silent, "s", false, "")
+	fs.BoolVar(&args.verbose, "v", false, "")
 	fs.BoolVar(&args.yes, "y", false, "")
 	fs.Func("include", "", func(value string) error {
 		args.include = parseList(value)
