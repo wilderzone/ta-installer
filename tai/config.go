@@ -10,6 +10,13 @@ const LOG_NAME = "log.txt"
 const INSTALLATION_UTILITIES_DIRECTORY = "Installer"
 const LOGS_DIRECTORY = "Logs"
 const TEMP_DIRECTORY = "Temp"
+const UNINSTALLER_REGISTRY_PATH = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Tribes Ascend`
+const UNINSTALLER_DISPLAY_NAME = "Tribes: Ascend"
+const UNINSTALLER_DISPLAY_VERSION = "0.1.0"
+const UNINSTALLER_ABOUT_LINK = "https://github.com/wilderzone/ta-installer"
+const UNINSTALLER_HELP_LINK = "https://github.com/wilderzone/ta-installer"
+const UNINSTALLER_UPDATES_LINK = "https://github.com/wilderzone/ta-installer/releases"
+const UNINSTALLER_PUBLISHER = "Wilderzone"
 
 // Maximum number of assets to process concurrently. Downloads are network-bound
 // (kept modest to avoid hammering the CDN); verification is disk/CPU-bound.

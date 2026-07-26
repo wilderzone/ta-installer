@@ -27,8 +27,6 @@ func DownloadInstallationUtilities(logger *Logger, arguments arguments) error {
 		return fmt.Errorf("create uninstall shortcut: %w", err)
 	}
 
-	// TODO: Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
-
 	logger.log(UTILITIES_SUCCESS)
 	return nil
 }

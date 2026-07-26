@@ -175,6 +175,9 @@ func Install(logger *Logger, arguments arguments) error {
 	if err != nil {
 		// Installation utilities are non-essential, so shouldn't throw an actual error.
 		logger.log(UTILITIES_FAILURE)
+	} else {
+		// Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
+		addUninstallerToRegistry(arguments.path)
 	}
 
 	logger.log(INSTALLING)
@@ -386,8 +389,10 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	if failed == len(toRemove) {
 		logger.log(UNINSTALL_FAILURE)
 	} else if failed != 0 {
+		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_PARTIAL)
 	} else {
+		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_SUCCESS)
 	}
 	return nil
@@ -428,8 +433,10 @@ func removeInstallation(logger *Logger, root string) error {
 	if failed == len(entries) {
 		logger.log(UNINSTALL_FAILURE)
 	} else if failed != 0 {
+		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_PARTIAL)
 	} else {
+		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_SUCCESS)
 	}
 	return nil
@@ -507,7 +514,6 @@ func Update(logger *Logger, arguments arguments) error {
 	if localManifest.Version >= remoteManifest.Version {
 		version := logger.colour(fmt.Sprintf("v%d", localManifest.Version), GREEN)
 		logger.log(INSTALL_UP_TO_DATE, "Installation is up to date: " + version)
-		
 		return nil
 	}
 	old := logger.colour(fmt.Sprintf("v%d", localManifest.Version), RED)
@@ -547,6 +553,8 @@ func Update(logger *Logger, arguments arguments) error {
 	} else if len(failed) != 0 {
 		logger.log(UPDATE_PARTIAL)
 	} else {
+		// Update the uninstaller's Registry entry.
+		addUninstallerToRegistry(arguments.path)
 		logger.log(UPDATE_SUCCESS)
 	}
 	return nil
@@ -574,6 +582,9 @@ func Verify(logger *Logger, arguments arguments) error {
 			failed := downloadAssets(logger, arguments, damaged, "Downloaded")
 			if len(failed) != 0 {
 				return userErrorf(nil, "Some assets couldn't be re-downloaded. Run `verify` again to retry.")
+			} else {
+				// Update the uninstaller's Registry entry.
+				addUninstallerToRegistry(arguments.path)
 			}
 		}
 	}
