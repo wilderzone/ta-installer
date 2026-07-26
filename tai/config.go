@@ -31,7 +31,7 @@ var INSTALLATION_UTILITIES = Asset{
 	Files: []File{
 		{
 			Checksum: "651dc1d9186cc2ce4a6dd2d36b22a44318e85e52a4825dd2e0b6d592757e2e27",
-			File: "tai.exe",
+			File: "tai-cli.exe",
 		},
 		{
 			Checksum: "5fa6d0694c007b848584d622b045ede3b3af459cf6dfd5abdd53c7ab2d680de4",
