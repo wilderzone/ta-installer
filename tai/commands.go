@@ -148,6 +148,12 @@ func Install(logger *Logger, arguments arguments) error {
 		logger.log(INSTALLING_DEPENDENCIES, assetNames(required))
 	}
 
+	// Create the installation directory, if it doesn't already exist.
+	err = os.MkdirAll(arguments.path, os.FileMode(0755))
+	if err != nil {
+		return userErrorf(err, "Couldn't create the target directory %s.", arguments.path)
+	}
+
 	// Merge with any existing installation so repeated installs are additive.
 	// Keep the existing (older) version so a later `update` still reconciles every
 	// asset; a fresh install adopts the remote version.
