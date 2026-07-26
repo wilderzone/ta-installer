@@ -35,7 +35,7 @@ var INSTALLATION_UTILITIES = Asset{
 			File: "tai-cli.exe",
 		},
 		{
-			Checksum: "d18f4d87c48ab1a6ecdd6e2aa0e2fbc6cedc6d694092926a92efcbbcf5505cb5",
+			Checksum: "fcd747532c87e874bb93addc46c84133ab9aba3c573c4cade74913cccc0d0dfa",
 			File: "uninstall.exe",
 		},
 		{

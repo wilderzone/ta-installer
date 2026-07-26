@@ -415,10 +415,25 @@ func removeInstallation(logger *Logger, root string) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't read the installation directory %s.", root)
 	}
-	counter := logger.count(len(entries), "Removing")
+
+	// When the running CLI lives inside the installation's own utilities directory - as it
+	// does when launched by the bundled uninstaller - Windows won't let it delete that
+	// directory, because the CLI's own image is locked. Skip it and let the external
+	// uninstaller remove it once this process exits. Run from anywhere else (such as the
+	// GUI's temp copy), the directory is deleted along with everything else.
+	skipUtilities := runningInsideUtilities(root)
+	targets := make([]os.DirEntry, 0, len(entries))
+	for _, entry := range entries {
+		if skipUtilities && entry.Name() == INSTALLATION_UTILITIES_DIRECTORY {
+			continue
+		}
+		targets = append(targets, entry)
+	}
+
+	counter := logger.count(len(targets), "Removing")
 	defer counter.done()
 	failed := 0
-	for _, entry := range entries {
+	for _, entry := range targets {
 		message := entry.Name()
 		path := filepath.Join(root, entry.Name())
 		err = os.RemoveAll(path)
@@ -436,16 +451,35 @@ func removeInstallation(logger *Logger, root string) error {
 		logger.log(SHORTCUTS_REMOVE_FAILURE)
 	}
 
-	if failed == len(entries) {
-		logger.log(UNINSTALL_FAILURE)
-	} else if failed != 0 {
-		removeUninstallerFromRegistry()
-		logger.log(UNINSTALL_PARTIAL, root)
-	} else {
+	if failed == 0 {
 		removeUninstallerFromRegistry()
 		logger.log(UNINSTALL_SUCCESS)
+	} else if failed == len(targets) {
+		logger.log(UNINSTALL_FAILURE)
+	} else {
+		removeUninstallerFromRegistry()
+		logger.log(UNINSTALL_PARTIAL, root)
 	}
 	return nil
+}
+
+// runningInsideUtilities reports whether the currently running executable lives directly
+// inside the installation's utilities directory. When it does, the CLI can't delete that
+// directory, so removeInstallation leaves it for the external uninstaller to clean up.
+func runningInsideUtilities(root string) bool {
+	self, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	if resolved, err := filepath.EvalSymlinks(self); err == nil {
+		self = resolved
+	}
+	utilities := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY)
+	if resolved, err := filepath.EvalSymlinks(utilities); err == nil {
+		utilities = resolved
+	}
+	// Compare case-insensitively: Windows paths aren't case-sensitive.
+	return strings.EqualFold(filepath.Dir(self), utilities)
 }
 
 // assetFilePaths returns the set of on-disk paths for every file in the given assets.
