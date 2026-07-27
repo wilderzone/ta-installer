@@ -8,7 +8,7 @@ import (
 
 // Handle the "install" command.
 func Install(logger *Logger, arguments arguments) error {
-	manifest, err := GetManifest(logger, arguments.repo)
+	manifest, err := getManifest(logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't download the game files from %s. Check your internet connection and that the repository URL is correct.", arguments.repo)
 	}
@@ -49,7 +49,7 @@ func Install(logger *Logger, arguments arguments) error {
 	// asset; a fresh install adopts the remote version.
 	// Only trust the existing manifest if it read cleanly - a half-decoded one would
 	// misreport both what is installed and how it got there.
-	existing, existErr := ReadManifest(logger, arguments.path)
+	existing, existErr := readManifest(logger, arguments.path)
 	installed := []Asset{}
 	if existErr == nil {
 		installed = existing.Assets
@@ -61,13 +61,13 @@ func Install(logger *Logger, arguments arguments) error {
 	manifest.Assets = applyAutomatic(manifest.Assets, explicit, installed)
 
 	// Persist the manifest before downloading, so an interrupted install is still recognised.
-	_, err = StoreManifest(manifest, arguments.path)
+	_, err = storeManifest(manifest, arguments.path)
 	if err != nil {
 		return userErrorf(err, "Couldn't save the manifest to %s.", arguments.path)
 	}
 
 	// Download the installation utilities.
-	utilitiesErr := DownloadInstallationUtilities(logger, arguments)
+	utilitiesErr := downloadInstallationUtilities(logger, arguments)
 	if utilitiesErr != nil {
 		// Installation utilities are non-essential, so shouldn't throw an actual error.
 		logger.log(UTILITIES_FAILURE)
@@ -120,7 +120,7 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Install prerequisites.
-	err = Prerequisites(logger, arguments)
+	err = prerequisites(logger, arguments)
 	if err != nil {
 		return userErrorOr(err, "The game files were installed, but DirectX 9 couldn't be installed. The game may not start until DirectX 9 is present.")
 	}

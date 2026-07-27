@@ -7,7 +7,7 @@ import (
 
 // Handle the "check" command.
 func Check(logger *Logger, arguments arguments) error {
-	_, err := ReadManifest(logger, arguments.path)
+	_, err := readManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
 		// No manifest means no installation. This is an expected outcome.
 		logger.log(INSTALL_NOT_FOUND)
@@ -24,7 +24,7 @@ func Check(logger *Logger, arguments arguments) error {
 
 // Handle the "check-repo" command.
 func CheckRepo(logger *Logger, arguments arguments) error {
-	_, err := GetManifest(logger, arguments.repo)
+	_, err := getManifest(logger, arguments.repo)
 	if err != nil {
 		logger.log(REPO_NOT_FOUND)
 		return nil

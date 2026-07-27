@@ -10,14 +10,14 @@ import (
 func Update(logger *Logger, arguments arguments) error {
 	logger.log(CHECKING_FOR_UPDATES)
 
-	localManifest, err := ReadManifest(logger, arguments.path)
+	localManifest, err := readManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
 		return userErrorf(err, "No installation found at %s. Run `install` first.", arguments.path)
 	}
 	if err != nil {
 		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
 	}
-	remoteManifest, err := GetManifest(logger, arguments.repo)
+	remoteManifest, err := getManifest(logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't check for updates from %s. Check your connection and that the repository URL is correct.", arguments.repo)
 	}
@@ -45,7 +45,7 @@ func Update(logger *Logger, arguments arguments) error {
 	remoteManifest.Assets = applyAutomatic(closure, explicitAssets(localManifest.Assets), localManifest.Assets)
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
-	manifest, err := StoreManifest(remoteManifest, arguments.path)
+	manifest, err := storeManifest(remoteManifest, arguments.path)
 	if err != nil {
 		return userErrorf(err, "Couldn't save the updated manifest to %s.", arguments.path)
 	}

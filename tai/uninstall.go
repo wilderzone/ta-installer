@@ -14,7 +14,7 @@ import (
 func Uninstall(logger *Logger, arguments arguments) error {
 	filterProvided := len(arguments.remove) != 0 || len(arguments.keep) != 0
 
-	installed, err := ReadManifest(logger, arguments.path)
+	installed, err := readManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
 		// No manifest means no installation. This is an expected outcome.
 		logger.log(INSTALL_NOT_FOUND)
@@ -106,7 +106,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 
 	// Rewrite the manifest so it reflects the assets that remain installed. Keep the
 	// existing version - the surviving assets are unchanged.
-	_, err = StoreManifest(Manifest{Assets: survivors, Version: installed.Version}, arguments.path)
+	_, err = storeManifest(Manifest{Assets: survivors, Version: installed.Version}, arguments.path)
 	if err != nil {
 		return userErrorf(err, "Removed the assets, but couldn't update the manifest at %s.", arguments.path)
 	}

@@ -22,7 +22,7 @@ func downloadAssets(logger *Logger, arguments arguments, assets []Asset, success
 	failed := []Asset{}
 	parallel(assets, DOWNLOAD_CONCURRENCY, func(asset Asset) {
 		message := asset.Name
-		err := Download(arguments.repo, arguments.path, asset)
+		err := download(arguments.repo, arguments.path, asset)
 		if err != nil {
 			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
 			mu.Lock()
@@ -48,7 +48,7 @@ func fileExists(filename string) bool {
 	return false 
 }
 
-func Download(repo string, root string, asset Asset) error {
+func download(repo string, root string, asset Asset) error {
 	// Download the asset into the temp directory.
 	tempDirectory := filepath.Join(root, TEMP_DIRECTORY)
 	err := os.MkdirAll(tempDirectory, os.FileMode(0777))
@@ -82,7 +82,7 @@ func Download(repo string, root string, asset Asset) error {
 	}
 
 	// Unpack the downloaded file into the destination directory.
-	err = Unpack(root, fileName, asset)
+	err = unpack(root, fileName, asset)
 	if err != nil {
 		return fmt.Errorf("unpack %s: %w", asset.Name, err)
 	}
@@ -94,7 +94,7 @@ func Download(repo string, root string, asset Asset) error {
 	return nil
 }
 
-func Unpack(root string, archivePath string, asset Asset) error {
+func unpack(root string, archivePath string, asset Asset) error {
 	destination := filepath.Join(root, asset.Destination)
 	err := os.MkdirAll(destination, os.FileMode(0777))
 	if err != nil {

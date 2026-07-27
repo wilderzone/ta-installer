@@ -21,7 +21,7 @@ func List(logger *Logger, arguments arguments) error {
 
 	if len(arguments.path) != 0 {
 		// List manifest assets in the specified directory.
-		manifest, err = ReadManifest(logger, arguments.path)
+		manifest, err = readManifest(logger, arguments.path)
 		if errors.Is(err, fs.ErrNotExist) {
 			logger.log(INSTALL_NOT_FOUND)
 			return nil
@@ -31,7 +31,7 @@ func List(logger *Logger, arguments arguments) error {
 		}
 	} else if len(arguments.repo) != 0 {
 		// List manifest assets in the specified repo.
-		manifest, err = GetManifest(logger, arguments.repo)
+		manifest, err = getManifest(logger, arguments.repo)
 		if err != nil {
 			logger.log(REPO_NOT_FOUND)
 			return nil

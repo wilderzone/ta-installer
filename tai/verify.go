@@ -15,7 +15,7 @@ import (
 
 // Handle the "verify" command.
 func Verify(logger *Logger, arguments arguments) error {
-	manifest, err := ReadManifest(logger, arguments.path)
+	manifest, err := readManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
 		return userErrorf(err, "No installation found at %s to verify.", arguments.path)
 	}
@@ -51,9 +51,9 @@ func Verify(logger *Logger, arguments arguments) error {
 	return nil
 }
 
-// ChecksumReader streams r through SHA256 and returns the hex-encoded digest,
+// checksumReader streams r through SHA256 and returns the hex-encoded digest,
 // without buffering the whole input in memory.
-func ChecksumReader(r io.Reader) (string, error) {
+func checksumReader(r io.Reader) (string, error) {
 	hash := sha256.New()
 	if _, err := io.Copy(hash, r); err != nil {
 		return "", err
@@ -61,15 +61,15 @@ func ChecksumReader(r io.Reader) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
-// ChecksumFile returns the SHA256 digest of the file at path, streaming it
+// checksumFile returns the SHA256 digest of the file at path, streaming it
 // rather than reading it entirely into memory.
-func ChecksumFile(path string) (string, error) {
+func checksumFile(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
-	return ChecksumReader(file)
+	return checksumReader(file)
 }
 
 // FileState describes the outcome of verifying a single file against the manifest.
@@ -98,7 +98,7 @@ func verifyAsset(root string, asset Asset) []FileResult {
 
 	for _, entry := range asset.Files {
 		path := filepath.Join(root, asset.Destination, entry.File)
-		checksum, err := ChecksumFile(path)
+		checksum, err := checksumFile(path)
 		switch {
 		case errors.Is(err, fs.ErrNotExist):
 			results = append(results, FileResult{File: entry, State: FileMissing})

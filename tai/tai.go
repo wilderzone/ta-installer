@@ -6,14 +6,14 @@ import (
 )
 
 func main() {
-	arguments, err := GetArguments()
+	arguments, err := getArguments()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		usage(os.Stderr)
 		os.Exit(1)
 	}
 
-	err = ValidateArguments(&arguments)
+	err = validateArguments(&arguments)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)

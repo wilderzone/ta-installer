@@ -49,7 +49,7 @@ type Manifest struct {
 }
 
 // Create a manifest asset from a given directory.
-func CreateAsset(path string, name string) (Asset, error) {
+func createAsset(path string, name string) (Asset, error) {
 	asset := Asset{}
 	asset.Name = name
 	asset.Dependencies = []string{}
@@ -66,7 +66,7 @@ func CreateAsset(path string, name string) (Asset, error) {
 				return err
 			}
 			defer source.Close()
-			checksum, err := ChecksumReader(source)
+			checksum, err := checksumReader(source)
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,7 @@ func CreateAsset(path string, name string) (Asset, error) {
 }
 
 // Create a manifest file from a given collection of asset files.
-func CreateManifest(path string) (Manifest, error) {
+func createManifest(path string) (Manifest, error) {
 	manifest := Manifest{}
 	manifest.Version = 0
 
@@ -112,7 +112,7 @@ func CreateManifest(path string) (Manifest, error) {
 }
 
 // Read the content of the local manifest file.
-func ReadManifest(logger *Logger, root string) (Manifest, error) {
+func readManifest(logger *Logger, root string) (Manifest, error) {
 	manifest := Manifest{}
 	source := filepath.Join(root, MANIFEST_NAME)
 	logger.log(READING_LOCAL_MANIFEST, source)
@@ -132,7 +132,7 @@ func ReadManifest(logger *Logger, root string) (Manifest, error) {
 }
 
 // Retrieve a manifest file from the given repo URL.
-func GetManifest(logger *Logger, repo string) (Manifest, error) {
+func getManifest(logger *Logger, repo string) (Manifest, error) {
 	manifest := Manifest{}
 	source, err := url.JoinPath(repo, MANIFEST_NAME)
 	if err != nil {
@@ -159,7 +159,7 @@ func GetManifest(logger *Logger, repo string) (Manifest, error) {
 
 // Handle the "asset" command.
 func GenerateAssetFile(logger *Logger, arguments arguments) error {
-	asset, err := CreateAsset(arguments.path, arguments.name)
+	asset, err := createAsset(arguments.path, arguments.name)
 	if err != nil {
 		return userErrorf(err, "Couldn't read the files in %s to build the asset.", arguments.path)
 	}
@@ -182,7 +182,7 @@ func GenerateAssetFile(logger *Logger, arguments arguments) error {
 
 // Handle the "manifest" command.
 func GenerateManifestFile(logger *Logger, arguments arguments) error {
-	manifest, err := CreateManifest(arguments.path)
+	manifest, err := createManifest(arguments.path)
 	if err != nil {
 		return userErrorf(err, "Couldn't read the asset files in %s to build the manifest.", arguments.path)
 	}
@@ -356,7 +356,7 @@ func applyAutomatic(assets []Asset, explicit []Asset, previous []Asset) []Asset 
 }
 
 // Save a manifest file to disk.
-func StoreManifest(manifest Manifest, root string) (Manifest, error) {
+func storeManifest(manifest Manifest, root string) (Manifest, error) {
 	destination := filepath.Join(root, MANIFEST_NAME)
 	file, err := os.Create(destination)
 	if err != nil {

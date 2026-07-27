@@ -15,7 +15,7 @@ import (
 // CREATE_NO_WINDOW starts the deferred replace process without flashing up a console window.
 const CREATE_NO_WINDOW = 0x08000000
 
-func DownloadInstallationUtilities(logger *Logger, arguments arguments) error {
+func downloadInstallationUtilities(logger *Logger, arguments arguments) error {
 	// Check if the installation utilities already exist.
 	if !installationUtilitiesAreMissing(arguments) {
 		return nil
@@ -23,7 +23,7 @@ func DownloadInstallationUtilities(logger *Logger, arguments arguments) error {
 
 	// Download.
 	spinner := logger.spin("")
-	err := Download(DEFAULT_REPO, arguments.path, INSTALLATION_UTILITIES)
+	err := download(DEFAULT_REPO, arguments.path, INSTALLATION_UTILITIES)
 	spinner.stop()
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func repairUtilities(logger *Logger, root string, damaged []FileResult) {
 		logger.detail("stage utilities repair", err)
 		return
 	}
-	err = Download(DEFAULT_REPO, staging, INSTALLATION_UTILITIES)
+	err = download(DEFAULT_REPO, staging, INSTALLATION_UTILITIES)
 	if err != nil {
 		logger.log(UTILITIES_FAILURE)
 		logger.detail("download utilities for repair", err)

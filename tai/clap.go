@@ -104,7 +104,7 @@ func parseList(value string) []string {
 	})
 }
 
-func GetArguments() (arguments, error) {
+func getArguments() (arguments, error) {
 	args := arguments{}
 
 	// The subcommand must be the first argument.
@@ -195,7 +195,7 @@ func validatePathOrRepo(arguments *arguments) error {
 	}
 }
 
-func ValidateArguments(arguments *arguments) error {
+func validateArguments(arguments *arguments) error {
 	spec := commands[arguments.method]
 
 	// Some commands accept either a path or a repo (e.g. `list`).

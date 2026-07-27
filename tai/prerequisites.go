@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func Prerequisites(logger *Logger, arguments arguments) error {
+func prerequisites(logger *Logger, arguments arguments) error {
 	// Check if d3dx9 is already installed. Note that the Windows directory must be
 	// joined from a rooted path: filepath.Join("C:", ...) yields the drive-relative
 	// "C:Windows", which never resolves.
@@ -26,7 +26,7 @@ func Prerequisites(logger *Logger, arguments arguments) error {
 	// Download the prerequisites asset.
 	logger.log(PREREQUISITES_DOWNLOADING)
 	spinner := logger.spin("")
-	err := Download(DEFAULT_REPO, arguments.path, PREREQUISITES)
+	err := download(DEFAULT_REPO, arguments.path, PREREQUISITES)
 	spinner.stop()
 	if err != nil {
 		return userErrorf(err, "Couldn't install the DirectX 9 package.")
