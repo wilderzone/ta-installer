@@ -183,9 +183,15 @@ func Install(logger *Logger, arguments arguments) error {
 		logger.log(UTILITIES_FAILURE)
 		logger.detail("download installation utilities", utilitiesErr)
 	} else {
+		// Create a shortcut in the root directory for convenience.
+		err := createUninstallShortcut(arguments.path)
+		logger.detail("create uninstall shortcut: %w", err)
 		// Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
-		err := addUninstallerToRegistry(arguments.path)
+		err = addUninstallerToRegistry(arguments.path)
 		logger.detail("add uninstaller to registry", err)
+		if err != nil {
+			logger.log(UTILITIES_FAILURE)
+		}
 	}
 
 	logger.log(INSTALLING)

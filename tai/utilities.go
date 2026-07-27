@@ -29,12 +29,6 @@ func DownloadInstallationUtilities(logger *Logger, arguments arguments) error {
 		return err
 	}
 
-	// Create a shortcut in the root directory for convenience.
-	err = createUninstallShortcut(arguments.path)
-	if err != nil {
-		return fmt.Errorf("create uninstall shortcut: %w", err)
-	}
-
 	logger.log(UTILITIES_SUCCESS)
 	return nil
 }
