@@ -59,45 +59,6 @@ _Assets can depend on other assets, and TAI manages those relationships for you:
 | `-y`               | _NA_                                                | Automatically approve confirmation prompts.                                                                     |
 
 
-### Dependencies
-
-Some assets don't function until other assets are present. An asset file declares this in
-its `dependencies` array, which holds the exact names of the assets it requires:
-
-```json
-{
-	"name": "Arx Novena",
-	"type": "dlc",
-	"dependencies": ["Core", "Map Textures"],
-	...
-}
-```
-
-The `manifest` subcommand validates these relationships when a repository is built, so a
-misspelled name or a circular dependency is caught before the manifest is published.
-
-TAI resolves the graph automatically:
-- `install` also installs everything the selected assets require. A required asset that is already installed is left alone rather than downloaded again.
-- Because `--exclude` is an explicit instruction, excluding an asset that the selection requires raises an error, instead of silently overriding.
-- `uninstall` also removes anything that requires the assets being removed, after asking for confirmation.
-- `uninstall` then prunes assets that TAI installed only to satisfy a dependency, if they are no longer required. Assets that were asked for by name, and foundational `core` and `prerequisite` assets, are never pruned this way.
-
-The local `manifest.json` records this by marking dependency-installed assets with `"automatic": true` (repository manifests don't carry this field).
-
-
-### Installation utilities
-
-Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
-
-Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
-
-```sh
-tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
-```
-
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root.
-
-
 ### Output
 
 By default, TAI will print human-readable output to the console. For example:
@@ -182,3 +143,43 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UTILITIES_VERIFYING`
 - `PROGRESS`
 </details>
+
+
+## Development
+
+### Dependencies
+
+Some assets don't function until other assets are present. An asset file declares this in
+its `dependencies` array, which holds the exact names of the assets it requires:
+
+```json
+{
+	"name": "Arx Novena",
+	"type": "dlc",
+	"dependencies": ["Core", "Map Textures"],
+	...
+}
+```
+
+The CLI's `manifest` subcommand validates these relationships when a repository is built, so a
+misspelled name or a circular dependency is caught before the manifest is published.
+
+TAI resolves the graph automatically:
+- `install` also installs everything the selected assets require. A required asset that is already installed is left alone rather than downloaded again.
+- Because `--exclude` is an explicit instruction, excluding an asset that the selection requires raises an error, instead of silently overriding.
+- `uninstall` also removes anything that requires the assets being removed, after asking for confirmation.
+- `uninstall` then prunes assets that TAI installed only to satisfy a dependency, if they are no longer required. Assets that were asked for by name, and foundational `core` and `prerequisite` assets, are never pruned this way.
+
+The local `manifest.json` records this by marking dependency-installed assets with `"automatic": true` (repository manifests don't carry this field).
+
+### Installation utilities
+
+Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
+
+Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
+
+```sh
+tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
+```
+
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root.
