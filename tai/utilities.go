@@ -61,7 +61,7 @@ func createUninstallShortcut(root string) error {
 		WorkingDirectory: cwd,
 	}
 
-	err := shortcut.Create(sc)
+	err := createShortcut(sc)
 	if err != nil {
 		return err
 	}

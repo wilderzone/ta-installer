@@ -7,10 +7,25 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/jxeng/shortcut"
 )
+
+// createShortcut creates a single shortcut, pinning the goroutine to its OS thread for the
+// duration. github.com/jxeng/shortcut initialises COM (CoInitializeEx) on the current
+// thread and then makes a series of COM calls, but COM state is per-thread and Go's
+// scheduler may move a goroutine to a different OS thread between calls - especially after
+// the I/O that precedes shortcut creation during an install. When that happens the COM
+// calls land on a thread where COM was never initialised, giving the intermittent
+// "CoInitialize has not been called" error. Locking the thread keeps the whole sequence
+// on one thread.
+func createShortcut(sc shortcut.Shortcut) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	return shortcut.Create(sc)
+}
 
 // removeShortcuts deletes the shortcuts created by createShortcuts. It is
 // best-effort: shortcuts that are already gone are ignored, and it returns the
@@ -82,7 +97,7 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 
 	// Create a shortcut in the installation directory for convenience.
 	sc.ShortcutPath = filepath.Join(root, SHORTCUT_NAME)
-	err := shortcut.Create(sc)
+	err := createShortcut(sc)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
@@ -100,7 +115,7 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
 		}
 		sc.ShortcutPath = filepath.Join(startMenuDirectory, SHORTCUT_NAME)
-		err = shortcut.Create(sc)
+		err = createShortcut(sc)
 		if err != nil {
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
 		}
@@ -111,7 +126,7 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 			return fmt.Errorf("create Desktop shortcut: %w", err)
 		}
 		sc.ShortcutPath = filepath.Join(desktopFolder, SHORTCUT_NAME)
-		err = shortcut.Create(sc)
+		err = createShortcut(sc)
 		if err != nil {
 			return fmt.Errorf("create Desktop shortcut: %w", err)
 		}
