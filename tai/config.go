@@ -23,29 +23,23 @@ const UNINSTALLER_PUBLISHER = "Wilderzone"
 const DOWNLOAD_CONCURRENCY = 4
 const VERIFY_CONCURRENCY = 4
 
+// The location of the utilities' checksums, relative to the repository. Fetched at verify
+// time and hashed against the installed utilities.
+const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer.json"
+
+// The installation utilities package. Checksums are deliberately omitted: they're fetched
+// from UTILITIES_CHECKSUMS_SOURCE. The file names are still needed so
+// installationUtilitiesAreMissing can tell whether the utilities are already installed.
 var INSTALLATION_UTILITIES = Asset{
 	Name:        "Installation Utilities",
 	Type:        "prerequisite",
-	Source:      "/Installer.zip",
+	Source:      "/installer/Installer.zip",
 	Destination: "/Installer",
 	Files: []File{
-		{
-			// TODO: Resolve this cyclic dependency.
-			Checksum: "0271954e372627dd96f357ef84467f579634c95c150fcb9c353cf2764e9c5c12",
-			File: "tai-cli.exe",
-		},
-		{
-			Checksum: "fcd747532c87e874bb93addc46c84133ab9aba3c573c4cade74913cccc0d0dfa",
-			File: "uninstall.exe",
-		},
-		{
-			Checksum: "2e8c60056434ccf3f9c477b31ae0c2496e8147580acd23efd92e2df86612d323",
-			File: "update.exe",
-		},
-		{
-			Checksum: "4ca96519a88d60cd0d90f2b2cabd5ceec7cafb575654abe0a88e485b856026f3",
-			File: "verify.exe",
-		},
+		{File: "tai-cli.exe"},
+		{File: "uninstall.exe"},
+		{File: "update.exe"},
+		{File: "verify.exe"},
 	},
 }
 

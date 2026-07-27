@@ -122,6 +122,12 @@ var (
 	UPDATE_SUCCESS            = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
 	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't download the installation utilities package. Uninstalling the game via the Windows Settings menu or Control Panel may not be possible."}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
+	UTILITIES_VERIFIED        = LogLine{Type: "UTILITIES_VERIFIED", Message: "Installation utilities verified."}
+	UTILITIES_VERIFYING       = LogLine{Type: "UTILITIES_VERIFYING", Message: "Verifying installation utilities..."}
+	UTILITIES_DAMAGED         = LogLine{Type: "UTILITIES_DAMAGED", Message: "Installation utilities are damaged:"}
+	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
+	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "These utilities are in use and will be replaced after this window is closed:"}
+	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
 	PROGRESS                  = LogLine{Type: "PROGRESS", Index: 0, Total: 0, Message: ""}
 	ERROR                     = LogLine{Type: "ERROR", Message: ""}
 )

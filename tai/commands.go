@@ -646,6 +646,10 @@ func Verify(logger *Logger, arguments arguments) error {
 		}
 	}
 
+	// Also verify the installation utilities (tai-cli.exe and friends), whose checksums are
+	// fetched from the CDN, separately from the game manifest.
+	verifyUtilities(logger, arguments)
+
 	logger.log(INSTALL_VERIFIED)
 	return nil
 }

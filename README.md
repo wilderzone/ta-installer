@@ -35,7 +35,7 @@ _Assets can depend on other assets, and TAI manages those relationships for you:
 | `install`          | Download and install TA into the given directory. Install a subset of assets with `--include`/`--exclude` (see above). Any assets the selection requires are installed too. | `tai-cli.exe install --path=<path> --exclude=dlc`               |
 | `check`            | Check for an existing installation in the given directory.                                                                                                           | `tai-cli.exe check --path=<path>`                               |
 | `check-repo`       | Check that the provided URL points to a valid repository.                                                                                                            | `tai-cli.exe check-repo --repo=<url>`                           |
-| `verify`           | Verify an existing TA installation in the given directory.                                                                                                           | `tai-cli.exe verify --path=<path> --repo=<url>`                 |
+| `verify`           | Verify an existing TA installation in the given directory. Also checks the bundled installation utilities against checksums fetched from the CDN.                    | `tai-cli.exe verify --path=<path> --repo=<url>`                 |
 | `update`           | Update an existing TA installation.                                                                                                                                  | `tai-cli.exe update --path=<path> --repo=<url>`                 |
 | `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai-cli.exe uninstall --path=<path> --remove=dlc`              |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai-cli.exe asset --path=<path> --name=<name>`                 |
@@ -83,6 +83,19 @@ TAI resolves the graph automatically:
 - `uninstall` then prunes assets that TAI installed only to satisfy a dependency, if they are no longer required. Assets that were asked for by name, and foundational `core` and `prerequisite` assets, are never pruned this way.
 
 The local `manifest.json` records this by marking dependency-installed assets with `"automatic": true` (repository manifests don't carry this field).
+
+
+### Installation utilities
+
+Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
+
+Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
+
+```sh
+tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
+```
+
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root.
 
 
 ### Output
@@ -159,7 +172,13 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UPDATE_FOUND`
 - `UPDATE_PARTIAL`
 - `UPDATE_SUCCESS`
+- `UTILITIES_CHECK_SKIPPED`
+- `UTILITIES_DAMAGED`
 - `UTILITIES_FAILURE`
+- `UTILITIES_REPAIRED`
+- `UTILITIES_REPAIR_DEFERRED`
 - `UTILITIES_SUCCESS`
+- `UTILITIES_VERIFIED`
+- `UTILITIES_VERIFYING`
 - `PROGRESS`
 </details>
