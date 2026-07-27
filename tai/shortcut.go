@@ -88,8 +88,6 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 	}
 
 	if includeOptionalShortcuts {
-		logger.log(SHORTCUTS_CREATING)
-
 		// Create a shortcut in the Start Menu.
 		startMenuFolder, err := getSpecialFolder("StartMenu")
 		if err != nil {

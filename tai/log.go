@@ -104,7 +104,6 @@ var (
 	REDOWNLOADING             = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
 	REPO_FOUND                = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND            = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
-	SHORTCUTS_CREATING        = LogLine{Type: "SHORTCUTS_CREATING", Message: "Creating shortcuts..."}
 	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. You may need to re-run the installer with admin permissions to create shortcuts."}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
 	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}
@@ -120,14 +119,13 @@ var (
 	UPDATE_FOUND              = LogLine{Type: "UPDATE_FOUND", Message: "Update found:"}
 	UPDATE_PARTIAL            = LogLine{Type: "UPDATE_PARTIAL", Message: "Partially updated. You may need to run the \"verify\" command."}
 	UPDATE_SUCCESS            = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
+	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
+	UTILITIES_DAMAGED         = LogLine{Type: "UTILITIES_DAMAGED", Message: "Installation utilities are damaged:"}
 	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't setup the installation utilities package. Uninstalling the game via the Windows Settings menu or Control Panel may not be possible."}
+	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "These utilities are in use and will be replaced after this window is closed:"}
+	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
 	UTILITIES_VERIFIED        = LogLine{Type: "UTILITIES_VERIFIED", Message: "Installation utilities verified."}
-	UTILITIES_VERIFYING       = LogLine{Type: "UTILITIES_VERIFYING", Message: "Verifying installation utilities..."}
-	UTILITIES_DAMAGED         = LogLine{Type: "UTILITIES_DAMAGED", Message: "Installation utilities are damaged:"}
-	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
-	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "These utilities are in use and will be replaced after this window is closed:"}
-	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
 	PROGRESS                  = LogLine{Type: "PROGRESS", Index: 0, Total: 0, Message: ""}
 	ERROR                     = LogLine{Type: "ERROR", Message: ""}
 )

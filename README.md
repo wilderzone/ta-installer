@@ -118,7 +118,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REDOWNLOADING`
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
-- `SHORTCUTS_CREATING`
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
@@ -140,7 +139,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UTILITIES_REPAIR_DEFERRED`
 - `UTILITIES_SUCCESS`
 - `UTILITIES_VERIFIED`
-- `UTILITIES_VERIFYING`
 - `PROGRESS`
 </details>
 

@@ -74,8 +74,6 @@ func createUninstallShortcut(root string) error {
 // returns an error: the game files have already been verified by the time it runs, so a
 // missing network or a repair problem is reported and swallowed rather than failing verify.
 func verifyUtilities(logger *Logger, arguments arguments) {
-	logger.log(UTILITIES_VERIFYING)
-
 	// The checksums live on the CDN, not in this binary, so this needs the network. If it's
 	// unavailable, the game files have still been verified - don't fail over it.
 	util, err := getUtilitiesAsset(DEFAULT_REPO)
