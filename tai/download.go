@@ -10,7 +10,31 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
+
+// downloadAssets downloads and unpacks each asset concurrently, logging per-asset
+// progress with the given success label, and returns the assets that failed.
+func downloadAssets(logger *Logger, arguments arguments, assets []Asset, successLabel string) []Asset {
+	counter := logger.count(len(assets), "Downloading")
+	defer counter.done()
+	var mu sync.Mutex
+	failed := []Asset{}
+	parallel(assets, DOWNLOAD_CONCURRENCY, func(asset Asset) {
+		message := asset.Name
+		err := Download(arguments.repo, arguments.path, asset)
+		if err != nil {
+			message += ": " + logger.colour("Failed", RED) + ": " + err.Error()
+			mu.Lock()
+			failed = append(failed, asset)
+			mu.Unlock()
+		} else {
+			message += ": " + logger.colour(successLabel, GREEN)
+		}
+		counter.next(message)
+	})
+	return failed
+}
 
 func fileExists(filename string) bool {
 	_, err := os.Stat(filename)

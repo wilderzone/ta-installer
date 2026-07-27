@@ -13,6 +13,44 @@ import (
 	"sync"
 )
 
+// Handle the "verify" command.
+func Verify(logger *Logger, arguments arguments) error {
+	manifest, err := ReadManifest(logger, arguments.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return userErrorf(err, "No installation found at %s to verify.", arguments.path)
+	}
+	if err != nil {
+		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
+	}
+
+	damaged := checkAssets(logger, arguments.path, manifest, "Damaged")
+
+	if len(damaged) != 0 {
+		message := logger.plural(len(damaged), "asset is damaged and needs", "assets are damaged and need") + " to be redownloaded. "
+		logger.log(ASSETS_ARE_DAMAGED, fmt.Sprintf("%d %s", len(damaged), message))
+
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+		if proceed {
+			logger.log(REDOWNLOADING)
+			failed := downloadAssets(logger, arguments, damaged, "Downloaded")
+			if len(failed) != 0 {
+				return userErrorf(nil, "Some assets couldn't be re-downloaded. Run `verify` again to retry.")
+			} else {
+				// Update the uninstaller's Registry entry.
+				err := addUninstallerToRegistry(arguments.path)
+				logger.detail("add uninstaller to registry", err)
+			}
+		}
+	}
+
+	// Also verify the installation utilities (tai-cli.exe and friends), whose checksums are
+	// fetched from the CDN, separately from the game manifest.
+	verifyUtilities(logger, arguments)
+
+	logger.log(INSTALL_VERIFIED)
+	return nil
+}
+
 // ChecksumReader streams r through SHA256 and returns the hex-encoded digest,
 // without buffering the whole input in memory.
 func ChecksumReader(r io.Reader) (string, error) {
