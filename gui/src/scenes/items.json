@@ -1,0 +1,56 @@
+[
+	{
+		"id": 0,
+		"type": "Vehicle",
+		"category": "Ground",
+		"class": "",
+		"internalName": "GravCycle",
+		"displayName": "Grav Cycle",
+		"description": "",
+		"bonuses": [],
+		"tags": [],
+		"model": {
+			"internalName": "GravCycle",
+			"root": "Root",
+			"scale": 0.45,
+			"rotation": { "x": 0, "y": 2.3, "z": 0 },
+			"position": { "x": -0.1, "y": -0.46, "z": 0 }
+		}
+	},
+	{
+		"id": 0,
+		"type": "Vehicle",
+		"category": "Air",
+		"class": "",
+		"internalName": "Shrike",
+		"displayName": "Shrike",
+		"description": "",
+		"bonuses": [],
+		"tags": [],
+		"model": {
+			"internalName": "Shrike",
+			"root": "Root",
+			"scale": 0.17,
+			"rotation": { "x": 0, "y": 2.3, "z": 0 },
+			"position": { "x": -0.15, "y": -0.53, "z": 0 }
+		}
+	},
+	{
+		"id": 0,
+		"type": "Vehicle",
+		"category": "Ground",
+		"class": "",
+		"internalName": "Beowulf",
+		"displayName": "Beowulf",
+		"description": "",
+		"bonuses": [],
+		"tags": [],
+		"model": {
+			"internalName": "Beowulf",
+			"root": "Root",
+			"scale": 0.18,
+			"rotation": { "x": 0, "y": 2.3, "z": 0 },
+			"position": { "x": -0.15, "y": -0.75, "z": 0 }
+		}
+	}
+]

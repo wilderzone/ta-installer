@@ -3,6 +3,7 @@
 	--color-secondary: #41637C;
 	--color-tertiary: hsl(205, 31%, 30%);
 	--color-background: #121212;
+	--color-card: #222a;
 	--color-border: #333;
 	--color-text: #ddd;
 	--color-text-dim: #bfbfbf;
@@ -10,12 +11,12 @@
 	--color-text-red: #f41;
 	--color-text-on-primary: #000;
 	--font-size: 14px;
-	--border-radius: 4px;
-	--body-padding: 12px;
-	--gap: 10px;
+	--border-radius: 5px;
+	--gap: 24px;
 }
 
 * {
+	position: relative;
 	box-sizing: border-box;
 	color: inherit;
 	font-size: inherit;
@@ -33,7 +34,7 @@ html {
 body {
 	height: 100%;
 	margin: 0;
-	padding: var(--body-padding);
+	padding: var(--gap);
 }
 
 .column {

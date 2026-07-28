@@ -35,7 +35,6 @@ const valuePercentage = computed(() => props.value / props.max * 100);
 	}
 
 	& .track {
-		position: relative;
 		display: grid;
 		align-items: center;
 		width: 100%;

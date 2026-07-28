@@ -13,8 +13,8 @@
 		"windows": [
 			{
 				"title": "Tribes: Ascend Installer",
-				"width": 400,
-				"height": 500,
+				"width": 1000,
+				"height": 700,
 				"maximizable": false,
 				"resizable": false,
 				"scrollBarStyle": "fluentOverlay"

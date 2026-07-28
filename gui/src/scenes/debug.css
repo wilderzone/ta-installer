@@ -1,0 +1,4 @@
+#scene-explorer-host, #inspector-host {
+	position: absolute !important;
+	z-index: 1000;
+}
