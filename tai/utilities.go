@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/jxeng/shortcut"
+	"wilderzone.org/tai/internal/assets"
 )
 
 // CREATE_NO_WINDOW starts the deferred replace process without flashing up a console window.
@@ -82,12 +83,12 @@ func verifyUtilities(logger *Logger, arguments arguments) {
 		return
 	}
 
-	damaged := verifyAsset(arguments.path, util)
+	damaged := assets.VerifyAsset(arguments.path, util)
 	if len(damaged) == 0 {
 		logger.log(UTILITIES_VERIFIED)
 		return
 	}
-	logger.log(UTILITIES_DAMAGED, describe(damaged))
+	logger.log(UTILITIES_DAMAGED, assets.Describe(damaged))
 
 	proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 	if !proceed {

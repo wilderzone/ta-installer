@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+
+	"wilderzone.org/tai/internal/assets"
 )
 
 // Handle the "update" command.
@@ -37,12 +39,12 @@ func Update(logger *Logger, arguments arguments) error {
 	// any dependency the new version has added, which would otherwise leave the
 	// installation broken. The flags have to be re-applied because the remote manifest
 	// doesn't carry them.
-	installedAssets := intersectByName(remoteManifest.Assets, localManifest.Assets)
-	closure, err := resolveDependencies(remoteManifest.Assets, installedAssets)
+	installedAssets := assets.IntersectByName(remoteManifest.Assets, localManifest.Assets)
+	closure, err := assets.ResolveDependencies(remoteManifest.Assets, installedAssets)
 	if err != nil {
 		return userErrorf(err, "The repository at %s lists assets that can't be installed together. Please report this to the repository's maintainer.", arguments.repo)
 	}
-	remoteManifest.Assets = applyAutomatic(closure, explicitAssets(localManifest.Assets), localManifest.Assets)
+	remoteManifest.Assets = assets.ApplyAutomatic(closure, assets.ExplicitAssets(localManifest.Assets), localManifest.Assets)
 
 	// If the remote version is greater, save the new manifest, and then patch the local assets.
 	manifest, err := storeManifest(remoteManifest, arguments.path)

@@ -1,4 +1,4 @@
-package main
+package assets
 
 import (
 	"fmt"
@@ -20,11 +20,11 @@ func foundational(asset Asset) bool {
 	return asset.Type == CORE || asset.Type == PREREQUISITE
 }
 
-// resolveDependencies returns the transitive closure of `roots` over the `available`
+// ResolveDependencies returns the transitive closure of `roots` over the `available`
 // catalogue, ordered so that every asset appears after the assets it depends on. It
 // fails if an asset names a dependency that isn't in the catalogue, or if the
 // dependencies form a cycle.
-func resolveDependencies(available []Asset, roots []Asset) ([]Asset, error) {
+func ResolveDependencies(available []Asset, roots []Asset) ([]Asset, error) {
 	catalogue := make(map[string]Asset, len(available))
 	for _, asset := range available {
 		catalogue[asset.Name] = asset
@@ -79,18 +79,18 @@ func resolveDependencies(available []Asset, roots []Asset) ([]Asset, error) {
 	return closure, nil
 }
 
-// validateDependencies checks that every dependency in a collection of assets resolves
+// ValidateDependencies checks that every dependency in a collection of assets resolves
 // and that the graph is acyclic. Using every asset as a root visits the whole graph, so
 // both problems surface at once.
-func validateDependencies(assets []Asset) error {
-	_, err := resolveDependencies(assets, assets)
+func ValidateDependencies(assets []Asset) error {
+	_, err := ResolveDependencies(assets, assets)
 	return err
 }
 
-// dependentsOf returns the installed assets that transitively depend on one of the
+// DependentsOf returns the installed assets that transitively depend on one of the
 // `targets`, excluding the targets themselves. The fixpoint loop avoids recursion, so a
 // manifest that somehow contains a cycle can't hang an uninstall.
-func dependentsOf(installed []Asset, targets []Asset) []Asset {
+func DependentsOf(installed []Asset, targets []Asset) []Asset {
 	targeted := make(map[string]bool, len(targets))
 	doomed := make(map[string]bool, len(targets))
 	for _, asset := range targets {
@@ -123,11 +123,11 @@ func dependentsOf(installed []Asset, targets []Asset) []Asset {
 	return dependents
 }
 
-// pruneOrphans repeatedly drops the assets that were only installed to satisfy another
+// PruneOrphans repeatedly drops the assets that were only installed to satisfy another
 // asset's dependency and are no longer needed by anything that remains. It returns the
 // assets that stay installed, and those that were pruned. The loop matters: pruning one
 // asset can orphan its own dependencies.
-func pruneOrphans(survivors []Asset) ([]Asset, []Asset) {
+func PruneOrphans(survivors []Asset) ([]Asset, []Asset) {
 	kept := slices.Clone(survivors)
 	pruned := []Asset{}
 
@@ -154,9 +154,9 @@ func pruneOrphans(survivors []Asset) ([]Asset, []Asset) {
 	}
 }
 
-// dependentOf returns the name of the first asset that lists `name` as a dependency, or
+// DependentOf returns the name of the first asset that lists `name` as a dependency, or
 // an empty string if none do. Used to explain dependency conflicts to the user.
-func dependentOf(assets []Asset, name string) string {
+func DependentOf(assets []Asset, name string) string {
 	for _, asset := range assets {
 		if slices.Contains(asset.Dependencies, name) {
 			return asset.Name
@@ -165,9 +165,9 @@ func dependentOf(assets []Asset, name string) string {
 	return ""
 }
 
-// explicitAssets returns the assets the user asked for directly, as opposed to those
+// ExplicitAssets returns the assets the user asked for directly, as opposed to those
 // that were installed to satisfy a dependency.
-func explicitAssets(assets []Asset) []Asset {
+func ExplicitAssets(assets []Asset) []Asset {
 	explicit := []Asset{}
 	for _, asset := range assets {
 		if !asset.Automatic {
@@ -177,8 +177,8 @@ func explicitAssets(assets []Asset) []Asset {
 	return explicit
 }
 
-// assetNames renders a comma-separated list of asset names for log messages.
-func assetNames(assets []Asset) string {
+// AssetNames renders a comma-separated list of asset names for log messages.
+func AssetNames(assets []Asset) string {
 	names := make([]string, 0, len(assets))
 	for _, asset := range assets {
 		names = append(names, asset.Name)

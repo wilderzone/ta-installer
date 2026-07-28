@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	"wilderzone.org/tai/internal/assets"
 )
 
 // Handle the "list" command.
@@ -39,7 +41,7 @@ func List(logger *Logger, arguments arguments) error {
 	}
 
 	// Filter the manifest's assets based on the provided include/exclude arguments.
-	manifest.Assets = filterAssets(manifest.Assets, arguments.include, arguments.exclude)
+	manifest.Assets = assets.FilterAssets(manifest.Assets, arguments.include, arguments.exclude)
 
 	// Output the manifest's contents.
 	if logger.machine {

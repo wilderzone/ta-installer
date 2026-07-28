@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"wilderzone.org/tai/internal/assets"
 )
 
 // Handle the "uninstall" command.
@@ -36,30 +38,30 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	}
 
 	// Determine which assets to remove. `--remove` maps to include and `--keep` to
-	// exclude, so filterAssets yields the delete-set for every combination (and no
+	// exclude, so assets.FilterAssets yields the delete-set for every combination (and no
 	// filter selects every asset).
-	// Clone the result: with no filter, filterAssets returns its input, and the appends
+	// Clone the result: with no filter, assets.FilterAssets returns its input, and the appends
 	// below would otherwise write through to the manifest's own assets.
-	toRemove := slices.Clone(filterAssets(installed.Assets, arguments.remove, arguments.keep))
+	toRemove := slices.Clone(assets.FilterAssets(installed.Assets, arguments.remove, arguments.keep))
 	if filterProvided && len(toRemove) == 0 {
 		return userErrorf(nil, "No installed assets matched the provided filters. Nothing will be uninstalled.")
 	}
 
 	// An asset left without something it depends on wouldn't work, so anything that
 	// requires a removed asset has to be removed as well.
-	dependents := dependentsOf(installed.Assets, toRemove)
+	dependents := assets.DependentsOf(installed.Assets, toRemove)
 	toRemove = append(toRemove, dependents...)
 
 	// Assets that were only installed to satisfy a dependency are pruned once nothing
 	// needs them any more.
-	survivors, orphans := pruneOrphans(differenceByName(installed.Assets, toRemove))
+	survivors, orphans := assets.PruneOrphans(assets.DifferenceByName(installed.Assets, toRemove))
 	toRemove = append(toRemove, orphans...)
 
 	if len(dependents) != 0 {
-		logger.log(UNINSTALL_DEPENDENTS, assetNames(dependents))
+		logger.log(UNINSTALL_DEPENDENTS, assets.AssetNames(dependents))
 	}
 	if len(orphans) != 0 {
-		logger.log(UNINSTALL_ORPHANS, assetNames(orphans))
+		logger.log(UNINSTALL_ORPHANS, assets.AssetNames(orphans))
 	}
 
 	// If nothing would remain installed, remove the entire installation.
@@ -207,9 +209,9 @@ func runningInsideUtilities(root string) bool {
 }
 
 // assetFilePaths returns the set of on-disk paths for every file in the given assets.
-func assetFilePaths(root string, assets []Asset) map[string]bool {
+func assetFilePaths(root string, group []Asset) map[string]bool {
 	paths := map[string]bool{}
-	for _, asset := range assets {
+	for _, asset := range group {
 		for _, file := range asset.Files {
 			paths[filepath.Join(root, asset.Destination, file.File)] = true
 		}

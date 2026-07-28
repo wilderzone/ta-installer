@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"wilderzone.org/tai/internal/assets"
 )
 
 // Handle the "install" command.
@@ -14,28 +16,28 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Determine the filtered subset of assets.
-	explicit := filterAssets(manifest.Assets, arguments.include, arguments.exclude)
+	explicit := assets.FilterAssets(manifest.Assets, arguments.include, arguments.exclude)
 	if len(explicit) == 0 {
 		return userErrorf(nil, "No assets matched the given filter.")
 	}
 
 	// Pull in the dependencies of those assets.
-	closure, err := resolveDependencies(manifest.Assets, explicit)
+	closure, err := assets.ResolveDependencies(manifest.Assets, explicit)
 	if err != nil {
 		return userErrorf(err, "The repository at %s lists assets that can't be installed together. Please report this to the repository's maintainer.", arguments.repo)
 	}
-	required := differenceByName(closure, explicit)
+	required := assets.DifferenceByName(closure, explicit)
 
 	// `--include` only under-specifies the selection, so missing dependencies are added
 	// to it. `--exclude` is the user explicitly ruling an asset out, so silently
 	// installing it anyway would be wrong.
 	for _, asset := range required {
-		if matchesTerms(asset, arguments.exclude) {
-			return userErrorf(nil, "Can't install %q: it requires %q, which --exclude omits. Remove %q from --exclude to continue.", dependentOf(closure, asset.Name), asset.Name, asset.Name)
+		if assets.MatchesTerms(asset, arguments.exclude) {
+			return userErrorf(nil, "Can't install %q: it requires %q, which --exclude omits. Remove %q from --exclude to continue.", assets.DependentOf(closure, asset.Name), asset.Name, asset.Name)
 		}
 	}
 	if len(required) != 0 {
-		logger.log(INSTALLING_DEPENDENCIES, assetNames(required))
+		logger.log(INSTALLING_DEPENDENCIES, assets.AssetNames(required))
 	}
 
 	// Create the installation directory, if it doesn't already exist.
@@ -53,12 +55,12 @@ func Install(logger *Logger, arguments arguments) error {
 	installed := []Asset{}
 	if existErr == nil {
 		installed = existing.Assets
-		manifest.Assets = mergeAssets(installed, closure)
+		manifest.Assets = assets.MergeAssets(installed, closure)
 		manifest.Version = min(existing.Version, manifest.Version)
 	} else {
 		manifest.Assets = closure
 	}
-	manifest.Assets = applyAutomatic(manifest.Assets, explicit, installed)
+	manifest.Assets = assets.ApplyAutomatic(manifest.Assets, explicit, installed)
 
 	// Persist the manifest before downloading, so an interrupted install is still recognised.
 	_, err = storeManifest(manifest, arguments.path)
