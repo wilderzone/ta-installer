@@ -11,9 +11,9 @@ import VariantSelector from './VariantSelector.vue';
 <template>
 	<form class="configurator" action="" @submit.prevent>
 		<Steps v-grid:steps />
-		<ol class="inputs">
+		<ol class="panels">
 			<li
-				class="input"
+				class="panel"
 				:class="{ current: store.step === 1 }"
 			>
 				<VariantSelector
@@ -22,7 +22,7 @@ import VariantSelector from './VariantSelector.vue';
 				/>
 			</li>
 			<li
-				class="input"
+				class="panel"
 				:class="{ current: store.step === 2 }"
 			>
 				<InstallPathField
@@ -30,7 +30,7 @@ import VariantSelector from './VariantSelector.vue';
 				/>
 			</li>
 			<li
-				class="input"
+				class="panel"
 				:class="{ current: store.step === 3 }"
 			>
 				<div class="output">
@@ -48,15 +48,15 @@ import VariantSelector from './VariantSelector.vue';
 	display: grid;
 	grid-template:
 		'steps     ' auto
-		'inputs    ' 1fr
+		'panels    ' 1fr
 		'navigation' auto
 		/ 1fr;
 	gap: var(--gap);
 	height: 100%;
 }
 
-.inputs {
-	grid-area: inputs;
+.panels {
+	grid-area: panels;
 	display: flex;
 	justify-content: center;
 	align-self: flex-start;
@@ -68,7 +68,7 @@ import VariantSelector from './VariantSelector.vue';
 	padding: 0;
 	list-style: none;
 
-	.input {
+	.panel {
 		display: none;
 		flex-direction: column;
 		align-items: center;
