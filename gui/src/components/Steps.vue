@@ -27,7 +27,7 @@ import { store } from '../store';
 			</li>
 			<li
 				class="step"
-				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step2Error }"
+				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step3Error }"
 				@click="store.step = 3"
 			>
 				<span class="number">3</span>
