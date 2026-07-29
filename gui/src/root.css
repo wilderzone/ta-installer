@@ -5,13 +5,13 @@
 	--color-background: #121212;
 	--color-border: #333;
 	--color-card: #222a;
-	--color-error: oklch(from var(--color-primary) l c calc(h + 100));
-	--color-success: oklch(from var(--color-primary) l c calc(h + 240));
+	--color-error: oklch(from var(--color-primary) l calc(c + 0.1) calc(h + 120));
+	--color-success: oklch(from var(--color-primary) l calc(c + 0.05) calc(h + 240));
 	--color-input: #8884;
 	--color-text: #ddd;
 	--color-text-dim: #bfbfbf;
-	--color-text-green: #4c0;
-	--color-text-red: #f41;
+	--color-text-green: oklch(from var(--color-success) l calc(c + 0.05) h);
+	--color-text-red: var(--color-error);
 	--color-text-on-primary: #000;
 	--font-size: 14px;
 	--border-radius: 5px;

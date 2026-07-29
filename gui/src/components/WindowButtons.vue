@@ -80,7 +80,7 @@ async function close(): Promise<void> {
 	}
 
 	& .minimize {
-		padding-block-end: 3px;
+		padding-block-end: 2px;
 	}
 
 	& .maximize {

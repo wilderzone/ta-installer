@@ -12,7 +12,7 @@ import { store } from '../store';
 			>
 				<span class="number">1</span>
 				<span class="check">✓</span>
-				<span class="cross">✕</span>
+				<span class="cross">!</span>
 				<span class="name">Game Type</span>
 			</li>
 			<li
@@ -22,7 +22,7 @@ import { store } from '../store';
 			>
 				<span class="number">2</span>
 				<span class="check">✓</span>
-				<span class="cross">✕</span>
+				<span class="cross">!</span>
 				<span class="name">Location</span>
 			</li>
 			<li
@@ -32,7 +32,7 @@ import { store } from '../store';
 			>
 				<span class="number">3</span>
 				<span class="check">✓</span>
-				<span class="cross">✕</span>
+				<span class="cross">!</span>
 				<span class="name">{{ store.action }}</span>
 			</li>
 		</ol>
@@ -112,6 +112,7 @@ import { store } from '../store';
 		color: var(--color-text-on-primary);
 		background: var(--color-error);
 		border-color: var(--color-error);
+		font-weight: bold;
 	}
 }
 </style>

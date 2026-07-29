@@ -12,7 +12,7 @@
 		"model": {
 			"internalName": "GravCycle",
 			"root": "Root",
-			"scale": 0.42,
+			"scale": 0.39,
 			"rotation": { "x": 0, "y": 2.3, "z": 0 },
 			"position": { "x": -0.1, "y": -0.46, "z": 0 }
 		}
@@ -30,7 +30,7 @@
 		"model": {
 			"internalName": "Shrike",
 			"root": "Root",
-			"scale": 0.17,
+			"scale": 0.16,
 			"rotation": { "x": 0, "y": 2.3, "z": 0 },
 			"position": { "x": -0.1, "y": -0.53, "z": 0 }
 		}
