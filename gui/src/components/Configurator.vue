@@ -93,7 +93,6 @@ import VariantSelector from './VariantSelector.vue';
 .output {
 	display: grid;
 	grid-template-rows: auto 1fr;
-	gap: calc(var(--gap) - 0.5rem);
 	width: 100%;
 	height: 100%;
 }
