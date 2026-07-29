@@ -1,6 +1,6 @@
 import { createPinia, defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
-import { defaultInstallPath, repository } from './config';
+import { defaultInstallPath, filters, repository } from './config';
 import { Action, DirectoryState, TAI } from './tai';
 
 const useStore = defineStore('application', () => {
@@ -46,7 +46,7 @@ const useStore = defineStore('application', () => {
 
 	async function run(): Promise<void> {
 		loading.value = true;
-		await TAI.run(action.value, path.value, repository[repo.value]);
+		await TAI.run(action.value, path.value, repository, filters[repo.value]);
 	}
 
 	function onError(_data: string): void {

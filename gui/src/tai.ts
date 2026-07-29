@@ -99,10 +99,13 @@ export class TAI {
 		TAI.log.value.length = 0;
 	}
 
-	public static async run(action: Action, path: string, repo: string, machineReadable = false): Promise<void> {
+	public static async run(action: Action, path: string, repo: string, filter: string, machineReadable = false): Promise<void> {
 		const args = [action, '-y', `--path=${path}`, `--repo=${repo}`];
 		if (machineReadable) {
 			args.push('-m');
+		}
+		if (filter) {
+			args.push(filter);
 		}
 
 		if (TAI.log.value.length) {
