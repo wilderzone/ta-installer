@@ -65,17 +65,27 @@ export class TAI {
 		TAI.callbacks[event].splice(index, 1);
 	}
 
-	public static async checkPath(path: string): Promise<boolean> {
-		let pathValid = false;
+	public static async checkPath(path: string): Promise<DirectoryState> {
+		let output = DirectoryState.Invalid;
 		await spawn(['check', '-m', `--path=${path}`], (event) => {
 			if (event.type === 'stdout') {
 				try {
 					const message = JSON.parse(event.data);
-					pathValid = Boolean(message?.type === 'INSTALL_FOUND');
+					switch (message?.type) {
+						case 'INSTALL_FOUND':
+							output = DirectoryState.Installed;
+							break;
+						case 'INSTALL_NOT_FOUND':
+							output = DirectoryState.Valid;
+							break;
+					}
 				} catch {}
 			}
+			if (event.type === 'exit' && event.data !== 0) {
+				output = DirectoryState.Invalid;
+			}
 		});
-		return pathValid;
+		return output;
 	}
 
 	public static async checkRepo(repo: string): Promise<boolean> {

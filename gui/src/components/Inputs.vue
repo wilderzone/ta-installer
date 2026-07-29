@@ -25,9 +25,6 @@ import { DirectoryState } from '../tai.ts';
 			>
 				<InstallPathField
 					:disabled="store.loading"
-					:refresh="store.refreshPath"
-					@update="store.onPathUpdate($event)"
-					v-model="store.path"
 				/>
 			</li>
 			<li

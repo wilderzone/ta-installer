@@ -1,21 +1,21 @@
 import { createPinia, defineStore } from 'pinia';
-import { computed, ref } from 'vue';
-import { repository } from './config';
+import { computed, ref, watch } from 'vue';
+import { defaultInstallPath, repository } from './config';
 import { Action, DirectoryState, TAI } from './tai';
 
 const useStore = defineStore('loadouts', () => {
 	const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];
 	const action = ref<Action>('install');
 	const loading = ref(false);
-	const path = ref('');
-	const pathState = ref(DirectoryState.Invalid);
+	const path = ref(defaultInstallPath);
+	const pathState = ref(DirectoryState.Valid);
 	const progressMax = ref(0);
 	const progressValue = ref(0);
 	const refreshPath = ref(1);
 	const repo = ref('vanilla');
 	const step = ref(1);
 	const step1Error = ref(false);
-	const step2Error = ref(false);
+	const step2Error = computed(() => pathState.value === DirectoryState.Invalid);
 	const step3Error = ref(false);
 
 	const isCustomRepo = computed(() => repo.value === 'custom');
@@ -44,20 +44,6 @@ const useStore = defineStore('loadouts', () => {
 		}
 	}
 
-	function onPathUpdate(state: DirectoryState): void {
-		pathState.value = state;
-		switch (state) {
-			case DirectoryState.Installed:
-				if (action.value === 'install') {
-					action.value = 'verify';
-				}
-				break;
-			case DirectoryState.Valid:
-				action.value = 'install';
-				break;
-		}
-	}
-
 	async function run(): Promise<void> {
 		loading.value = true;
 		await TAI.run(action.value, path.value, repository[repo.value]);
@@ -78,13 +64,26 @@ const useStore = defineStore('loadouts', () => {
 
 	TAI.attach(onInfo, onError, onComplete);
 
+	// Update the action when the path state changes.
+	watch(pathState, value => {
+		switch (value) {
+			case DirectoryState.Installed:
+				if (action.value === 'install') {
+					action.value = 'verify';
+				}
+				break;
+			case DirectoryState.Valid:
+				action.value = 'install';
+				break;
+		}
+	});
+
 	return {
 		action,
 		back,
 		loading,
 		isCustomRepo,
 		model,
-		onPathUpdate,
 		path,
 		pathState,
 		progressMax,

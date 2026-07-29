@@ -4,6 +4,8 @@ export function cdn(path: string) {
 	return new URL(path, 'https://cdn.wilderzone.live/');
 }
 
+export const defaultInstallPath = 'C:\\ProgramData\\Tribes Ascend';
+
 export const repository: Record<string, string> = {
 	vanilla: DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.live/ta',
 	modded: DEV ? 'http://localhost:3000/ta-modded' : 'https://cdn.wilderzone.live/ta-modded',

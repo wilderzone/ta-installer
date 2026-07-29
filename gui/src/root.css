@@ -104,18 +104,18 @@ button {
 	min-width: 15ch;
 	background: var(--color-card);
 
-	&[type="submit"] {
+	&:where([type="submit"], .primary) {
 		padding: 0.4em 0;
 		text-transform: capitalize;
 		background: var(--color-primary);
 	}
 
-	&[type="submit"]:not(:disabled) {
+	&:where([type="submit"], .primary):not(:disabled) {
 		color: var(--color-text-on-primary);
 	}
 
 	&:where(:focus-visible, :hover) {
-		filter: brightness(1.1);
+		filter: brightness(1.2);
 	}
 
 	&:disabled {
