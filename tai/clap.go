@@ -19,6 +19,7 @@ var methods = [...]string{
 	"list",
 	"check",
 	"check-repo",
+	"check-updates",
 	"install",
 	"verify",
 	"update",
@@ -34,15 +35,16 @@ type commandSpec struct {
 }
 
 var commands = map[string]commandSpec{
-	"asset":      {needsPath: true, needsName: true},
-	"manifest":   {needsPath: true},
-	"list":       {pathOrRepo: true},
-	"check":      {needsPath: true},
-	"check-repo": {needsRepo: true},
-	"install":    {needsPath: true, needsRepo: true},
-	"verify":     {needsPath: true, needsRepo: true},
-	"update":     {needsPath: true, needsRepo: true},
-	"uninstall":  {needsPath: true},
+	"asset":         {needsPath: true, needsName: true},
+	"manifest":      {needsPath: true},
+	"list":          {pathOrRepo: true},
+	"check":         {needsPath: true},
+	"check-repo":    {needsRepo: true},
+	"check-updates": {needsPath: true, needsRepo: true},
+	"install":       {needsPath: true, needsRepo: true},
+	"verify":        {needsPath: true, needsRepo: true},
+	"update":        {needsPath: true, needsRepo: true},
+	"uninstall":     {needsPath: true},
 }
 
 // Guard against `methods` and `commands` drifting out of sync.

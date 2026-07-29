@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 )
 
@@ -31,5 +32,34 @@ func CheckRepo(logger *Logger, arguments arguments) error {
 	}
 
 	logger.log(REPO_FOUND)
+	return nil
+}
+
+// Handle the "check-updates" command.
+func CheckUpdates(logger *Logger, arguments arguments) error {
+	logger.log(CHECKING_FOR_UPDATES)
+
+	localManifest, err := readManifest(logger, arguments.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return userErrorf(err, "No installation found at %s. Run `install` first.", arguments.path)
+	}
+	if err != nil {
+		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
+	}
+	remoteManifest, err := getManifest(logger, arguments.repo)
+	if err != nil {
+		return userErrorf(err, "Couldn't check for updates from %s. Check your connection and that the repository URL is correct.", arguments.repo)
+	}
+
+	// Compare the version fields of the local and remote manifests.
+	if localManifest.Version >= remoteManifest.Version {
+		version := logger.colour(fmt.Sprintf("v%d", localManifest.Version), GREEN)
+		logger.log(INSTALL_UP_TO_DATE, "Installation is up to date: " + version)
+		return nil
+	}
+	old := logger.colour(fmt.Sprintf("v%d", localManifest.Version), RED)
+	new := logger.colour(fmt.Sprintf("v%d", remoteManifest.Version), GREEN)
+	logger.log(UPDATE_FOUND, fmt.Sprintf("%s → %s\n", old, new))
+
 	return nil
 }
