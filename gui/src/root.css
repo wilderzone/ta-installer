@@ -12,6 +12,7 @@
 	--color-text-on-primary: #000;
 	--font-size: 14px;
 	--border-radius: 5px;
+	--fieldset-inline-padding: 0.75rem;
 	--gap: 24px;
 }
 
@@ -53,10 +54,10 @@ body {
 }
 
 fieldset {
-	--fieldset-inline-padding: 0.75rem;
 	position: relative;
+	width: 100%;
 	margin: 0;
-	padding-inline: 0;
+	padding: var(--gap) 0;
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius);
 
@@ -86,9 +87,6 @@ fieldset {
 
 legend {
 	color: var(--color-text-dim);
-	font-size: 0.9rem;
-	font-style: italic;
-	padding-inline: var(--fieldset-inline-padding);
 }
 
 button,
@@ -100,12 +98,17 @@ input {
 }
 
 button {
+	min-width: 15ch;
+	background: var(--color-card);
+
 	&[type="submit"] {
-		min-width: 10ch;
 		padding: 0.4em 0;
-		color: var(--color-text-on-primary);
 		text-transform: capitalize;
-		background-color: var(--color-primary);
+		background: var(--color-primary);
+	}
+
+	&[type="submit"]:not(:disabled) {
+		color: var(--color-text-on-primary);
 	}
 
 	&:where(:focus-visible, :hover) {
@@ -113,7 +116,8 @@ button {
 	}
 
 	&:disabled {
-		filter: grayscale(1);
+		background: transparent;
+		opacity: 0.5;
 		pointer-events: none;
 	}
 }

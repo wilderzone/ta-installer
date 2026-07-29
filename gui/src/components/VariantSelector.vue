@@ -47,7 +47,7 @@ watch(model, () => {
 
 <template>
 	<fieldset class="borderless">
-		<legend>Game Type</legend>
+		<legend>Select the variant of Tribes: Ascend to install.</legend>
 		<RadioRow
 			:disabled
 			name="variant"

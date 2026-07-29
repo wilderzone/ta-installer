@@ -35,7 +35,7 @@ watch(() => props.refresh, () => void check());
 
 <template>
 	<fieldset class="borderless">
-		<legend>Install Path</legend>
+		<legend>Select a folder in which to install the game files.</legend>
 		<div class="row">
 			<input type="text" :disabled @change="check()" v-model="model">
 			<button type="button" :disabled @click="browse()">Browse</button>

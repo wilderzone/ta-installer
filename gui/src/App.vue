@@ -22,8 +22,9 @@ main {
 	display: grid;
 	grid-template:
 		'.     logo      .' 3rem
-		'.     steps     .' 1fr
-		/ 1fr  515px      1fr;
+		'.     .         .' 1fr
+		'.     steps     .' 300px
+		/ 1fr  600px     1fr;
 	place-items: center;
 	gap: var(--gap);
 	height: 100%;
