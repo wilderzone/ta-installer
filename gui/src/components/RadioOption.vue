@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed, inject, Ref } from 'vue';
 
-const props = defineProps<{ disabled?: boolean | string; label: string; value: string; }>();
+const props = defineProps<{
+	disabled?: boolean | string;
+	image?: string;
+	label: string;
+	value: string;
+}>();
 const selected = inject<string>('radio-selected');
 const select = inject<(value: string) => void>('radio-select');
 const disabled = inject<Ref<boolean>>('radio-disabled');
@@ -31,6 +36,7 @@ function change(event: Event, value: string): void {
 		:for="`${hash}-${value}`"
 		:title="disabledMessage"
 	>
+		<img v-if="image" :src="image" height="48" alt="" draggable="false">
 		<span>{{ label }}</span>
 		<input
 			type="radio"
@@ -46,11 +52,14 @@ function change(event: Event, value: string): void {
 <style scoped>
 .radio-option {
 	position: relative;
-	display: grid;
-	place-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: calc(var(--gap) / 4);
 	width: 100%;
-	height: 2em;
-	background-color: #8884;
+	height: 7em;
+	background-color: var(--color-input);
 
 	&:first-of-type {
 		border-radius: var(--border-radius) 0 0 var(--border-radius);
@@ -60,8 +69,15 @@ function change(event: Event, value: string): void {
 		border-radius: 0 var(--border-radius) var(--border-radius) 0;
 	}
 
-	& > * {
-		position: absolute;
+	&:where(:focus-visible, :hover) {
+		&::before {
+			--inset: 2px;
+			content: '';
+			position: absolute;
+			inset: var(--inset);
+			background: var(--color-input);
+			border-radius: calc(var(--border-radius) - var(--inset));
+		}
 	}
 
 	&:has(input:checked) {
@@ -72,9 +88,13 @@ function change(event: Event, value: string): void {
 			content: '';
 			position: absolute;
 			inset: var(--inset);
-			background-color: var(--color-primary);
+			background: var(--color-primary);
 			border-radius: calc(var(--border-radius) - var(--inset));
 		}
+	}
+
+	& img {
+		filter: saturate(0.85) brightness(1.2);
 	}
 
 	& span {
@@ -82,6 +102,7 @@ function change(event: Event, value: string): void {
 	}
 
 	& input {
+		position: absolute;
 		inset: 0;
 		margin: 0;
 		opacity: 0;
