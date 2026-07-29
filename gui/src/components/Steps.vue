@@ -7,29 +7,32 @@ import { store } from '../store';
 		<ol>
 			<li
 				class="step"
-				:class="{ current: store.step === 1, complete: store.step > 1 }"
+				:class="{ current: store.step === 1, complete: store.step > 1, error: store.step1Error }"
 				@click="store.step = 1"
 			>
 				<span class="number">1</span>
 				<span class="check">✓</span>
+				<span class="cross">✕</span>
 				<span class="name">Game Type</span>
 			</li>
 			<li
 				class="step"
-				:class="{ current: store.step === 2, complete: store.step > 2 }"
+				:class="{ current: store.step === 2, complete: store.step > 2, error: store.step2Error }"
 				@click="store.step = 2"
 			>
 				<span class="number">2</span>
 				<span class="check">✓</span>
+				<span class="cross">✕</span>
 				<span class="name">Location</span>
 			</li>
 			<li
 				class="step"
-				:class="{ current: store.step === 3, complete: store.step > 3 }"
+				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step2Error }"
 				@click="store.step = 3"
 			>
 				<span class="number">3</span>
 				<span class="check">✓</span>
+				<span class="cross">✕</span>
 				<span class="name">Install</span>
 			</li>
 		</ol>
@@ -54,6 +57,7 @@ import { store } from '../store';
 	display: flex;
 	align-items: center;
 	gap: var(--gap);
+	width: 100%;
 	min-width: 20ch;
 	padding: calc(var(--gap) / 2);
 	border-radius: var(--border-radius);
@@ -67,7 +71,7 @@ import { store } from '../store';
 		background: var(--color-card);
 	}
 
-	& :is(.check, .number) {
+	& :is(.check, .cross, .number) {
 		display: grid;
 		place-items: center;
 		flex-shrink: 0;
@@ -77,8 +81,9 @@ import { store } from '../store';
 		border-radius: 50%;
 	}
 
-	& .check {
+	& :is(.check, .cross) {
 		display: none;
+		padding-bottom: 0.14em;
 	}
 
 	&.current .number {
@@ -96,6 +101,17 @@ import { store } from '../store';
 
 	&.complete .number {
 		display: none;
+	}
+
+	&.error :is(.check, .number) {
+		display: none;
+	}
+
+	&.error .cross {
+		display: grid;
+		color: var(--color-text-on-primary);
+		background: var(--color-error);
+		border-color: var(--color-error);
 	}
 }
 </style>

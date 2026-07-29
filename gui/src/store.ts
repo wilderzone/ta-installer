@@ -14,6 +14,9 @@ const useStore = defineStore('loadouts', () => {
 	const refreshPath = ref(1);
 	const repo = ref('vanilla');
 	const step = ref(1);
+	const step1Error = ref(false);
+	const step2Error = ref(false);
+	const step3Error = ref(false);
 
 	const isCustomRepo = computed(() => repo.value === 'custom');
 	const model = computed(() => models[step.value]);
@@ -91,6 +94,9 @@ const useStore = defineStore('loadouts', () => {
 		next,
 		run,
 		step,
+		step1Error,
+		step2Error,
+		step3Error,
 		updateProgressBar
 	};
 });
