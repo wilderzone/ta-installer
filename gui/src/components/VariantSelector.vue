@@ -4,7 +4,7 @@ import { nextTick, ref, watch } from 'vue';
 import { TAI } from '../tai';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
-import { customInstructions, filters, repository } from '../config.ts';
+import { customInstructions, repository } from '../config.ts';
 import { store } from '../store.ts';
 
 defineProps<{ disabled: boolean }>();
