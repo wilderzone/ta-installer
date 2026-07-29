@@ -66,6 +66,7 @@ function parentDirectory(path: string): string {
 }
 
 watch(() => store.path, check, { immediate: true });
+watch(() => store.refreshPath, check);
 </script>
 
 <template>
