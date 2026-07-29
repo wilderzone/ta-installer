@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { store } from '../store';
-import { DirectoryState } from '../tai';
 </script>
 
 <template>
@@ -19,7 +18,7 @@ import { DirectoryState } from '../tai';
 		<button
 			v-else
 			class="primary"
-			:disabled="store.loading || store.pathState === DirectoryState.Invalid || store.isCustomRepo"
+			:disabled="store.loading || store.step1Error || store.step2Error || store.isCustomRepo"
 			@click="store.run()"
 		>{{ store.action }}</button>
 	</section>
