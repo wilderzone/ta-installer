@@ -12,7 +12,7 @@
 		"model": {
 			"internalName": "GravCycle",
 			"root": "Root",
-			"scale": 0.45,
+			"scale": 0.42,
 			"rotation": { "x": 0, "y": 2.3, "z": 0 },
 			"position": { "x": -0.1, "y": -0.46, "z": 0 }
 		}
@@ -32,7 +32,7 @@
 			"root": "Root",
 			"scale": 0.17,
 			"rotation": { "x": 0, "y": 2.3, "z": 0 },
-			"position": { "x": -0.15, "y": -0.53, "z": 0 }
+			"position": { "x": -0.1, "y": -0.53, "z": 0 }
 		}
 	},
 	{
@@ -50,7 +50,7 @@
 			"root": "Root",
 			"scale": 0.18,
 			"rotation": { "x": 0, "y": 2.3, "z": 0 },
-			"position": { "x": -0.15, "y": -0.75, "z": 0 }
+			"position": { "x": -0.1, "y": -0.8, "z": 0 }
 		}
 	}
 ]
