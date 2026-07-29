@@ -9,16 +9,17 @@ const props = defineProps<{
 	label?: string;
 }>();
 
+const complete = computed(() => props.value >= props.max && props.value);
 const valuePercentage = computed(() => props.value / props.max * 100);
 </script>
 
 <template>
-	<div class="progress-bar" :class="{ complete: value >= max, disabled, indeterminate }">
+	<div class="progress-bar" :class="{ complete, disabled, indeterminate }">
 		<progress :max :value="value">{{ value.toFixed(0) }}%</progress>
 		<div class="track">
 			<div class="bar" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
 			<div v-if="label" class="percentage">{{ label }}</div>
-			<div v-else class="percentage">{{ (valuePercentage || 0).toFixed(0) }}%</div>
+			<div v-if="!label && !indeterminate" class="percentage">{{ (valuePercentage || 0).toFixed(0) }}%</div>
 		</div>
 	</div>
 </template>

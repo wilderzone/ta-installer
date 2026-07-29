@@ -9,6 +9,7 @@ const useStore = defineStore('application', () => {
 	const loading = ref(false);
 	const path = ref(defaultInstallPath);
 	const pathState = ref(DirectoryState.Valid);
+	const progressIndeterminate = ref(false);
 	const progressMax = ref(0);
 	const progressValue = ref(0);
 	const refreshPath = ref(1);
@@ -32,6 +33,7 @@ const useStore = defineStore('application', () => {
 	}
 
 	function updateProgressBar(data: string | 0): void {
+		progressIndeterminate.value = false;
 		if (data === 0) {
 			progressMax.value = 0;
 			progressValue.value = 0;
@@ -46,6 +48,7 @@ const useStore = defineStore('application', () => {
 
 	async function run(): Promise<void> {
 		loading.value = true;
+		progressIndeterminate.value = true;
 		await TAI.run(action.value, path.value, repository, filters[repo.value]);
 	}
 
@@ -86,6 +89,7 @@ const useStore = defineStore('application', () => {
 		model,
 		path,
 		pathState,
+		progressIndeterminate,
 		progressMax,
 		progressValue,
 		refreshPath,

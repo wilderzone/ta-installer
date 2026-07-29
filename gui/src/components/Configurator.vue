@@ -34,7 +34,11 @@ import VariantSelector from './VariantSelector.vue';
 				:class="{ current: store.step === 3 }"
 			>
 				<div class="output">
-					<ProgressBar :max="store.progressMax" :value="store.progressValue"/>
+					<ProgressBar
+						:indeterminate="store.progressIndeterminate"
+						:max="store.progressMax"
+						:value="store.progressValue"
+					/>
 					<Log />
 				</div>
 			</li>
