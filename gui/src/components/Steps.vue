@@ -95,8 +95,8 @@ import { store } from '../store';
 	&.complete .check {
 		display: grid;
 		color: var(--color-text-on-primary);
-		background: var(--color-primary);
-		border-color: var(--color-primary);
+		background: var(--color-success);
+		border-color: var(--color-success);
 	}
 
 	&.complete .number {

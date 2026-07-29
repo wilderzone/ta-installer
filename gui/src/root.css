@@ -6,6 +6,7 @@
 	--color-border: #333;
 	--color-card: #222a;
 	--color-error: oklch(from var(--color-primary) l c calc(h + 100));
+	--color-success: oklch(from var(--color-primary) l c calc(h + 240));
 	--color-input: #8884;
 	--color-text: #ddd;
 	--color-text-dim: #bfbfbf;
