@@ -1,5 +1,5 @@
 import { Channel, invoke } from '@tauri-apps/api/core';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { ref } from 'vue';
 
 export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 'uninstall';
 
@@ -44,16 +44,9 @@ export class TAI {
 	public static status = ref();
 
 	public static attach(onInfo: Callback, onError: Callback, onComplete: Callback): void {
-		onMounted(() => {
-			TAI.on('info', onInfo);
-			TAI.on('error', onError);
-			TAI.on('complete', onComplete);
-		});
-		onUnmounted(() => {
-			TAI.off('info', onInfo);
-			TAI.off('error', onError);
-			TAI.off('complete', onComplete);
-		});
+		TAI.on('info', onInfo);
+		TAI.on('error', onError);
+		TAI.on('complete', onComplete);
 	}
 
 	public static on(event: 'error' | 'info' | 'complete', callback: Callback): void {
