@@ -12,7 +12,7 @@ const useStore = defineStore('application', () => {
 	const progressMax = ref(0);
 	const progressValue = ref(0);
 	const refreshPath = ref(1);
-	const repo = ref('vanilla');
+	const repo = ref('modded');
 	const step = ref(1);
 	const step1Error = ref(false);
 	const step2Error = computed(() => pathState.value === DirectoryState.Invalid);
