@@ -4,6 +4,7 @@ import Card from './components/Card.vue';
 import Configurator from './components/Configurator.vue';
 import Logo from './components/Logo.vue';
 import Scene from './components/Scene.vue';
+import WindowButtons from './components/WindowButtons.vue';
 </script>
 
 <template>
@@ -15,6 +16,7 @@ import Scene from './components/Scene.vue';
 			<Configurator />
 		</Card>
 	</main>
+	<WindowButtons />
 </template>
 
 <style scoped>

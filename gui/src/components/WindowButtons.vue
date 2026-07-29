@@ -1,0 +1,90 @@
+<script setup lang="ts">
+import { getCurrentWindow } from '@tauri-apps/api/window';
+
+const appWindow = getCurrentWindow();
+
+async function minimize(): Promise<void> {
+	await appWindow.minimize();
+}
+
+async function maximize(): Promise<void> {
+	await appWindow.toggleMaximize();
+}
+
+async function close(): Promise<void> {
+	await appWindow.close();
+}
+</script>
+
+<template>
+	<div class="window-title-bar">
+		<div class="window-drag-region" data-tauri-drag-region></div>
+		<div class="window-buttons">
+			<button class="minimize" @click="minimize()">—</button>
+			<button class="maximize" @click="maximize()" disabled>▢</button>
+			<button class="close" @click="close()">✕</button>
+		</div>
+	</div>
+</template>
+
+<style scoped>
+.window-title-bar {
+	--color-text: #fff;
+	--color-text-dim: #4d4d4d;
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	display: flex;
+	justify-content: end;
+	height: 70px;
+	color: var(--color-text);
+	font-family: system-ui, sans-serif;
+	user-select: none;
+}
+
+.window-drag-region {
+	app-region: drag;
+	position: absolute;
+	inset: 0;
+}
+
+.window-buttons {
+	--color-close: #c42b1c;
+	--color-hover: #2d2d2d;
+	display: flex;
+	height: max-content;
+
+	& button {
+		all: unset;
+		box-sizing: border-box;
+		display: grid;
+		place-items: center;
+		width: 45px;
+		height: 30px;
+		color: var(--color-text);
+		transition: 0.15s ease background-color;
+	}
+
+	& button:disabled {
+		color: var(--color-text-dim);
+		pointer-events: none;
+	}
+
+	& button:not(:disabled):is(:focus-visible, :hover) {
+		background: var(--color-hover);
+	}
+
+	& .close:not(:disabled):is(:focus-visible, :hover) {
+		background: var(--color-close);
+	}
+
+	& .minimize {
+		padding-block-end: 3px;
+	}
+
+	& .maximize {
+		padding-block-start: 2px;
+	}
+}
+</style>
