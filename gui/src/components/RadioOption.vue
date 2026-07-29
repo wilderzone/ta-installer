@@ -69,7 +69,7 @@ function change(event: Event, value: string): void {
 		border-radius: 0 var(--border-radius) var(--border-radius) 0;
 	}
 
-	&:where(:focus-visible, :hover) {
+	&:where(:focus-visible, :hover):not(:has(input:disabled)) {
 		&::before {
 			--inset: 2px;
 			content: '';
