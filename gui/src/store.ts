@@ -13,13 +13,13 @@ const useStore = defineStore('application', () => {
 	const progressMax = ref(0);
 	const progressValue = ref(0);
 	const refreshPath = ref(1);
-	const repo = ref('modded');
 	const step = ref(1);
 	const step1Error = ref(false);
 	const step2Error = computed(() => pathState.value === DirectoryState.Invalid);
 	const step3Error = ref(false);
+	const variant = ref('modded');
 
-	const isCustomRepo = computed(() => repo.value === 'custom');
+	const isCustomVariant = computed(() => variant.value === 'custom');
 	const model = computed(() => models[step.value]);
 
 	function back(): void {
@@ -49,7 +49,7 @@ const useStore = defineStore('application', () => {
 	async function run(): Promise<void> {
 		loading.value = true;
 		progressIndeterminate.value = true;
-		await TAI.run(action.value, path.value, repository, filters[repo.value]);
+		await TAI.run(action.value, path.value, repository, filters[variant.value]);
 	}
 
 	function onError(_data: string): void {
@@ -85,7 +85,7 @@ const useStore = defineStore('application', () => {
 		action,
 		back,
 		loading,
-		isCustomRepo,
+		isCustomVariant,
 		model,
 		path,
 		pathState,
@@ -93,14 +93,14 @@ const useStore = defineStore('application', () => {
 		progressMax,
 		progressValue,
 		refreshPath,
-		repo,
 		next,
 		run,
 		step,
 		step1Error,
 		step2Error,
 		step3Error,
-		updateProgressBar
+		updateProgressBar,
+		variant
 	};
 });
 

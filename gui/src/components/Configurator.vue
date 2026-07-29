@@ -18,7 +18,7 @@ import VariantSelector from './VariantSelector.vue';
 			>
 				<VariantSelector
 					:disabled="store.loading"
-					v-model="store.repo"
+					v-model="store.variant"
 				/>
 			</li>
 			<li
