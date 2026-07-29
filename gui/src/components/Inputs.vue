@@ -72,7 +72,6 @@ import { DirectoryState } from '../tai.ts';
 	align-items: center;
 	gap: var(--gap);
 	width: 100%;
-	user-select: none;
 
 	&:where(:focus-visible, :hover) {
 		border-color: var(--color-border);

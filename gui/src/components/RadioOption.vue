@@ -79,7 +79,6 @@ function change(event: Event, value: string): void {
 
 	& span {
 		z-index: 1;
-		user-select: none;
 	}
 
 	& input {

@@ -61,7 +61,6 @@ import { store } from '../store';
 	min-width: 20ch;
 	padding: calc(var(--gap) / 2);
 	border-radius: var(--border-radius);
-	user-select: none;
 
 	&:where(:focus-visible, :hover) {
 		background: var(--color-card);
