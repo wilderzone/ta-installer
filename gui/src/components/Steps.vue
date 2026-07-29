@@ -33,7 +33,7 @@ import { store } from '../store';
 				<span class="number">3</span>
 				<span class="check">✓</span>
 				<span class="cross">✕</span>
-				<span class="name">Install</span>
+				<span class="name">{{ store.action }}</span>
 			</li>
 		</ol>
 	</section>
@@ -60,6 +60,7 @@ import { store } from '../store';
 	width: 100%;
 	min-width: 20ch;
 	padding: calc(var(--gap) / 2);
+	text-transform: capitalize;
 	border-radius: var(--border-radius);
 
 	&:where(:focus-visible, :hover) {

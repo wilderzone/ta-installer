@@ -1,7 +1,7 @@
 :root {
 	--color-primary: #9dafd1;
-	--color-secondary: #41637C;
-	--color-tertiary: hsl(205, 31%, 30%);
+	--color-secondary: oklch(from var(--color-primary) calc(l - 0.2) c h);
+	--color-tertiary: oklch(from var(--color-primary) calc(l - 0.25) c h);
 	--color-background: #121212;
 	--color-border: #333;
 	--color-card: #222a;

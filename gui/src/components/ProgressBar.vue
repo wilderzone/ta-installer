@@ -27,6 +27,7 @@ const valuePercentage = computed(() => props.value / props.max * 100);
 .progress-bar {
 	width: 100%;
 	height: 100%;
+	min-height: 28px;
 
 	& progress {
 		position: absolute;
