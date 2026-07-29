@@ -10,7 +10,7 @@ You'll be prompted to select the folder in which to install TA, and the reposito
 _Note: `tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI._
 
 <p align="center">
-  <img width="582" height="682" alt="image" src="https://github.com/user-attachments/assets/70cdef8a-983a-46ed-bbe8-b1598c200346" />
+  <img width="1262" height="902" alt="image" src="https://github.com/user-attachments/assets/c4da7aa5-9c3a-40e2-a74f-635f9fb22405" />
 </p>
 
 ## CLI
@@ -25,10 +25,10 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 ```
 
 ### Subcommands
-_For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
-_Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._  
-_`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Map Pack"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._  
-_Assets can depend on other assets, and TAI manages those relationships for you: `install` also installs whatever the selected assets require, and `uninstall` also removes assets that are no longer required. See [Dependencies](#dependencies) for more information._
+- _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.live) by default._  
+- _Commands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._  
+- _`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Map Pack"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._  
+- _Assets can depend on other assets, and TAI manages those relationships for you: `install` also installs whatever the selected assets require, and `uninstall` also removes assets that are no longer required. See [Dependencies](#dependencies) for more information._
 
 | Subcommand         | Description                                                                                                                                                          | Example                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
