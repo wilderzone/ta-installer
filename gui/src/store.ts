@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { defaultInstallPath, repository } from './config';
 import { Action, DirectoryState, TAI } from './tai';
 
-const useStore = defineStore('loadouts', () => {
+const useStore = defineStore('application', () => {
 	const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];
 	const action = ref<Action>('install');
 	const loading = ref(false);

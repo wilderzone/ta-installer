@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue';
 import { scenes, type StopScene } from '../scenes';
-import { store } from '../store';
 
 const props = defineProps<{
 	scene: keyof typeof scenes;
@@ -10,16 +9,15 @@ const props = defineProps<{
 const canvas = ref<HTMLCanvasElement | null>(null);
 let stopScene: StopScene;
 
-function updateScene (): void {
+function resetScene (): void {
 	stopScene?.();
 	if (!canvas.value) return;
 	const scene = scenes[props.scene];
 	stopScene = scene?.(canvas.value);
 }
 
-watch(canvas, updateScene);
-watch(() => props.scene, updateScene);
-watch(() => store.model, updateScene);
+watch(canvas, resetScene);
+watch(() => props.scene, resetScene);
 
 onBeforeUnmount(() => stopScene?.());
 </script>
