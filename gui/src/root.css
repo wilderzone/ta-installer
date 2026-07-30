@@ -18,6 +18,7 @@
 	--border-radius: 5px;
 	--fieldset-inline-padding: 0.75rem;
 	--gap: 24px;
+	--input-height: 28px;
 }
 
 * {
@@ -88,11 +89,27 @@ fieldset {
 			color: var(--color-text-red);
 		}
 	}
+
+	& > p span {
+		padding-inline-end: 1ch;
+
+		&.grey {
+			opacity: 0.5;
+		}
+
+		&.green {
+			color: var(--color-text-green);
+		}
+
+		&.red {
+			color: var(--color-text-red);
+		}
+	}
 }
 
 button,
 input {
-	min-height: 28px;
+	min-height: var(--input-height);
 	padding: 0.2em 1ch;
 	border: 1px solid transparent;
 	border-radius: var(--border-radius);

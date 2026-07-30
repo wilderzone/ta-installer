@@ -2,6 +2,7 @@ import { createPinia, defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { defaultInstallPath, filters, repository } from './config';
 import { Action, DirectoryState, TAI } from './tai';
+import { saveData } from './persist';
 
 const useStore = defineStore('application', () => {
 	const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];
@@ -9,6 +10,7 @@ const useStore = defineStore('application', () => {
 	const loading = ref(false);
 	const path = ref(defaultInstallPath);
 	const pathState = ref(DirectoryState.Valid);
+	const pathVariant = ref('');
 	const progressIndeterminate = ref(false);
 	const progressMax = ref(0);
 	const progressValue = ref(0);
@@ -50,6 +52,9 @@ const useStore = defineStore('application', () => {
 		loading.value = true;
 		progressIndeterminate.value = true;
 		await TAI.run(action.value, path.value, repository, filters[variant.value]);
+		if (action.value === 'install') {
+			await saveData();
+		}
 	}
 
 	function onError(_data: string): void {
@@ -89,6 +94,7 @@ const useStore = defineStore('application', () => {
 		model,
 		path,
 		pathState,
+		pathVariant,
 		progressIndeterminate,
 		progressMax,
 		progressValue,
