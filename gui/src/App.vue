@@ -2,6 +2,7 @@
 import Background from './components/Background.vue';
 import Card from './components/Card.vue';
 import Configurator from './components/Configurator.vue';
+import FocusOverlay from './components/FocusOverlay.vue';
 import Logo from './components/Logo.vue';
 import Scene from './components/Scene.vue';
 import WindowButtons from './components/WindowButtons.vue';
@@ -16,6 +17,7 @@ import WindowButtons from './components/WindowButtons.vue';
 			<Configurator />
 		</Card>
 	</main>
+	<FocusOverlay />
 	<WindowButtons />
 </template>
 
