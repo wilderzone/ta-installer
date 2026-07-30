@@ -9,10 +9,11 @@
 	--color-success: oklch(from var(--color-primary) l calc(c + 0.05) calc(h + 240));
 	--color-input: #8884;
 	--color-text: #ddd;
-	--color-text-dim: #bfbfbf;
+	--color-text-dim: #888;
 	--color-text-green: oklch(from var(--color-success) l calc(c + 0.05) h);
 	--color-text-red: var(--color-error);
 	--color-text-on-primary: #000;
+	--color-text-dim-on-primary: #585858;
 	--font-size: 14px;
 	--border-radius: 5px;
 	--fieldset-inline-padding: 0.75rem;
@@ -87,10 +88,6 @@ fieldset {
 			color: var(--color-text-red);
 		}
 	}
-}
-
-legend {
-	color: var(--color-text-dim);
 }
 
 button,

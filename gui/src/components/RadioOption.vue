@@ -5,6 +5,7 @@ const props = defineProps<{
 	disabled?: boolean | string;
 	image?: string;
 	label: string;
+	sublabel?: string;
 	value: string;
 }>();
 const selected = inject<string>('radio-selected');
@@ -37,7 +38,10 @@ function change(event: Event, value: string): void {
 		:title="disabledMessage"
 	>
 		<img v-if="image" :src="image" height="48" alt="" draggable="false">
-		<span>{{ label }}</span>
+		<span class="label">
+			{{ label }}
+			<span v-if="sublabel" class="sublabel">{{ sublabel }}</span>
+		</span>
 		<input
 			type="radio"
 			:id="`${hash}-${value}`"
@@ -51,12 +55,11 @@ function change(event: Event, value: string): void {
 
 <style scoped>
 .radio-option {
-	position: relative;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	gap: calc(var(--gap) / 4);
+	gap: calc(var(--gap) / 5);
 	width: 100%;
 	height: 7em;
 	background-color: var(--color-input);
@@ -91,14 +94,27 @@ function change(event: Event, value: string): void {
 			background: var(--color-primary);
 			border-radius: calc(var(--border-radius) - var(--inset));
 		}
+
+		& .sublabel {
+			color: var(--color-text-dim-on-primary);
+		}
 	}
 
 	& img {
 		filter: saturate(0.85) brightness(1.2);
 	}
 
-	& span {
+	& .label {
 		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	& .sublabel {
+		color: var(--color-text-dim);
+		font-size: 0.8rem;
 	}
 
 	& input {

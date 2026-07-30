@@ -56,11 +56,13 @@ watch(model, () => {
 			<RadioOption
 				image="124.png"
 				label="Vanilla"
+				sublabel="(4.5GB)"
 				value="vanilla"
 			/>
 			<RadioOption
 				image="129.png"
 				label="Modded"
+				sublabel="(8GB)"
 				value="modded"
 			/>
 			<RadioOption
