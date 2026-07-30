@@ -14,6 +14,7 @@ const useStore = defineStore('application', () => {
 	const progressIndeterminate = ref(false);
 	const progressMax = ref(0);
 	const progressValue = ref(0);
+	const progressComplete = computed(() => progressValue >= progressMax && progressValue);
 	const refreshPath = ref(1);
 	const step = ref(1);
 	const step1Error = ref(false);
@@ -95,6 +96,7 @@ const useStore = defineStore('application', () => {
 		path,
 		pathState,
 		pathVariant,
+		progressComplete,
 		progressIndeterminate,
 		progressMax,
 		progressValue,

@@ -4,7 +4,7 @@
 	--color-tertiary: oklch(from var(--color-primary) calc(l - 0.25) c h);
 	--color-background: #121212;
 	--color-border: #333;
-	--color-card: #222a;
+	--color-card: #2b2b2baa;
 	--color-error: oklch(from var(--color-primary) l calc(c + 0.1) calc(h + 120));
 	--color-success: oklch(from var(--color-primary) l calc(c + 0.05) calc(h + 240));
 	--color-input: #8884;
