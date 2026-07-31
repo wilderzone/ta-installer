@@ -18,13 +18,13 @@
 		"@tauri-apps/plugin-fs": "^2.5.1",
 		"@tauri-apps/plugin-opener": "^2",
 		"pinia": "^4.0.2",
-		"vue": "^3.5.13"
+		"vue": "^3.5.40"
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^2",
-		"@vitejs/plugin-vue": "^5.2.1",
-		"typescript": "~5.6.2",
-		"vite": "^6.0.3",
-		"vue-tsc": "^2.1.10"
+		"@vitejs/plugin-vue": "^6.0.8",
+		"typescript": "~5.9.3",
+		"vite": "^8.2.0",
+		"vue-tsc": "^3.3.9"
 	}
 }
