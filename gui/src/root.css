@@ -12,6 +12,7 @@
 	--color-text-dim: #888;
 	--color-text-green: oklch(from var(--color-success) l calc(c + 0.05) h);
 	--color-text-red: var(--color-error);
+	--color-text-yellow: oklch(from var(--color-primary) l calc(c + 0.1) calc(h + 185));
 	--color-text-on-primary: #000;
 	--color-text-dim-on-primary: #585858;
 	--font-size: 14px;
@@ -88,10 +89,15 @@ fieldset {
 		&.red {
 			color: var(--color-text-red);
 		}
+
+		&.yellow {
+			color: var(--color-text-yellow);
+		}
 	}
 
 	& > p span {
 		padding-inline-end: 1ch;
+		line-height: calc(1lh + 2px);
 
 		&.grey {
 			opacity: 0.5;
@@ -103,6 +109,10 @@ fieldset {
 
 		&.red {
 			color: var(--color-text-red);
+		}
+
+		&.yellow {
+			color: var(--color-text-yellow);
 		}
 	}
 }

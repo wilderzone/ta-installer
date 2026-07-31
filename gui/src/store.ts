@@ -25,11 +25,13 @@ const useStore = defineStore('application', () => {
 	const isCustomVariant = computed(() => variant.value === 'custom');
 	const model = computed(() => models[step.value]);
 
+	/** Return to the previous installation step. */
 	function back(): void {
 		if (step.value - 1 < 1) return;
 		step.value--;
 	}
 
+	/** Proceed to the next installation step. */
 	function next(): void {
 		if (step.value + 1 > 3) return;
 		step.value++;
@@ -49,6 +51,7 @@ const useStore = defineStore('application', () => {
 		}
 	}
 
+	/** Run the currently selected action through TAI CLI. */
 	async function run(): Promise<void> {
 		loading.value = true;
 		progressIndeterminate.value = true;
@@ -77,9 +80,12 @@ const useStore = defineStore('application', () => {
 	watch(pathState, value => {
 		switch (value) {
 			case DirectoryState.Installed:
-				if (action.value === 'install') {
+				if (action.value === 'install' || action.value === 'update') {
 					action.value = 'verify';
 				}
+				break;
+			case DirectoryState.NeedsUpdate:
+				action.value = 'update';
 				break;
 			case DirectoryState.Valid:
 				action.value = 'install';

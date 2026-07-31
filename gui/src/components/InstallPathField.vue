@@ -59,7 +59,7 @@ async function check(): Promise<void> {
 		}
 
 		// If an installation exists, check the type.
-		if (pathState === DirectoryState.Installed) {
+		if (pathState === DirectoryState.Installed || pathState === DirectoryState.NeedsUpdate) {
 			const data = await loadData();
 			store.pathVariant = data?.selectedVariant ?? '';
 		} else {
@@ -117,18 +117,22 @@ watch(() => store.refreshPath, check);
 
 		<p class="install-path-info">
 			<span v-if="noPath" class="red">No location specified.</span>
-			<span v-else-if="store.pathState === DirectoryState.Installed" class="green">Installation found.</span>
+			<span v-else-if="store.pathState === DirectoryState.Installed || store.pathState === DirectoryState.NeedsUpdate" class="green">
+				<template v-if="store.pathVariant === 'vanilla'">Installation found (vanilla).</template>
+				<template v-else-if="store.pathVariant === 'modded'">Installation found (modded).</template>
+				<template v-else-if="store.pathVariant === 'custom'">Installation found (custom).</template>
+				<template v-else>Installation found.</template>
+			</span>
 			<span v-else-if="store.pathState === DirectoryState.Valid" class="green">Location valid.</span>
 			<span v-else class="red">Location invalid.</span>
 	
 			<template v-if="store.pathState === DirectoryState.Valid">
-				<span v-if="store.variant === 'vanilla'">A new vanilla installation will be created here.</span>
-				<span v-else-if="store.variant === 'modded'">A new modded installation will be created here.</span>
+				<span v-if="store.variant === 'vanilla'"><br>A new vanilla installation will be created here.</span>
+				<span v-else-if="store.variant === 'modded'"><br>A new modded installation will be created here.</span>
 			</template>
-			<template v-else-if="store.pathState === DirectoryState.Installed">
-				<span v-if="store.pathVariant === 'vanilla'">A vanilla installation already exists here.</span>
-				<span v-else-if="store.pathVariant === 'modded'">A modded installation already exists here.</span>
-				<span v-else-if="store.pathVariant === 'custom'">A custom installation already exists here.</span>
+
+			<template v-if="store.pathState === DirectoryState.NeedsUpdate">
+				<span class="yellow"><br>A game update is available.</span>
 			</template>
 		</p>
 	</fieldset>

@@ -6,6 +6,7 @@ export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 
 export enum DirectoryState {
 	Installed,
 	Invalid,
+	NeedsUpdate,
 	Valid
 }
 
@@ -34,6 +35,55 @@ function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void): Promi
 	});
 }
 
+async function getDirectoryState(path: string): Promise<DirectoryState> {
+	let state = DirectoryState.Invalid;
+
+	await spawn(['check', '-m', `--path=${path}`], (event) => {
+		if (event.type === 'stdout') {
+			try {
+				const message = JSON.parse(event.data);
+				switch (message?.type) {
+					case 'INSTALL_FOUND':
+						state = DirectoryState.Installed;
+						break;
+					case 'INSTALL_NOT_FOUND':
+						state = DirectoryState.Valid;
+						break;
+				}
+			} catch {}
+		}
+		if (event.type === 'exit' && event.data !== 0) {
+			state = DirectoryState.Invalid;
+		}
+	});
+
+	return state;
+}
+
+async function checkForGameUpdates(state: DirectoryState, path: string): Promise<DirectoryState> {
+	if (state !== DirectoryState.Installed) {
+		return state;
+	}
+
+	await spawn(['check-updates', '-m', `--path=${path}`], (event) => {
+		if (event.type === 'stdout') {
+			try {
+				const message = JSON.parse(event.data);
+				switch (message?.type) {
+					case 'UPDATE_FOUND':
+						state = DirectoryState.NeedsUpdate;
+						break;
+					case 'INSTALL_UP_TO_DATE':
+						state = DirectoryState.Installed;
+						break;
+				}
+			} catch {}
+		}
+	});
+
+	return state;
+}
+
 export class TAI {
 	private static callbacks = {
 		info: <Array<Callback>> [],
@@ -59,26 +109,9 @@ export class TAI {
 	}
 
 	public static async checkPath(path: string): Promise<DirectoryState> {
-		let output = DirectoryState.Invalid;
-		await spawn(['check', '-m', `--path=${path}`], (event) => {
-			if (event.type === 'stdout') {
-				try {
-					const message = JSON.parse(event.data);
-					switch (message?.type) {
-						case 'INSTALL_FOUND':
-							output = DirectoryState.Installed;
-							break;
-						case 'INSTALL_NOT_FOUND':
-							output = DirectoryState.Valid;
-							break;
-					}
-				} catch {}
-			}
-			if (event.type === 'exit' && event.data !== 0) {
-				output = DirectoryState.Invalid;
-			}
-		});
-		return output;
+		let state = await getDirectoryState(path);
+		state = await checkForGameUpdates(state, path);
+		return state;
 	}
 
 	public static async checkRepo(repo: string): Promise<boolean> {
