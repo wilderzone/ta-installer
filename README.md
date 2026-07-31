@@ -15,9 +15,9 @@ _Note: `tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/
 
 ## CLI
 
-TAI CLI is provided for use in applications that require programmatic control of the TA installation process, such as launchers.  
+TAI CLI is provided as a means to install custom variants of TA, and for use in applications that require programmatic control of the TA installation process, such as launchers.  
 To use TAI CLI, download the portable `tai-cli.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
-This executable can be bundled with your application. See the [GUI](./gui) package for an example of this kind of integration.
+_This executable can be bundled with your application. See the [GUI](./gui) package for an example of this kind of integration._
 
 Then run TAI, passing a subcommand and options:
 ```sh

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ask } from '@tauri-apps/plugin-dialog';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { nextTick, ref, watch } from 'vue';
 import { TAI } from '../tai';
@@ -18,12 +19,21 @@ async function delay(duration: number): Promise<void> {
 	});
 }
 
+async function openCustomInstructions(): Promise<void> {
+	const message = 'For custom Tribes: Ascend installations, please use the command-line interface. '
+	              + '\nWould you like to open the CLI instructions?';
+	const proceed = await ask(message, { title: 'Custom Tribes: Ascend Installation', kind: 'info' });
+	if (proceed) {
+		await openUrl(customInstructions);
+	}
+}
+
 async function check(): Promise<void> {
 	nextTick(async () => {
 		if (model.value === 'custom') {
 			isCustom.value = true;
 			store.step1Error = true;
-			await openUrl(customInstructions);
+			await openCustomInstructions();
 			return;
 		}
 
@@ -72,7 +82,7 @@ watch(model, () => {
 			/>
 		</RadioRow>
 		<p v-if="store.loading" class="grey">Checking...</p>
-		<p v-else-if="isCustom" class="grey">To install a custom variant, please follow the <a :href="customInstructions" target="_blank" rel="noreferrer">TAI CLI instructions</a>.</p>
+		<p v-else-if="isCustom" class="grey">To install a custom variant of Tribes: Ascend, please follow the <a :href="customInstructions" target="_blank" rel="noreferrer">TAI CLI instructions</a>.</p>
 		<p v-else-if="repositoryFound" class="green">Game files available.</p>
 		<p v-else-if="!repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
 	</fieldset>
