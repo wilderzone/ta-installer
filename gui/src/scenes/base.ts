@@ -1,6 +1,5 @@
 import { ArcRotateCamera, Color3, Color4, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImportMeshAsync, Light, Matrix, Scene, ShadowGenerator, Vector2, Vector3 } from '@babylonjs/core';
 import type { AbstractEngine, EngineView, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
-import '@babylonjs/inspector';
 
 /**
  * Whilst one engine can render multiple scenes at the same time,\
@@ -151,17 +150,6 @@ export class BaseScene {
 			this.camera.fovMode = ArcRotateCamera.FOVMODE_VERTICAL_FIXED;
 		} else {
 			this.camera.fovMode = ArcRotateCamera.FOVMODE_HORIZONTAL_FIXED;
-		}
-	}
-
-	/** Show the scene inspector. */
-	public debug(enable: boolean): void {
-		if (enable) {
-			this.scene.debugLayer.show();
-			this.camera.attachControl(this.canvas, true);
-		} else {
-			this.scene.debugLayer.hide();
-			this.camera.detachControl();
 		}
 	}
 

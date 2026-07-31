@@ -9,7 +9,7 @@
 .background {
 	position: fixed;
 	inset: 0;
-	background: 80% 70% / 200% 200% no-repeat url('logo.svg');
+	background: 80% 70% / 200% 200% no-repeat url('../assets/logo.svg');
 	opacity: 0.03;
 	filter: grayscale(1);
 	pointer-events: none;

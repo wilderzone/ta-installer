@@ -6,7 +6,7 @@ import { DirectoryState, TAI } from '../tai';
 import { store } from '../store';
 import { loadData } from '../persist';
 
-const props = defineProps<{ disabled: boolean }>();
+defineProps<{ disabled: boolean }>();
 const noPath = computed(() => !store.path);
 const typeImage = computed(() => {
 	const state = store.pathState;
