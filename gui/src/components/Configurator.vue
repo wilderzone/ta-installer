@@ -55,7 +55,7 @@ import VariantSelector from './VariantSelector.vue';
 		'panels    ' 1fr
 		'navigation' auto
 		/ 1fr;
-	gap: var(--gap);
+	gap: var(--gap-m);
 	height: 100%;
 }
 
@@ -64,7 +64,7 @@ import VariantSelector from './VariantSelector.vue';
 	display: flex;
 	justify-content: center;
 	align-self: flex-start;
-	gap: calc(var(--gap) * 2);
+	gap: calc(var(--gap-m) * 2);
 	width: 100%;
 	height: 100%;
 	min-height: 0;
@@ -76,7 +76,7 @@ import VariantSelector from './VariantSelector.vue';
 		display: none;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--gap);
+		gap: var(--gap-m);
 		width: 100%;
 		height: 100%;
 

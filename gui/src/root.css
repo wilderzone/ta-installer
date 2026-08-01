@@ -18,7 +18,9 @@
 	--font-size: 14px;
 	--border-radius: 5px;
 	--fieldset-inline-padding: 0.75rem;
-	--gap: 24px;
+	--gap-xs: 6px;
+	--gap-s: 12px;
+	--gap-m: 24px;
 	--input-height: 30px;
 }
 
@@ -42,13 +44,13 @@ html {
 body {
 	height: 100%;
 	margin: 0;
-	padding: var(--gap);
+	padding: var(--gap-m);
 }
 
 .column {
 	display: flex;
 	flex-flow: column nowrap;
-	gap: var(--gap);
+	gap: var(--gap-m);
 	height: 100%;
 }
 
@@ -56,7 +58,7 @@ body {
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	gap: var(--gap);
+	gap: var(--gap-m);
 	width: 100%;
 }
 
@@ -74,7 +76,7 @@ fieldset {
 
 	& > p {
 		margin: 0;
-		padding: calc(var(--gap) / 2) var(--fieldset-inline-padding) 0;
+		padding: var(--gap-s) var(--fieldset-inline-padding) 0;
 		font-size: 0.8rem;
 		font-style: italic;
 

@@ -144,7 +144,7 @@ watch(() => store.refreshPath, check);
 	grid-template:
 		'icon .    input .    button' var(--input-height)
 		'.    .    info  info info  ' auto
-		/ var(--input-height) calc(var(--gap) * 0) 1fr var(--gap) auto;
+		/ var(--input-height) 0 1fr var(--gap-m) auto;
 	width: 100%;
 }
 

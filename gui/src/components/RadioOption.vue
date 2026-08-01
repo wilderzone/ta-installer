@@ -59,7 +59,7 @@ function change(event: Event, value: string): void {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	gap: calc(var(--gap) / 5);
+	gap: calc(var(--gap-m) / 5);
 	width: 100%;
 	height: 7em;
 	background-color: var(--color-input);

@@ -30,7 +30,7 @@ const glow = computed(() => store.progressIndeterminate || store.progressValue &
 	--line-color-glow: #acfd;
 	width: 100%;
 	height: 100%;
-	padding: var(--gap);
+	padding: var(--gap-m);
 
 	& > .background {
 		position: absolute;

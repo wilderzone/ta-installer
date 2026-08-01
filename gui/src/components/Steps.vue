@@ -46,7 +46,7 @@ import { store } from '../store';
 	& ol {
 		display: flex;
 		justify-content: space-between;
-		gap: var(--gap);
+		gap: var(--gap-m);
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -56,10 +56,10 @@ import { store } from '../store';
 .step {
 	display: flex;
 	align-items: center;
-	gap: var(--gap);
+	gap: var(--gap-m);
 	width: 100%;
 	min-width: 20ch;
-	padding: calc(var(--gap) / 2);
+	padding: var(--gap-s);
 	text-transform: capitalize;
 	border-radius: var(--border-radius);
 
