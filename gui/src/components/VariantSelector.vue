@@ -29,10 +29,11 @@ async function openAssetSelector(): Promise<void> {
 </script>
 
 <template>
-	<fieldset class="borderless">
+	<fieldset class="borderless variant-selector">
 		<RadioRow
 			:disabled="loading.value.value"
 			name="variant"
+			v-grid:radio
 			v-model="store.variant"
 		>
 			<RadioOption
@@ -51,9 +52,13 @@ async function openAssetSelector(): Promise<void> {
 				image="118.png"
 				label="Custom"
 				value="custom"
-				@click="openAssetSelector()"
 			/>
 		</RadioRow>
+		<button
+			:class="{ hidden: store.variant !== 'custom' }"
+			title="Edit the custom install configuration"
+			@click="openAssetSelector()"
+		>Edit</button>
 		<p v-if="loading.value.value" class="grey">Checking...</p>
 		<p v-else-if="store.repositoryFound" class="green">Game files available.</p>
 		<p v-else-if="!store.repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
@@ -61,4 +66,28 @@ async function openAssetSelector(): Promise<void> {
 </template>
 
 <style scoped>
+.variant-selector {
+	display: grid;
+	grid-template:
+		'radio radio' auto
+		'info  edit ' auto
+		/ 2fr  1fr;
+
+	& > button {
+		grid-area: edit;
+		min-height: 24px;
+		font-size: 0.8rem;
+		border-radius: 0 0 var(--border-radius) var(--border-radius);
+		transition: 0.1s ease opacity;
+
+		&.hidden {
+			opacity: 0;
+			pointer-events: none;
+		}
+	}
+
+	& > p {
+		grid-area: info;
+	}
+}
 </style>
