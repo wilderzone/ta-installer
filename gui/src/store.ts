@@ -1,8 +1,9 @@
+import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { defaultInstallPath, filters, repository } from './config';
-import { Action, DirectoryState, TAI } from './tai';
 import { saveData } from './persist';
+import { Action, DirectoryState, TAI } from './tai';
 
 const useStore = defineStore('application', () => {
 	const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];
@@ -16,6 +17,8 @@ const useStore = defineStore('application', () => {
 	const progressValue = ref(0);
 	const progressComplete = computed(() => progressValue.value >= progressMax.value && progressValue.value);
 	const refreshPath = ref(1);
+	const requiredCustomAssets = useStorage<Set<string>>('requiredCustomAssets', new Set(), localStorage, { serializer: StorageSerializers.set });
+	const selectedCustomAssets = useStorage<Set<string>>('selectedCustomAssets', new Set(), localStorage, { serializer: StorageSerializers.set });
 	const step = ref(1);
 	const step1Error = ref(false);
 	const step2Error = computed(() => pathState.value === DirectoryState.Invalid);
@@ -55,7 +58,13 @@ const useStore = defineStore('application', () => {
 	async function run(): Promise<void> {
 		loading.value = true;
 		progressIndeterminate.value = true;
-		await TAI.run(action.value, path.value, repository, filters[variant.value]);
+		let filter = filters[variant.value];
+		if (action.value === 'install' && variant.value === 'custom') {
+			const assets = [...requiredCustomAssets.value, ...selectedCustomAssets.value];
+			const unique = new Set(assets);
+			filter = TAI.filter('include', Array.from(unique));
+		}
+		await TAI.run(action.value, path.value, repository, filter);
 		if (action.value === 'install') {
 			await saveData();
 		}
@@ -108,7 +117,9 @@ const useStore = defineStore('application', () => {
 		progressValue,
 		refreshPath,
 		next,
+		requiredCustomAssets,
 		run,
+		selectedCustomAssets,
 		step,
 		step1Error,
 		step2Error,

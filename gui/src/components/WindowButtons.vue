@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
-const appWindow = getCurrentWindow();
+const currentWindow = getCurrentWindow();
 
 async function minimize(): Promise<void> {
-	await appWindow.minimize();
+	await currentWindow.minimize();
 }
 
 async function maximize(): Promise<void> {
-	await appWindow.toggleMaximize();
+	await currentWindow.toggleMaximize();
 }
 
 async function close(): Promise<void> {
-	await appWindow.close();
+	await currentWindow.close();
 }
 </script>
 

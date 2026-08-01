@@ -18,7 +18,7 @@ import { store } from '../store';
 		<button
 			v-else
 			class="primary"
-			:disabled="store.loading || store.step1Error || store.step2Error || store.isCustomVariant"
+			:disabled="store.loading || store.step1Error || store.step2Error"
 			@click="store.run()"
 		>{{ store.action }}</button>
 	</section>

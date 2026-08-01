@@ -129,6 +129,7 @@ watch(() => store.refreshPath, check);
 			<template v-if="store.pathState === DirectoryState.Valid">
 				<span v-if="store.variant === 'vanilla'"><br>A new vanilla installation will be created here.</span>
 				<span v-else-if="store.variant === 'modded'"><br>A new modded installation will be created here.</span>
+				<span v-else-if="store.variant === 'custom'"><br>A new custom installation will be created here.</span>
 			</template>
 
 			<template v-if="store.pathState === DirectoryState.NeedsUpdate">

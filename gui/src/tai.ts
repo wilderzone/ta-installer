@@ -1,5 +1,6 @@
 import { Channel, invoke } from '@tauri-apps/api/core';
 import { ref } from 'vue';
+import { Asset, Manifest } from './manifest';
 
 export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 'uninstall';
 
@@ -117,7 +118,6 @@ export class TAI {
 	public static async checkRepo(repo: string): Promise<boolean> {
 		let repoValid = false;
 		await spawn(['check-repo', '-m', `--repo=${repo}`], (event) => {
-			console.log(repo, event);
 			if (event.type === 'stdout') {
 				try {
 					const message = JSON.parse(event.data);
@@ -126,6 +126,60 @@ export class TAI {
 			}
 		});
 		return repoValid;
+	}
+
+	public static determineRequiredAssets(assets: Array<Asset>): Array<Asset> {
+		const output = new Set<Asset>();
+		for (const asset of assets) {
+			if (asset.type === 'core') {
+				output.add(asset);
+			}
+			if (!asset.dependencies.length) {
+				continue;
+			}
+			for (const dependency of asset.dependencies) {
+				const dep = assets.find(a => a.type === dependency || a.name === dependency);
+				if (dep) {
+					output.add(dep);
+				}
+			}
+		}
+		return Array.from(output);
+	}
+
+	public static filter(type: 'include' | 'exclude' | 'remove' | 'keep', items: Array<string>): string {
+		const escaped = items.map(item => /\s/.test(item) ? `"${item}"` : item);
+		return `--${type}=${escaped.join(',')}`;
+	}
+
+	public static async getLocalManifest(path: string): Promise<Manifest | undefined> {
+		let manifest: Manifest | undefined;
+		await spawn(['list', '-m', `--path=${path}`], (event) => {
+			if (event.type === 'stdout') {
+				try {
+					const message = JSON.parse(event.data);
+					if (message?.type === 'MANIFEST_CONTENTS') {
+						manifest = JSON.parse(message.message);
+					}
+				} catch {}
+			}
+		});
+		return manifest;
+	}
+
+	public static async getRemoteManifest(repo: string): Promise<Manifest | undefined> {
+		let manifest: Manifest | undefined;
+		await spawn(['list', '-m', `--repo=${repo}`], (event) => {
+			if (event.type === 'stdout') {
+				try {
+					const message = JSON.parse(event.data);
+					if (message?.type === 'MANIFEST_CONTENTS') {
+						manifest = JSON.parse(message.message);
+					}
+				} catch {}
+			}
+		});
+		return manifest;
 	}
 
 	public static clearLog(): void {

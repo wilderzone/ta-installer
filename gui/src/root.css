@@ -120,7 +120,7 @@ fieldset {
 }
 
 button,
-input {
+input[type="text"] {
 	min-height: var(--input-height);
 	padding: 0.2em 1ch;
 	border: 1px solid transparent;
@@ -152,7 +152,7 @@ button {
 	}
 }
 
-input {
+input[type="text"] {
 	width: 100%;
 
 	&:where(:focus, :focus-visible) {
