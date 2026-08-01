@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { store } from '../store';
+import { loading, store } from '../store';
 </script>
 
 <template>
@@ -18,7 +18,7 @@ import { store } from '../store';
 		<button
 			v-else
 			class="primary"
-			:disabled="store.loading || store.step1Error || store.step2Error"
+			:disabled="loading.value.value || store.step1Error || store.step2Error"
 			@click="store.run()"
 		>{{ store.action }}</button>
 	</section>

@@ -16,18 +16,13 @@ import VariantSelector from './VariantSelector.vue';
 				class="panel"
 				:class="{ current: store.step === 1 }"
 			>
-				<VariantSelector
-					:disabled="store.loading"
-					v-model="store.variant"
-				/>
+				<VariantSelector />
 			</li>
 			<li
 				class="panel"
 				:class="{ current: store.step === 2 }"
 			>
-				<InstallPathField
-					:disabled="store.loading"
-				/>
+				<InstallPathField />
 			</li>
 			<li
 				class="panel"

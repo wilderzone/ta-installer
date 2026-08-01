@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { repository } from '../config';
+import { computed } from 'vue';
 import { Asset } from '../manifest';
 import { store } from '../store';
-import { TAI } from '../tai';
-
-const remoteAssets = ref<Array<Asset>>([]);
 
 const categories = computed(() => {
 	const output: Record<string, Array<Asset>> = {};
-	for (const asset of remoteAssets.value) {
+	const assets = store.manifest.remote?.assets ?? [];
+	for (const asset of assets) {
 		if (asset.type in output) {
 			output[asset.type].push(asset);
 		} else {
@@ -37,16 +34,6 @@ function toggle(event: InputEvent, asset: Asset): void {
 		store.selectedCustomAssets.delete(asset.name);
 	}
 }
-
-async function load(): Promise<void> {
-	const manifest = await TAI.getRemoteManifest(repository);
-	remoteAssets.value = manifest?.assets ?? [];
-	store.requiredCustomAssets = new Set(TAI.determineRequiredAssets(remoteAssets.value).map(asset => asset.name));
-}
-
-onMounted(() => {
-	void load();
-});
 </script>
 
 <template>

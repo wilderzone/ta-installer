@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { open } from '@tauri-apps/plugin-dialog';
-import { exists } from '@tauri-apps/plugin-fs';
-import { computed, nextTick, watch } from 'vue';
-import { DirectoryState, TAI } from '../tai';
-import { store } from '../store';
-import { loadData } from '../persist';
+import { computed } from 'vue';
+import { loading, store } from '../store';
+import { DirectoryState } from '../tai';
 
-defineProps<{ disabled: boolean }>();
 const noPath = computed(() => !store.path);
 const typeImage = computed(() => {
 	const state = store.pathState;
@@ -25,68 +22,7 @@ async function browse(): Promise<void> {
 		multiple: false,
 		directory: true,
 	}) || store.path;
-
-	await check();
 }
-
-async function check(): Promise<void> {
-	nextTick(async () => {
-		const path = store.path;
-		const parent = parentDirectory(path);
-
-		// Reject empty paths.
-		if (!path) {
-			store.pathState = DirectoryState.Invalid;
-			return;
-		}
-
-		// Check that the chosen directory and its parent exist.
-		const pathExists = await exists(path);
-		const parentExists = await exists(parent);
-		if (!(pathExists || pathEndsWithTA(path)) || !parentExists) {
-			store.pathState = DirectoryState.Invalid;
-			return;
-		}
-
-		// Check the normalised path with TAI.
-		const normalisedPath = normalisePath(path);
-		let pathState = await TAI.checkPath(normalisedPath);
-
-		// If the normalised path returns valid but not installed,
-		// check the actual chosen path for an installation instead.
-		if (pathState === DirectoryState.Valid) {
-			pathState = await TAI.checkPath(path);
-		}
-
-		// If an installation exists, check the type.
-		if (pathState === DirectoryState.Installed || pathState === DirectoryState.NeedsUpdate) {
-			const data = await loadData();
-			store.pathVariant = data?.selectedVariant ?? '';
-		} else {
-			store.pathVariant = '';
-		}
-
-		store.pathState = pathState;
-	});
-}
-
-function pathEndsWithTA(path: string): boolean {
-	return /[\\\/]Tribes Ascend[\\\/]?$/.test(path);
-}
-
-function normalisePath(path: string): string {
-	if (pathEndsWithTA(path)) return path;
-	else return `${path}\\Tribes Ascend`.replaceAll(/[\\\/]+/g, '\\');
-}
-
-function parentDirectory(path: string): string {
-	const segments = path.replace(/[\\\/]$/, '').split(/[\\\/]/);
-	segments.pop();
-	return segments.join('\\');
-}
-
-watch(() => store.path, check, { immediate: true });
-watch(() => store.refreshPath, check);
 </script>
 
 <template>
@@ -105,22 +41,22 @@ watch(() => store.refreshPath, check);
 		<input
 			type="text"
 			class="install-path-input"
-			:disabled
+			:disabled="loading.value.value"
 			v-model="store.path"
 		>
 		<button
 			type="button"
 			class="primary install-path-button"
-			:disabled
+			:disabled="loading.value.value"
 			@click="browse()"
 		>Browse</button>
 
 		<p class="install-path-info">
 			<span v-if="noPath" class="red">No location specified.</span>
 			<span v-else-if="store.pathState === DirectoryState.Installed || store.pathState === DirectoryState.NeedsUpdate" class="green">
-				<template v-if="store.pathVariant === 'vanilla'">Installation found (vanilla).</template>
-				<template v-else-if="store.pathVariant === 'modded'">Installation found (modded).</template>
-				<template v-else-if="store.pathVariant === 'custom'">Installation found (custom).</template>
+				<template v-if="store.pathVariant === 'vanilla'">Vanilla installation found.</template>
+				<template v-else-if="store.pathVariant === 'modded'">Modded installation found.</template>
+				<template v-else-if="store.pathVariant === 'custom'">Custom installation found.</template>
 				<template v-else>Installation found.</template>
 			</span>
 			<span v-else-if="store.pathState === DirectoryState.Valid" class="green">Location valid.</span>

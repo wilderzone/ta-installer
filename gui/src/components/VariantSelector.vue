@@ -1,22 +1,9 @@
 <script setup lang="ts">
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { ScrollBarStyle } from '@tauri-apps/api/window';
-import { nextTick, onMounted, ref } from 'vue';
-import { repository } from '../config.ts';
-import { store } from '../store.ts';
-import { TAI } from '../tai';
+import { loading, store } from '../store.ts';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
-
-defineProps<{ disabled: boolean }>();
-const model = defineModel<string>({ required: true });
-const repositoryFound = ref(false);
-
-async function delay(duration: number): Promise<void> {
-	return new Promise(resolve => {
-		window.setTimeout(resolve, duration);
-	});
-}
 
 async function openAssetSelector(): Promise<void> {
 	const windowLabel = 'assetSelect';
@@ -39,31 +26,14 @@ async function openAssetSelector(): Promise<void> {
 	});
 	webview.once('tauri://error', error => console.error('Failed to open the asset selector window:', error));
 }
-
-async function check(): Promise<void> {
-	nextTick(async () => {
-		store.loading = true;
-		const found = await TAI.checkRepo(repository);
-		const manifest = await TAI.getRemoteManifest(repository);
-		store.requiredCustomAssets = new Set(TAI.determineRequiredAssets(manifest?.assets ?? []).map(asset => asset.name));
-		await delay(500);
-		store.step1Error = !found;
-		repositoryFound.value = found;
-		store.loading = false;
-	});
-}
-
-onMounted(() => {
-	void check();
-});
 </script>
 
 <template>
 	<fieldset class="borderless">
 		<RadioRow
-			:disabled
+			:disabled="loading.value.value"
 			name="variant"
-			v-model="model"
+			v-model="store.variant"
 		>
 			<RadioOption
 				image="124.png"
@@ -84,9 +54,9 @@ onMounted(() => {
 				@click="openAssetSelector()"
 			/>
 		</RadioRow>
-		<p v-if="store.loading" class="grey">Checking...</p>
-		<p v-else-if="repositoryFound" class="green">Game files available.</p>
-		<p v-else-if="!repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
+		<p v-if="loading.value.value" class="grey">Checking...</p>
+		<p v-else-if="store.repositoryFound" class="green">Game files available.</p>
+		<p v-else-if="!store.repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
 	</fieldset>
 </template>
 
