@@ -18,10 +18,16 @@ const typeImage = computed(() => {
 });
 
 async function browse(): Promise<void> {
+	const previous = store.path;
 	store.path = await open({
 		multiple: false,
 		directory: true,
 	}) || store.path;
+
+	// Manually refresh the directory if the path was reselected.
+	if (previous === store.path) {
+		store.refreshDirectory();
+	}
 }
 </script>
 

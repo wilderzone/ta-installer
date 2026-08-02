@@ -147,9 +147,14 @@ export class TAI {
 		return Array.from(output);
 	}
 
+	/**
+	 * Build a filter flag for the CLI.
+	 * Names are never quoted: the flag is passed as a single argv element (see `run_tai`),
+	 * so it never touches a shell and spaces need no protection. Quoting it would make the
+	 * quotes part of the asset name, and the CLI would silently ignore the asset.
+	 */
 	public static filter(type: 'include' | 'exclude' | 'remove' | 'keep', items: Array<string>): string {
-		const escaped = items.map(item => /\s/.test(item) ? `"${item}"` : item);
-		return `--${type}=${escaped.join(',')}`;
+		return `--${type}=${items.join(',')}`;
 	}
 
 	public static async getLocalManifest(path: string): Promise<Manifest | undefined> {
