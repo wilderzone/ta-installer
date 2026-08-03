@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -13,7 +14,7 @@ import (
 )
 
 // Handle the "uninstall" command.
-func Uninstall(logger *Logger, arguments arguments) error {
+func Uninstall(ctx context.Context, logger *Logger, arguments arguments) error {
 	filterProvided := len(arguments.remove) != 0 || len(arguments.keep) != 0
 
 	installed, err := readManifest(logger, arguments.path)
@@ -34,7 +35,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 		if !proceed {
 			return nil
 		}
-		return removeInstallation(logger, arguments.path)
+		return removeInstallation(ctx, logger, arguments.path)
 	}
 
 	// Determine which assets to remove. `--remove` maps to include and `--keep` to
@@ -74,7 +75,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 		if !proceed {
 			return userErrorf(nil, "Uninstall cancelled.")
 		}
-		return removeInstallation(logger, arguments.path)
+		return removeInstallation(ctx, logger, arguments.path)
 	}
 
 	// Confirm before removing assets the filters didn't name. Orphaned dependencies
@@ -94,6 +95,11 @@ func Uninstall(logger *Logger, arguments arguments) error {
 	failed := 0
 	prune := map[string]bool{}
 	for _, asset := range toRemove {
+		// Stop before rewriting the manifest: leaving it listing the assets that are
+		// only half-removed is what lets another `uninstall` finish the job.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		message := asset.Name
 		err := removeAssetFiles(arguments.path, asset, survivorFiles, prune)
 		if err != nil {
@@ -130,7 +136,7 @@ func Uninstall(logger *Logger, arguments arguments) error {
 // removeInstallation clears the entire install directory and the external
 // shortcuts. Used when no subset is requested, or when nothing would remain
 // installed after a filtered uninstall.
-func removeInstallation(logger *Logger, root string) error {
+func removeInstallation(ctx context.Context, logger *Logger, root string) error {
 	logger.log(UNINSTALLING)
 
 	// Remove all entries in the specified directory.
@@ -157,6 +163,11 @@ func removeInstallation(logger *Logger, root string) error {
 	defer counter.done()
 	failed := 0
 	for _, entry := range targets {
+		// Whatever is left keeps the shortcuts and the Registry entry pointing at a
+		// real installation, so those stay until the removal actually completes.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		message := entry.Name()
 		path := filepath.Join(root, entry.Name())
 		err = os.RemoveAll(path)

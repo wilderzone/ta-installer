@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,7 +51,7 @@ func TestVerifyAssetDetectsCorruptAndMissing(t *testing.T) {
 		},
 	}
 
-	results := VerifyAsset(root, asset)
+	results := VerifyAsset(context.Background(), root, asset)
 	if len(results) != 2 {
 		t.Fatalf("got %d findings, want 2 (good.txt should pass): %+v", len(results), results)
 	}
@@ -63,6 +64,27 @@ func TestVerifyAssetDetectsCorruptAndMissing(t *testing.T) {
 	}
 	if states["gone.txt"] != FileMissing {
 		t.Errorf("gone.txt state = %v, want FileMissing", states["gone.txt"])
+	}
+}
+
+func TestVerifyAssetStopsWhenCancelled(t *testing.T) {
+	root := t.TempDir()
+	// Every file is missing, so an uncancelled run would report three findings.
+	asset := Asset{
+		Destination: "",
+		Files: []File{
+			{File: "one.txt", Checksum: "abcd"},
+			{File: "two.txt", Checksum: "abcd"},
+			{File: "three.txt", Checksum: "abcd"},
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	results := VerifyAsset(ctx, root, asset)
+	if len(results) != 0 {
+		t.Fatalf("got %d findings, want 0: files that were never checked must not be reported: %+v", len(results), results)
 	}
 }
 

@@ -20,6 +20,10 @@
       "allow": [{ "path": "**" }]
     },
     {
+      "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "**/Installer" }]
+    },
+    {
       "identifier": "fs:allow-read-text-file",
       "allow": [{ "path": "**/tai-gui.json" }]
     },

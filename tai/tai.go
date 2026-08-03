@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -21,6 +23,10 @@ func main() {
 
 	logger := Logger{machine: arguments.machine, silent: arguments.silent, verbose: arguments.verbose}
 
+	// Commands that can run for a long time take a context, so they can be stopped part-way through.
+	ctx, cancel := cancellation()
+	defer cancel()
+
 	switch arguments.method {
 		case "asset":
 			err = GenerateAssetFile(&logger, arguments)
@@ -32,25 +38,34 @@ func main() {
 			err = Check(&logger, arguments)
 
 		case "check-repo":
-			err = CheckRepo(&logger, arguments)
+			err = CheckRepo(ctx, &logger, arguments)
 
 		case "check-updates":
-			err = CheckUpdates(&logger, arguments)
+			err = CheckUpdates(ctx, &logger, arguments)
 
 		case "install":
-			err = Install(&logger, arguments)
+			err = Install(ctx, &logger, arguments)
 
 		case "list":
-			err = List(&logger, arguments)
+			err = List(ctx, &logger, arguments)
 
 		case "uninstall":
-			err = Uninstall(&logger, arguments)
+			err = Uninstall(ctx, &logger, arguments)
 
 		case "update":
-			err = Update(&logger, arguments)
+			err = Update(ctx, &logger, arguments)
 
 		case "verify":
-			err = Verify(&logger, arguments)
+			err = Verify(ctx, &logger, arguments)
+	}
+
+	// A cancelled run is reported rather than failed: it stopped at a safe point and logs
+	// how to resume. The exit code is still non-zero, so a caller - the bundled uninstaller,
+	// which deletes the installation directory afterwards - can't mistake it for a successfully
+	// completed run.
+	if errors.Is(err, context.Canceled) {
+		logger.log(interruption(arguments.method))
+		os.Exit(1)
 	}
 
 	if err != nil {

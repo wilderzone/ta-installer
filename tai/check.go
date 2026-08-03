@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -24,9 +25,13 @@ func Check(logger *Logger, arguments arguments) error {
 }
 
 // Handle the "check-repo" command.
-func CheckRepo(logger *Logger, arguments arguments) error {
-	_, err := getManifest(logger, arguments.repo)
+func CheckRepo(ctx context.Context, logger *Logger, arguments arguments) error {
+	_, err := getManifest(ctx, logger, arguments.repo)
 	if err != nil {
+		// An abandoned request says nothing about whether the repository is there.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		logger.log(REPO_NOT_FOUND)
 		return nil
 	}
@@ -36,7 +41,7 @@ func CheckRepo(logger *Logger, arguments arguments) error {
 }
 
 // Handle the "check-updates" command.
-func CheckUpdates(logger *Logger, arguments arguments) error {
+func CheckUpdates(ctx context.Context, logger *Logger, arguments arguments) error {
 	logger.log(CHECKING_FOR_UPDATES)
 
 	localManifest, err := readManifest(logger, arguments.path)
@@ -46,7 +51,7 @@ func CheckUpdates(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
 	}
-	remoteManifest, err := getManifest(logger, arguments.repo)
+	remoteManifest, err := getManifest(ctx, logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't check for updates from %s. Check your connection and that the repository URL is correct.", arguments.repo)
 	}

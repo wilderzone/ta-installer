@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ import (
 // CREATE_NO_WINDOW starts the deferred replace process without flashing up a console window.
 const CREATE_NO_WINDOW = 0x08000000
 
-func downloadInstallationUtilities(logger *Logger, arguments arguments) error {
+func downloadInstallationUtilities(ctx context.Context, logger *Logger, arguments arguments) error {
 	// Check if the installation utilities already exist.
 	if !installationUtilitiesAreMissing(arguments) {
 		return nil
@@ -24,7 +25,7 @@ func downloadInstallationUtilities(logger *Logger, arguments arguments) error {
 
 	// Download.
 	spinner := logger.spin("")
-	err := download(DEFAULT_REPO, arguments.path, INSTALLATION_UTILITIES)
+	err := download(ctx, DEFAULT_REPO, arguments.path, INSTALLATION_UTILITIES)
 	spinner.stop()
 	if err != nil {
 		return err
@@ -74,16 +75,22 @@ func createUninstallShortcut(root string) error {
 // checksums published on the official CDN, and repairs them if the user agrees. It never
 // returns an error: the game files have already been verified by the time it runs, so a
 // missing network or a repair problem is reported and swallowed rather than failing verify.
-func verifyUtilities(logger *Logger, arguments arguments) {
+func verifyUtilities(ctx context.Context, logger *Logger, arguments arguments) {
 	// The checksums live on the CDN, not in this binary, so this needs the network. If it's
 	// unavailable, the game files have still been verified - don't fail over it.
-	util, err := getUtilitiesAsset(DEFAULT_REPO)
+	util, err := getUtilitiesAsset(ctx, DEFAULT_REPO)
 	if err != nil {
-		logger.log(UTILITIES_CHECK_SKIPPED, err.Error())
+		// A cancelled run reports the interruption itself; this wasn't skipped.
+		if ctx.Err() == nil {
+			logger.log(UTILITIES_CHECK_SKIPPED, err.Error())
+		}
 		return
 	}
 
-	damaged := assets.VerifyAsset(arguments.path, util)
+	damaged := assets.VerifyAsset(ctx, arguments.path, util)
+	if ctx.Err() != nil {
+		return
+	}
 	if len(damaged) == 0 {
 		logger.log(UTILITIES_VERIFIED)
 		return
@@ -94,7 +101,7 @@ func verifyUtilities(logger *Logger, arguments arguments) {
 	if !proceed {
 		return
 	}
-	repairUtilities(logger, arguments.path, damaged)
+	repairUtilities(ctx, logger, arguments.path, damaged)
 }
 
 // repairUtilities re-downloads the utilities package and replaces the damaged files. A
@@ -102,7 +109,7 @@ func verifyUtilities(logger *Logger, arguments arguments) {
 // overwritten in place, so those are handed to a batch script that replaces them once this
 // process exits. When TAI runs from elsewhere (such as the GUI's temp copy) nothing under
 // the Installer directory is locked and every file is replaced directly.
-func repairUtilities(logger *Logger, root string, damaged []FileResult) {
+func repairUtilities(ctx context.Context, logger *Logger, root string, damaged []FileResult) {
 	// Download a fresh package into a staging directory. Nothing there is locked, so it
 	// always unpacks cleanly to staging/Installer.
 	staging, err := os.MkdirTemp("", "tai-utilities-*")
@@ -111,11 +118,15 @@ func repairUtilities(logger *Logger, root string, damaged []FileResult) {
 		logger.detail("stage utilities repair", err)
 		return
 	}
-	err = download(DEFAULT_REPO, staging, INSTALLATION_UTILITIES)
+	err = download(ctx, DEFAULT_REPO, staging, INSTALLATION_UTILITIES)
 	if err != nil {
+		_ = os.RemoveAll(staging)
+		// A cancelled run reports the interruption itself; nothing has been touched yet.
+		if ctx.Err() != nil {
+			return
+		}
 		logger.log(UTILITIES_FAILURE)
 		logger.detail("download utilities for repair", err)
-		_ = os.RemoveAll(staging)
 		return
 	}
 

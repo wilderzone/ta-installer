@@ -12,6 +12,7 @@ import { deduplicate, delay, normalisePath, parentDirectory, pathEndsWithTA, Sem
 const useStore = defineStore('application', () => {
 	const isMainWindow = getCurrentWindow().label === 'main';
 	const action = ref<Action>('install');
+	const cancelling = ref(false);
 	const manifest = reactive({
 		local: <Manifest | undefined> undefined,
 		remote: <Manifest | undefined> undefined
@@ -25,6 +26,7 @@ const useStore = defineStore('application', () => {
 	const progressValue = ref(0);
 	const progressComplete = computed(() => progressValue.value >= progressMax.value && progressValue.value);
 	const repositoryFound = ref(true);
+	const running = ref(false);
 	const requiredCustomAssets = useStorage<Set<string>>('requiredCustomAssets', new Set(), localStorage, { serializer: StorageSerializers.set });
 	const selectedCustomAssets = useStorage<Set<string>>('selectedCustomAssets', new Set(), localStorage, { serializer: StorageSerializers.set });
 	const step = ref(1);
@@ -62,6 +64,8 @@ const useStore = defineStore('application', () => {
 	/** Run the currently selected action through TAI CLI. */
 	async function run(): Promise<void> {
 		loading.add();
+		running.value = true;
+		cancelling.value = false;
 		progressIndeterminate.value = true;
 		const assets = assetInclusions[variant.value];
 		if (action.value === 'install' && variant.value === 'custom') {
@@ -69,9 +73,30 @@ const useStore = defineStore('application', () => {
 		}
 		const filter = TAI.filter('include', deduplicate(assets));
 		await TAI.run(action.value, path.value, repository, filter);
+
+		// An interrupted install still leaves a partial installation behind, and the selected
+		// variant is what identifies it, so record the variant either way.
 		if (action.value === 'install') {
 			await saveData();
 		}
+
+		if (cancelling.value) {
+			updateProgressBar(0);
+		}
+		running.value = false;
+		cancelling.value = false;
+	}
+
+	/**
+	 * Stop the running action.
+	 * The CLI winds down and exits by itself, so {@link run} is what finally resolves
+	 * the action. This method just requests the cancellation and updates store state.
+	 */
+	async function cancel(): Promise<void> {
+		if (!running.value || cancelling.value) return;
+		cancelling.value = true;
+		progressIndeterminate.value = true;
+		await TAI.cancel();
 	}
 
 	function onError(_data: string): void {
@@ -180,6 +205,8 @@ const useStore = defineStore('application', () => {
 	return {
 		action,
 		back,
+		cancel,
+		cancelling,
 		manifest,
 		model,
 		next,
@@ -194,6 +221,7 @@ const useStore = defineStore('application', () => {
 		repositoryFound,
 		requiredCustomAssets,
 		run,
+		running,
 		selectedCustomAssets,
 		step,
 		step1Error,

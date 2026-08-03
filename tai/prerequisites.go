@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
-func prerequisites(logger *Logger, arguments arguments) error {
+func prerequisites(ctx context.Context, logger *Logger, arguments arguments) error {
 	// Check if d3dx9 is already installed. Note that the Windows directory must be
 	// joined from a rooted path: filepath.Join("C:", ...) yields the drive-relative
 	// "C:Windows", which never resolves.
@@ -26,9 +27,12 @@ func prerequisites(logger *Logger, arguments arguments) error {
 	// Download the prerequisites asset.
 	logger.log(PREREQUISITES_DOWNLOADING)
 	spinner := logger.spin("")
-	err := download(DEFAULT_REPO, arguments.path, PREREQUISITES)
+	err := download(ctx, DEFAULT_REPO, arguments.path, PREREQUISITES)
 	spinner.stop()
 	if err != nil {
+		if cancelled := ctx.Err(); cancelled != nil {
+			return cancelled
+		}
 		return userErrorf(err, "Couldn't install the DirectX 9 package.")
 	}
 
@@ -37,10 +41,17 @@ func prerequisites(logger *Logger, arguments arguments) error {
 	// Run both DX9 installation stages. The first stage only unpacks the
 	// redistributable into the temp directory, so it needs no special permissions.
 	prerequisite1 := filepath.Join(arguments.path, "Binaries", "Redist", "directx_Jun2010_redist.exe")
-	command1 := exec.Command(prerequisite1, "/T:" + filepath.Join(arguments.path, TEMP_DIRECTORY, "dx"), "/Q")
+	command1 := exec.CommandContext(ctx, prerequisite1, "/T:" + filepath.Join(arguments.path, TEMP_DIRECTORY, "dx"), "/Q")
 	err = command1.Run()
 	if err != nil {
 		return fmt.Errorf("extract DirectX 9 redistributable: %w", err)
+	}
+
+	// This is the last point at which the run can be stopped cleanly: the elevated stage
+	// below runs as another user, out of this process's reach, so cancelling once it has
+	// started would leave a half-installed runtime behind.
+	if cancelled := ctx.Err(); cancelled != nil {
+		return cancelled
 	}
 
 	// The second stage writes into the Windows directory, so it must be elevated.

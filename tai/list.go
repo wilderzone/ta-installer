@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 // Handle the "list" command.
-func List(logger *Logger, arguments arguments) error {
+func List(ctx context.Context, logger *Logger, arguments arguments) error {
 	if logger.silent {
 		return nil
 	}
@@ -33,8 +34,12 @@ func List(logger *Logger, arguments arguments) error {
 		}
 	} else if len(arguments.repo) != 0 {
 		// List manifest assets in the specified repo.
-		manifest, err = getManifest(logger, arguments.repo)
+		manifest, err = getManifest(ctx, logger, arguments.repo)
 		if err != nil {
+			// An abandoned request says nothing about whether the repository is actually there.
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			logger.log(REPO_NOT_FOUND)
 			return nil
 		}

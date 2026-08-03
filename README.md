@@ -74,6 +74,13 @@ Reading local manifest from: G:\tribes\manifest.json
 ```
 While a slow step is running, an animated spinner is shown on the last line, so it's clear that TAI is still working during long pauses. It is only drawn when the output is an interactive terminal; when the output is piped or redirected, or when `-m` or `-s` is passed, it is omitted entirely.
 
+
+### Interrupting a run
+
+Pressing `Ctrl+C` stops a running subcommand at its next safe point, rather than killing it mid-write. TAI reports what was interrupted and which subcommand to run to pick up where it left off, and exits with a non-zero status. Pressing `Ctrl+C` a second time ends the process immediately.
+
+A parent process that has no console of its own (for example, TAI GUI) can't send an interrupt signal on Windows, so it asks the same way by writing the line `cancel` to TAI's standard input. This is only listened for when standard input is a pipe (not a terminal), so that it can't accidentally swallow the answers to confirmation prompts.
+
 Passing the `-m` flag will instruct TAI to output machine-readable JSON instead. For example:
 ```
 > tai-cli.exe verify -m --path="G:/tribes"
@@ -96,6 +103,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `ERROR`
 - `INSTALL_FAILURE`
 - `INSTALL_FOUND`
+- `INSTALL_INTERRUPTED`
 - `INSTALL_NOT_FOUND`
 - `INSTALL_PARTIAL`
 - `INSTALL_SUCCESS`
@@ -103,6 +111,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `INSTALL_VERIFIED`
 - `INSTALLING`
 - `INSTALLING_DEPENDENCIES`
+- `INTERRUPTED`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
 - `MANIFEST_UNREADABLE`
@@ -124,6 +133,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `SHORTCUTS_SUCCESS`
 - `UNINSTALL_DEPENDENTS`
 - `UNINSTALL_FAILURE`
+- `UNINSTALL_INTERRUPTED`
 - `UNINSTALL_MATCHED_ALL`
 - `UNINSTALL_ORPHANS`
 - `UNINSTALL_PARTIAL`
@@ -131,6 +141,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UNINSTALLING`
 - `UPDATE_FAILURE`
 - `UPDATE_FOUND`
+- `UPDATE_INTERRUPTED`
 - `UPDATE_PARTIAL`
 - `UPDATE_SUCCESS`
 - `UTILITIES_CHECK_SKIPPED`
@@ -140,6 +151,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UTILITIES_REPAIR_DEFERRED`
 - `UTILITIES_SUCCESS`
 - `UTILITIES_VERIFIED`
+- `VERIFY_INTERRUPTED`
 - `PROGRESS`
 </details>
 

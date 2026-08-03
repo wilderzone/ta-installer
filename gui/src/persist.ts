@@ -1,4 +1,4 @@
-import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
+import { mkdir, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { store } from './store';
 import { join } from '@tauri-apps/api/path';
 
@@ -14,8 +14,11 @@ export async function saveData(): Promise<void> {
 		selectedVariant: store.variant
 	};
 	try {
-		const path = await join(store.path, directory, filename);
-		await writeTextFile(path, JSON.stringify(data));
+		// TAI creates this directory when it downloads the installation utilities, which an
+		// interrupted install may not have reached yet. Attempt to create it just in case.
+		const path = await join(store.path, directory);
+		await mkdir(path, { recursive: true });
+		await writeTextFile(await join(path, filename), JSON.stringify(data));
 	} catch (error) {
 		// This data file is non-essential, so we can dispose of any errors.
 		console.error(error);

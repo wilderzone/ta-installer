@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,7 +10,7 @@ import (
 )
 
 // Handle the "update" command.
-func Update(logger *Logger, arguments arguments) error {
+func Update(ctx context.Context, logger *Logger, arguments arguments) error {
 	logger.log(CHECKING_FOR_UPDATES)
 
 	localManifest, err := readManifest(logger, arguments.path)
@@ -19,10 +20,14 @@ func Update(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "The installation's manifest at %s couldn't be read.", arguments.path)
 	}
-	remoteManifest, err := getManifest(logger, arguments.repo)
+	remoteManifest, err := getManifest(ctx, logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't check for updates from %s. Check your connection and that the repository URL is correct.", arguments.repo)
 	}
+
+	// Patching stages its downloads through the temp directory, so clear it on the way out
+	// regardless of the return condition - including when the run is interrupted mid-download.
+	defer clearTempDirectory(arguments.path)
 
 	// Compare the version fields of the local and remote manifests.
 	if localManifest.Version >= remoteManifest.Version {
@@ -53,14 +58,21 @@ func Update(logger *Logger, arguments arguments) error {
 	}
 
 	logger.log(CHECKING_ASSETS)
-	patch := checkAssets(logger, arguments.path, manifest, "Needs patching")
+	patch := checkAssets(ctx, logger, arguments.path, manifest, "Needs patching")
+	// Unchecked assets may need patching as well, so the update isn't complete.
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if len(patch) == 0 {
 		logger.log(UPDATE_SUCCESS)
 		return nil
 	}
 
 	logger.log(PATCHING_ASSETS)
-	failed := downloadAssets(logger, arguments, patch, "Patched")
+	failed := downloadAssets(ctx, logger, arguments, patch, "Patched")
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 
 	if len(failed) == len(patch) {
 		logger.log(UPDATE_FAILURE)

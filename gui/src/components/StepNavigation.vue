@@ -15,12 +15,18 @@ import { loading, store } from '../store';
 			:disabled="store.step >= 3"
 			@click="store.next()"
 		>⋙</button>
-		<button
-			v-else
-			class="primary"
-			:disabled="loading.value.value || store.step1Error || store.step2Error"
-			@click="store.run()"
-		>{{ store.action }}</button>
+		<template v-else>
+			<button
+				v-if="store.running"
+				class="cancel"
+				@click="store.cancel()"
+			>Cancel</button>
+			<button
+				class="primary"
+				:disabled="loading.value.value || store.step1Error || store.step2Error"
+				@click="store.run()"
+			>{{ store.action }}</button>
+		</template>
 	</section>
 </template>
 
@@ -33,6 +39,10 @@ import { loading, store } from '../store';
 
 	& button:not(.primary):disabled {
 		opacity: 0;
+	}
+
+	& button.cancel {
+		margin-left: auto;
 	}
 }
 </style>

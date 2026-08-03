@@ -23,7 +23,12 @@ type TaiEvent =
 	| { type: 'stderr'; data: string }
 	| { type: 'exit'; data: number };
 
-function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void): Promise<void> {
+/**
+ * Run the CLI, resolving once it exits.
+ * A cancellable run registers itself as the one `TAI.cancel` stops, so the short-lived
+ * probes below can never be mistaken for the action the user is waiting on.
+ */
+function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void, cancellable = false): Promise<void> {
 	return new Promise((resolve) => {
 		const channel = new Channel<TaiEvent>();
 		channel.onmessage = (event) => {
@@ -32,7 +37,7 @@ function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void): Promi
 				resolve();
 			}
 		};
-		invoke('run_tai', { args, onEvent: channel });
+		invoke('run_tai', { args, cancellable, onEvent: channel });
 	});
 }
 
@@ -107,6 +112,16 @@ export class TAI {
 	public static off(event: 'error' | 'info' | 'complete', callback: Callback): void {
 		const index = TAI.callbacks[event].findIndex(c => c === callback);
 		TAI.callbacks[event].splice(index, 1);
+	}
+
+	/**
+	 * Ask the running action to stop.
+	 * The CLI stops at its next safe point, logs what was interrupted and how to resume,
+	 * then exits normally - so the in-flight `TAI.run` still resolves through its own
+	 * `complete` callbacks. This method is safe to call multiple times.
+	 */
+	public static cancel(): Promise<void> {
+		return invoke('cancel_tai');
 	}
 
 	public static async checkPath(path: string): Promise<DirectoryState> {
@@ -224,6 +239,6 @@ export class TAI {
 					callback('');
 				}
 			}
-		});
+		}, true);
 	}
 }

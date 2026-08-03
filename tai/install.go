@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,8 +10,8 @@ import (
 )
 
 // Handle the "install" command.
-func Install(logger *Logger, arguments arguments) error {
-	manifest, err := getManifest(logger, arguments.repo)
+func Install(ctx context.Context, logger *Logger, arguments arguments) error {
+	manifest, err := getManifest(ctx, logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't download the game files from %s. Check your internet connection and that the repository URL is correct.", arguments.repo)
 	}
@@ -46,6 +47,9 @@ func Install(logger *Logger, arguments arguments) error {
 		return userErrorf(err, "Couldn't create the target directory %s.", arguments.path)
 	}
 
+	// Clear the temp directory on the way out.
+	defer clearTempDirectory(arguments.path)
+
 	// Merge with any existing installation so repeated installs are additive.
 	// Keep the existing (older) version so a later `update` still reconciles every
 	// asset; a fresh install adopts the remote version.
@@ -69,7 +73,12 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Download the installation utilities.
-	utilitiesErr := downloadInstallationUtilities(logger, arguments)
+	utilitiesErr := downloadInstallationUtilities(ctx, logger, arguments)
+	// Stop before reporting a cancelled download as a broken utilities package, and
+	// before registering an uninstaller for an installation that doesn't exist yet.
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if utilitiesErr != nil {
 		// Installation utilities are non-essential, so shouldn't throw an actual error.
 		logger.log(UTILITIES_FAILURE)
@@ -77,7 +86,7 @@ func Install(logger *Logger, arguments arguments) error {
 	} else {
 		// Create a shortcut in the root directory for convenience.
 		err := createUninstallShortcut(arguments.path)
-		logger.detail("create uninstall shortcut: %w", err)
+		logger.detail("create uninstall shortcut", err)
 		// Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
 		err = addUninstallerToRegistry(arguments.path)
 		logger.detail("add uninstaller to registry", err)
@@ -106,7 +115,12 @@ func Install(logger *Logger, arguments arguments) error {
 			subset = append(subset, asset)
 		}
 	}
-	failed := downloadAssets(logger, arguments, subset, "Downloaded")
+	failed := downloadAssets(ctx, logger, arguments, subset, "Downloaded")
+	// The remaining assets were never fetched, so there is nothing to finish setting up.
+	// The manifest is already on disk, which allows `install` or `verify` to resume.
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 
 	// Create the logs directory.
 	err = os.MkdirAll(filepath.Join(arguments.path, LOGS_DIRECTORY), os.FileMode(0755))
@@ -122,9 +136,12 @@ func Install(logger *Logger, arguments arguments) error {
 	}
 
 	// Install prerequisites.
-	err = prerequisites(logger, arguments)
-	if err != nil {
-		return userErrorOr(err, "The game files were installed, but DirectX 9 couldn't be installed. The game may not start until DirectX 9 is present.")
+	prerequisitesErr := prerequisites(ctx, logger, arguments)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if prerequisitesErr != nil {
+		return userErrorOr(prerequisitesErr, "The game files were installed, but DirectX 9 couldn't be installed. The game may not start until DirectX 9 is present.")
 	}
 
 	// Recalculate the size of the installation.
@@ -140,9 +157,6 @@ func Install(logger *Logger, arguments arguments) error {
 	} else {
 		logger.log(INSTALL_SUCCESS)
 	}
-
-	// Remove the temp directory. This is just courtesy cleanup - it's ok if it fails.
-	defer os.RemoveAll(filepath.Join(arguments.path, TEMP_DIRECTORY))
 
 	return nil
 }

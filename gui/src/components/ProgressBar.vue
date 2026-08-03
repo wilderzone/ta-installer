@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 
 const complete = computed(() => props.value >= props.max && props.value);
-const valuePercentage = computed(() => props.value / props.max * 100);
+const valuePercentage = computed(() => props.max ? props.value / props.max * 100 : 0);
 </script>
 
 <template>

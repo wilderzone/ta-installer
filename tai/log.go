@@ -82,6 +82,7 @@ var (
 	DOWNLOADING_MANIFEST      = LogLine{Type: "DOWNLOADING_MANIFEST", Message: "Downloading manifest from:"}
 	INSTALL_FAILURE           = LogLine{Type: "INSTALL_FAILURE", Message: "Installation failed."}
 	INSTALL_FOUND             = LogLine{Type: "INSTALL_FOUND", Message: "Installation found."}
+	INSTALL_INTERRUPTED       = LogLine{Type: "INSTALL_INTERRUPTED", Message: "Installation interrupted. Run \"install\" or \"verify\" again to finish installing."}
 	INSTALL_NOT_FOUND         = LogLine{Type: "INSTALL_NOT_FOUND", Message: "Installation not found."}
 	INSTALL_PARTIAL           = LogLine{Type: "INSTALL_PARTIAL", Message: "Partially installed. You may need to run the \"verify\" command."}
 	INSTALL_SUCCESS           = LogLine{Type: "INSTALL_SUCCESS", Message: "Installed."}
@@ -89,6 +90,7 @@ var (
 	INSTALL_VERIFIED          = LogLine{Type: "INSTALL_VERIFIED", Message: "Installation verified."}
 	INSTALLING                = LogLine{Type: "INSTALLING", Message: "Installing..."}
 	INSTALLING_DEPENDENCIES   = LogLine{Type: "INSTALLING_DEPENDENCIES", Message: "Also installing required assets:"}
+	INTERRUPTED               = LogLine{Type: "INTERRUPTED", Message: "Interrupted."}
 	MANIFEST_CONTENTS         = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED          = LogLine{Type: "MANIFEST_CREATED", Message: ""}
 	MANIFEST_UNREADABLE       = LogLine{Type: "MANIFEST_UNREADABLE", Message: ""}
@@ -110,6 +112,7 @@ var (
 	UNINSTALL_DEPENDENTS      = LogLine{Type: "UNINSTALL_DEPENDENTS", Message: "Uninstalling the selected assets will also remove these assets:"}
 	UNINSTALL_EVERYTHING      = LogLine{Type: "UNINSTALL_EVERYTHING", Message: fmt.Sprintf("Are you sure you want to uninstall %s?", PRODUCT_NAME)}
 	UNINSTALL_FAILURE         = LogLine{Type: "UNINSTALL_FAILURE", Message: "Failed to uninstall."}
+	UNINSTALL_INTERRUPTED     = LogLine{Type: "UNINSTALL_INTERRUPTED", Message: "Uninstall interrupted. Run \"uninstall\" again to remove the remaining files."}
 	UNINSTALL_MATCHED_ALL     = LogLine{Type: "UNINSTALL_MATCHED_ALL", Message: "The provided filters match all assets. This will remove the entire installation."}
 	UNINSTALL_ORPHANS         = LogLine{Type: "UNINSTALL_ORPHANS", Message: "Also removing assets that are no longer needed:"}
 	UNINSTALL_PARTIAL         = LogLine{Type: "UNINSTALL_PARTIAL", Message: "Partially uninstalled. You may need to manually remove some files from:"}
@@ -117,6 +120,7 @@ var (
 	UNINSTALLING              = LogLine{Type: "UNINSTALLING", Message: "Uninstalling..."}
 	UPDATE_FAILURE            = LogLine{Type: "UPDATE_FAILURE", Message: "Update failed."}
 	UPDATE_FOUND              = LogLine{Type: "UPDATE_FOUND", Message: "Update found:"}
+	UPDATE_INTERRUPTED        = LogLine{Type: "UPDATE_INTERRUPTED", Message: "Update interrupted. Run \"update\" or \"verify\" again to finish updating."}
 	UPDATE_PARTIAL            = LogLine{Type: "UPDATE_PARTIAL", Message: "Partially updated. You may need to run the \"verify\" command."}
 	UPDATE_SUCCESS            = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
 	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
@@ -126,9 +130,30 @@ var (
 	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
 	UTILITIES_VERIFIED        = LogLine{Type: "UTILITIES_VERIFIED", Message: "Installation utilities verified."}
+	VERIFY_INTERRUPTED        = LogLine{Type: "VERIFY_INTERRUPTED", Message: "Verification interrupted. Run \"verify\" again to finish checking the installation."}
 	PROGRESS                  = LogLine{Type: "PROGRESS", Index: 0, Total: 0, Message: ""}
 	ERROR                     = LogLine{Type: "ERROR", Message: ""}
 )
+
+// interruption returns the line to log when the given subcommand is cancelled part-way
+// through. Each one names the command to run to pick up where the cancelled one left off,
+// so an interrupted run is never a dead end.
+func interruption(method string) LogLine {
+	switch method {
+		case "install":
+			return INSTALL_INTERRUPTED
+
+		case "uninstall":
+			return UNINSTALL_INTERRUPTED
+
+		case "update":
+			return UPDATE_INTERRUPTED
+
+		case "verify":
+			return VERIFY_INTERRUPTED
+	}
+	return INTERRUPTED
+}
 
 const (
 	RESET      = "\x1b[0m"
