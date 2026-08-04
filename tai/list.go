@@ -13,6 +13,24 @@ import (
 	"wilderzone.org/tai/internal/assets"
 )
 
+// byteCountSI converts a given byte count to a string formatted with SI units.
+func byteCountSI(bytes uint64) string {
+	const unit = 1000
+	const magnitudes = "kMGTPE"
+
+	if bytes < unit {
+		return fmt.Sprintf("%d B", bytes)
+	}
+
+	divisor, exponent := uint64(unit), 0
+	for n := bytes / unit; n >= unit; n /= unit {
+		divisor *= unit
+		exponent++
+	}
+
+	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(divisor), magnitudes[exponent])
+}
+
 // Handle the "list" command.
 func List(ctx context.Context, logger *Logger, arguments arguments) error {
 	if logger.silent {
@@ -58,10 +76,17 @@ func List(ctx context.Context, logger *Logger, arguments arguments) error {
 	} else {
 		fmt.Printf("Version: v%d\n", manifest.Version)
 		w := tabwriter.NewWriter(os.Stdout, 1, 1, 3, ' ', 0)
-		fmt.Fprint(w, "Name\tType\tFiles\tRequires\t\n")
-		fmt.Fprint(w, "----\t----\t-----\t--------\t\n")
+		fmt.Fprint(w, "Name\tType\tFiles\tPacked Size\tUnpacked Size\tRequires\t\n")
+		fmt.Fprint(w, "----\t----\t-----\t-----------\t-------------\t--------\t\n")
 		for _, asset := range manifest.Assets {
-			fmt.Fprintf(w, "%s\t%s\t%d\t%s\t\n", asset.Name, asset.Type, len(asset.Files), strings.Join(asset.Dependencies, ", "))
+			fmt.Fprintf(w, "%s\t%s\t%5d\t%11s\t%13s\t%s\t\n",
+				asset.Name,
+				asset.Type,
+				len(asset.Files),
+				byteCountSI(asset.PackedSize),
+				byteCountSI(asset.UnpackedSize),
+				strings.Join(asset.Dependencies, ", "),
+			)
 		}
 		w.Flush()
 	}

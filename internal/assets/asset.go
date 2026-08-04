@@ -23,6 +23,8 @@ type Asset struct {
 	Destination  string    `json:"destination"`
 	// The names of any other assets that this asset depends on.
 	Dependencies []string  `json:"dependencies"`
+	PackedSize   uint64    `json:"packedSize"`
+	UnpackedSize uint64    `json:"unpackedSize"`
 	// Whether this asset was installed to satisfy another asset's dependency, rather
 	// than being asked for directly. Only ever set in a local manifest.
 	Automatic    bool      `json:"automatic,omitempty"`

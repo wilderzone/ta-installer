@@ -6,6 +6,8 @@ export interface Asset {
 	source: string;
 	destination: string;
 	dependencies: Array<string>;
+	packedSize: number;
+	unpackedSize: number;
 	automatic: boolean;
 	files: Array<File>;
 }
