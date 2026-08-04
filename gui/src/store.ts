@@ -3,14 +3,14 @@ import { exists } from '@tauri-apps/plugin-fs';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
-import { defaultInstallPath, assetInclusions, models, repository } from './config';
+import { defaultInstallPath, assetInclusions, models, repository, AppWindow } from './config';
 import { Manifest } from './manifest';
 import { loadData, saveData } from './persist';
 import { Action, DirectoryState, TAI } from './tai';
 import { deduplicate, delay, normalisePath, parentDirectory, pathEndsWithTA, Semaphore } from './utilities';
 
 const useStore = defineStore('application', () => {
-	const isMainWindow = getCurrentWindow().label === 'main';
+	const isMainWindow = getCurrentWindow().label === AppWindow.Main;
 	const action = ref<Action>('install');
 	const cancelling = ref(false);
 	const manifest = reactive({

@@ -4,6 +4,11 @@ export function cdn(path: string) {
 	return new URL(path, 'https://cdn.wilderzone.live/');
 }
 
+export enum AppWindow {
+	Main = 'main',
+	AssetSelect = 'assetSelect'
+}
+
 export const customInstructions = 'https://github.com/wilderzone/ta-installer#cli';
 export const defaultInstallPath = 'C:\\ProgramData\\Tribes Ascend';
 export const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];

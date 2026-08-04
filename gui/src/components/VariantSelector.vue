@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { ScrollBarStyle } from '@tauri-apps/api/window';
+import { AppWindow } from '../config.ts';
 import { loading, store } from '../store.ts';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
 
 async function openAssetSelector(): Promise<void> {
-	const windowLabel = 'assetSelect';
-	const existing = await WebviewWindow.getByLabel(windowLabel);
+	const existing = await WebviewWindow.getByLabel(AppWindow.AssetSelect);
 	if (existing) {
 		await existing.setFocus();
 		return;
 	}
 
-	const webview = new WebviewWindow(windowLabel, {
+	const webview = new WebviewWindow(AppWindow.AssetSelect, {
 		url: 'index.html#/assetSelect',
 		title: 'Select Assets to Install',
 		width: 450,
