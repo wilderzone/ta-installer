@@ -31,6 +31,25 @@ func byteCountSI(bytes uint64) string {
 	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(divisor), magnitudes[exponent])
 }
 
+// tableHeadingRule produces a horizontal rule with a length matching the given string.
+func tableHeadingRule(length string) string {
+	var rule strings.Builder
+	for range len(length) {
+		rule.WriteString("-")
+	}
+	return rule.String()
+}
+
+// tableLeftPad pads the start of a given string with spaces until it reaches the specified length.
+func tableLeftPad(s string, length int) string {
+	var pad strings.Builder
+	for range length - len(s) {
+		pad.WriteString(" ")
+	}
+	pad.WriteString(s)
+	return pad.String()
+}
+
 // Handle the "list" command.
 func List(ctx context.Context, logger *Logger, arguments arguments) error {
 	if logger.silent {
@@ -76,15 +95,25 @@ func List(ctx context.Context, logger *Logger, arguments arguments) error {
 	} else {
 		fmt.Printf("Version: v%d\n", manifest.Version)
 		w := tabwriter.NewWriter(os.Stdout, 1, 1, 3, ' ', 0)
-		fmt.Fprint(w, "Name\tType\tFiles\tPacked Size\tUnpacked Size\tRequires\t\n")
-		fmt.Fprint(w, "----\t----\t-----\t-----------\t-------------\t--------\t\n")
+		packedSizeTotal := uint64(0)
+		unpackedSizeTotal := uint64(0)
 		for _, asset := range manifest.Assets {
-			fmt.Fprintf(w, "%s\t%s\t%5d\t%11s\t%13s\t%s\t\n",
+			packedSizeTotal += asset.PackedSize
+			unpackedSizeTotal += asset.UnpackedSize
+		}
+		packedSizeHeading := fmt.Sprintf("Packed (%s)", byteCountSI(packedSizeTotal))
+		unpackedSizeHeading := fmt.Sprintf("Unpacked (%s)", byteCountSI(unpackedSizeTotal))
+		fmt.Fprintf(w, "Name\tType\tFiles\t%s\t%s\tRequires\t\n", packedSizeHeading, unpackedSizeHeading)
+		fmt.Fprintf(w, "----\t----\t-----\t%s\t%s\t--------\t\n", tableHeadingRule(packedSizeHeading), tableHeadingRule(unpackedSizeHeading))
+		for _, asset := range manifest.Assets {
+			packedSize := byteCountSI(asset.PackedSize)
+			unpackedSize := byteCountSI(asset.UnpackedSize)
+			fmt.Fprintf(w, "%s\t%s\t%5d\t%s\t%s\t%s\t\n",
 				asset.Name,
 				asset.Type,
 				len(asset.Files),
-				byteCountSI(asset.PackedSize),
-				byteCountSI(asset.UnpackedSize),
+				tableLeftPad(packedSize, len(packedSizeHeading)),
+				tableLeftPad(unpackedSize, len(unpackedSizeHeading)),
 				strings.Join(asset.Dependencies, ", "),
 			)
 		}
