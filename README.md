@@ -1,4 +1,4 @@
-# <img src="./gui/assets/logo.svg" style="width: 3em;"> TA Installer
+# <img src="./gui/src/assets/logo.svg" style="width: 3em;"> TA Installer
 A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface) utility for managing Tribes: Ascend installations.
 
 
