@@ -5,7 +5,7 @@ A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://
 ## GUI
 
 To use TAI GUI, download and run the portable `tai-gui.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
-You'll be prompted to select the folder in which to install TA, and the repository to download the game files from. Leaving the repository option as default is a good idea if you just want to download the vanilla game.
+You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the folder in which to install TA. Modded is the recommended option, and includes community maps and CTF routes.
 
 _Note: `tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI._
 
