@@ -4,6 +4,10 @@ const CLI_NAME = "tai-cli"
 const SHORTCUT_NAME = "tribes-ascend.desktop"
 const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
 
+// The hint shown when shortcuts couldn't be created. Everything TAI writes on Linux is
+// under the user's own home, so a failure is about that directory, not about permissions.
+const SHORTCUTS_FAILURE_HINT = "Check that your home directory is writable."
+
 // The location of the utilities' checksums, relative to the repository. Fetched at verify
 // time and hashed against the installed utilities.
 const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer-linux-amd64.json"
@@ -22,5 +26,6 @@ var INSTALLATION_UTILITIES = Asset{
 	Destination: "/Installer",
 	Files: []File{
 		{File: CLI_NAME},
+		{File: ICON_FILE},
 	},
 }

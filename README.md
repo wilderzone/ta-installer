@@ -139,8 +139,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
 - `RUNTIME_CHECK_FAILED`
-- `RUNTIME_DOWNLOADING`
-- `RUNTIME_FAILED`
 - `RUNTIME_MISSING`
 - `RUNTIME_PREPARING`
 - `RUNTIME_READY`
@@ -242,6 +240,7 @@ A few things differ from Windows by necessity:
 - **Shortcuts are desktop entries.** They go in the applications menu, on the desktop, and in the installation directory, and they run `tai-cli play` rather than the game directly — so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
 - **Nothing is elevated.** The default install path is under your home directory, and DirectX is served by the runtime's own Direct3D 9 implementation rather than installed system-wide, so no step needs a password.
 - **The container image is fetched by umu**, into `~/.local/share/umu`, the first time a prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
+- **Settings and saves live inside the prefix**, under `Prefix/pfx/drive_c/users/`, because that's where the game looks for its Documents folder. Uninstalling removes them along with everything else — on Windows they sit in your real Documents folder and survive an uninstall. Copy that directory out first if you want to keep them.
 
 `install` reports anything about the machine that would get in the way — a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled — before committing you to a multi-gigabyte download. None of them stops an install.
 
@@ -255,7 +254,7 @@ Publish it as a `.tar.gz` rather than a `.zip`: the runtime carries symlinks and
 
 ### Installation utilities
 
-Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. The Linux package contains only `tai-cli` — the other three exist to be double-clicked from Explorer, and desktop entries do that job instead. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
+Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. The Linux package contains `tai-cli` and the icon its desktop entries use — the other three executables exist to be double-clicked from Explorer, and desktop entries do that job instead. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
 
 Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
 

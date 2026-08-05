@@ -11,9 +11,11 @@ import (
 // implementation, so there is no DirectX package to install and - because everything TAI
 // touches is under the user's home - nothing to elevate for either.
 //
-// The redistributable is still published for Linux and can be installed into the prefix if a
-// build ever turns out to need the real d3dx9 helper libraries rather than the runtime's
-// built-in ones. See installDirectX below.
+// If a build ever turns out to need the real d3dx9 helper libraries rather than the
+// runtime's built-in ones, the redistributable the Windows path downloads can be run inside
+// the prefix by the same two stages, without the elevation - and the overrides that make the
+// game prefer them go in WINEDLLOVERRIDES at launch, rather than being written into the
+// prefix, so they stay reversible.
 func prerequisites(ctx context.Context, logger *Logger, arguments arguments) error {
 	return ensureRuntime(ctx, logger, arguments.path)
 }
