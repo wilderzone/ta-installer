@@ -10,7 +10,25 @@ export enum AppWindow {
 }
 
 export const customInstructions = 'https://github.com/wilderzone/ta-installer#cli';
-export const defaultInstallPath = 'C:\\ProgramData\\Tribes Ascend';
+
+/**
+ * Where the game is installed when the user doesn't choose somewhere else.
+ * The value is platform-specific, so it comes from the backend during startup rather than
+ * being hardcoded here. `main.ts` sets it before the store is created, which is what reads it.
+ */
+export let defaultInstallPath = '';
+export function useDefaultInstallPath(value: string): void {
+	defaultInstallPath = value;
+}
+
+/**
+ * Whether the app is running on Windows. Set during startup, alongside the path default.
+ * The path separator is the tell, which avoids pulling in a plugin just to ask.
+ */
+export let isWindows = true;
+export function usePlatform(separator: string): void {
+	isWindows = separator === '\\';
+}
 export const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];
 export const repository = DEV ? 'http://localhost:3000/ta' : 'https://cdn.wilderzone.live/ta';
 export const assetInclusions: Record<string, Array<string>> = {

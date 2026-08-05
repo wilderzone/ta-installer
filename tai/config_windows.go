@@ -1,7 +1,5 @@
 package main
 
-import "path/filepath"
-
 const CLI_NAME = "tai-cli.exe"
 const SHORTCUT_NAME = "Tribes Ascend.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
@@ -25,10 +23,4 @@ var INSTALLATION_UTILITIES = Asset{
 		{File: "update.exe"},
 		{File: "verify.exe"},
 	},
-}
-
-// defaultInstallPath is where the game goes when the user doesn't choose somewhere else.
-// It's reported by the CLI so the GUI doesn't have to hardcode a second copy of it.
-func defaultInstallPath() string {
-	return filepath.Join("C:\\", "ProgramData", SHORTCUT_DIRECTORY)
 }

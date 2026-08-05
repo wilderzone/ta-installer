@@ -9,6 +9,8 @@ You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the 
 
 _Note: `tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI._
 
+On Linux, download the `.deb` or `.rpm` package for your distribution instead. Everything else works the same way: pick a folder, pick a variant, and install. See [Running on Linux](#running-on-linux) for what TAI sets up behind the scenes.
+
 <p align="center">
   <img width="1262" height="902" alt="image" src="https://github.com/user-attachments/assets/c4da7aa5-9c3a-40e2-a74f-635f9fb22405" />
 </p>
@@ -39,6 +41,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `verify`           | Verify an existing TA installation in the given directory. Also checks the bundled installation utilities against checksums fetched from the CDN.                    | `tai-cli.exe verify --path=<path> --repo=<url>`                 |
 | `update`           | Update an existing TA installation.                                                                                                                                  | `tai-cli.exe update --path=<path> --repo=<url>`                 |
 | `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai-cli.exe uninstall --path=<path> --remove=dlc`              |
+| `play`             | Launch an installed game. On Linux this starts it through the compatibility layer; the shortcuts an install creates point here rather than at the game itself. | `tai-cli.exe play --path=<path>`                                |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai-cli.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai-cli.exe manifest --path=<path>`                            |
 | `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai-cli.exe list --path=<path>` or `tai-cli.exe list --repo=<url>` |
@@ -50,6 +53,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.                        |
 | `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                                 |
 | `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
+| `--platform`       | `windows` or `linux`. _Defaults to every platform if omitted._ | Restrict a generated asset to one platform, for the `asset` subcommand. An asset with a platform is ignored everywhere else. |
 | `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets. Assets that the provided assets require are installed as well. |
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
@@ -116,6 +120,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `INSTALLING`
 - `INSTALLING_DEPENDENCIES`
 - `INTERRUPTED`
+- `LAUNCHING`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
 - `MANIFEST_UNREADABLE`
@@ -133,6 +138,12 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REDOWNLOADING`
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
+- `RUNTIME_CHECK_FAILED`
+- `RUNTIME_DOWNLOADING`
+- `RUNTIME_FAILED`
+- `RUNTIME_MISSING`
+- `RUNTIME_PREPARING`
+- `RUNTIME_READY`
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
@@ -212,9 +223,39 @@ TAI resolves the graph automatically:
 
 The local `manifest.json` records this by marking dependency-installed assets with `"automatic": true` (repository manifests don't carry this field).
 
+### Running on Linux
+
+Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a compatibility layer alongside the game files. TAI manages all of it — there is no Wine to install and no drivers to fix up:
+
+```
+~/Games/Tribes Ascend/
+  Binaries/ TribesGame/ Engine/   the game, byte-for-byte the same as on Windows
+  Runtime/                        a pinned Proton build, plus the umu launcher
+  Prefix/                         the Wine prefix this installation runs in
+  Installer/tai-cli               the CLI, which the desktop entries launch through
+```
+
+Everything lives inside the installation directory, so uninstalling remains "remove one folder", and `verify` checks the runtime the same way it checks the game.
+
+A few things differ from Windows by necessity:
+
+- **Shortcuts are desktop entries.** They go in the applications menu, on the desktop, and in the installation directory, and they run `tai-cli play` rather than the game directly — so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
+- **Nothing is elevated.** The default install path is under your home directory, and DirectX is served by the runtime's own Direct3D 9 implementation rather than installed system-wide, so no step needs a password.
+- **The container image is fetched by umu**, into `~/.local/share/umu`, the first time a prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
+
+`install` reports anything about the machine that would get in the way — a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled — before committing you to a multi-gigabyte download. None of them stops an install.
+
+The runtime is published as an ordinary manifest asset tagged with `"platform": "linux"`. Assets that name a platform are filtered out everywhere else, and assets that name none — the game's own files — are installed on both. Generate one with:
+
+```sh
+tai-cli asset --path=<extracted runtime> --name=Runtime --platform=linux
+```
+
+Publish it as a `.tar.gz` rather than a `.zip`: the runtime carries symlinks and execute bits that a zip either can't represent or loses when packaged on Windows.
+
 ### Installation utilities
 
-Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
+Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. The Linux package contains only `tai-cli` — the other three exist to be double-clicked from Explorer, and desktop entries do that job instead. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
 
 Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
 
@@ -222,4 +263,17 @@ Their checksums are **not** compiled into `tai-cli.exe` — that would be circul
 tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root.
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json` — and build that zip **on Linux**, so the CLI keeps its execute bit.
+
+### Building
+
+The GUI embeds the CLI, and the embedded binary is gitignored, so a fresh clone can't compile the Rust crate until it has been built:
+
+```sh
+cd gui
+npm ci
+npm run build-sidecar        # cross-compile with GOOS=linux / GOOS=windows
+npm run tauri build          # `pretauri` runs build-sidecar for you
+```
+
+Building the GUI on Linux needs the WebKitGTK stack: `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`, `libdbus-1-dev`, `patchelf`, and `rpm` for the `.rpm` bundle. CI builds both platforms on every push.

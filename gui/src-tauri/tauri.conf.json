@@ -29,12 +29,23 @@
 		"active": true,
 		"targets": "all",
 		"publisher": "Wilderzone",
+		"category": "Game",
+		"shortDescription": "Install Tribes: Ascend",
+		"longDescription": "Downloads, verifies and updates a Tribes: Ascend installation, along with the compatibility layer needed to run it.",
 		"icon": [
 			"icons/32x32.png",
 			"icons/128x128.png",
 			"icons/128x128@2x.png",
 			"icons/icon.icns",
 			"icons/icon.ico"
-		]
+		],
+		"linux": {
+			"deb": {
+				"depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"]
+			},
+			"rpm": {
+				"depends": ["webkit2gtk4.1", "gtk3"]
+			}
+		}
 	}
 }

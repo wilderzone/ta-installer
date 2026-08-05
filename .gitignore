@@ -1,2 +1,5 @@
 *.exe
 /tai/tai
+# The CLI the GUI embeds, built by `npm run build-sidecar`. The Windows one is covered by
+# *.exe above; Linux and macOS binaries carry no extension.
+/gui/src-tauri/binaries/

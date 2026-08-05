@@ -1,10 +1,5 @@
 package main
 
-import (
-	"os"
-	"path/filepath"
-)
-
 const CLI_NAME = "tai-cli"
 const SHORTCUT_NAME = "tribes-ascend.desktop"
 const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
@@ -28,18 +23,4 @@ var INSTALLATION_UTILITIES = Asset{
 	Files: []File{
 		{File: CLI_NAME},
 	},
-}
-
-// defaultInstallPath is where the game goes when the user doesn't choose somewhere else.
-// It's reported by the CLI so the GUI doesn't have to hardcode a second copy of it.
-//
-// ~/Games is the convention other Linux game managers use, and being under the user's own
-// home means an install never needs elevating - which is why there's no Linux counterpart
-// to runElevated.
-func defaultInstallPath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(home, "Games", SHORTCUT_DIRECTORY)
 }

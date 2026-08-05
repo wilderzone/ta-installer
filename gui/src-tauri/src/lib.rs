@@ -12,8 +12,17 @@ use tauri::ipc::Channel;
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
+/// The CLI is embedded rather than shipped beside the app, so a single downloaded file is
+/// the whole installer on every platform. `build-sidecar` produces the matching binary.
+#[cfg(windows)]
 const TAI_BIN: &[u8] = include_bytes!("../binaries/tai-x86_64-pc-windows-msvc.exe");
+#[cfg(windows)]
 const TAI_NAME: &str = "tai-cli.exe";
+
+#[cfg(not(windows))]
+const TAI_BIN: &[u8] = include_bytes!("../binaries/tai-x86_64-unknown-linux-gnu");
+#[cfg(not(windows))]
+const TAI_NAME: &str = "tai-cli";
 
 /// The word written to a running CLI's standard input to ask it to stop. This app has no
 /// console, so on Windows it can't send the CLI an interrupt signal; the CLI watches its
@@ -34,9 +43,42 @@ fn running() -> MutexGuard<'static, Option<ChildStdin>> {
     RUNNING.lock().unwrap_or_else(|error| error.into_inner())
 }
 
+/// Where the extracted CLI is written.
+///
+/// The temp directory is the obvious choice and the one Windows uses, but plenty of Linux
+/// systems mount /tmp `noexec`, which would leave the binary unrunnable. The XDG runtime
+/// directory is per-user, cleaned up at logout, and always executable, so it's preferred
+/// where it exists.
+fn extract_directory() -> PathBuf {
+    #[cfg(not(windows))]
+    if let Some(runtime) = std::env::var_os("XDG_RUNTIME_DIR") {
+        let path = PathBuf::from(runtime);
+        if path.is_dir() {
+            return path;
+        }
+    }
+    std::env::temp_dir()
+}
+
 fn extract_tai() -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let path = std::env::temp_dir().join(TAI_NAME);
-    std::fs::write(&path, TAI_BIN)?;
+    let path = extract_directory().join(TAI_NAME);
+
+    // Write a sibling and rename over the target rather than writing in place. A previous
+    // run's copy may still be executing, and overwriting a running executable fails - with
+    // a sharing violation on Windows, ETXTBSY on Linux - whereas a rename only swaps the
+    // directory entry.
+    let temporary = path.with_extension("new");
+    std::fs::write(&temporary, TAI_BIN)?;
+
+    // The CLI is spawned directly, so on Unix it needs its execute bit; `fs::write` leaves
+    // a file at 0644 and the spawn would fail with EACCES.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&temporary, std::fs::Permissions::from_mode(0o755))?;
+    }
+
+    std::fs::rename(&temporary, &path)?;
     Ok(path)
 }
 
@@ -110,6 +152,27 @@ async fn run_tai(
     .map_err(|error| error.to_string())?
 }
 
+/// Where the game is installed when the user doesn't choose somewhere else.
+///
+/// Windows keeps it out of Program Files so an install doesn't need elevating. ~/Games is
+/// the equivalent convention on Linux, and being under the user's own home is what lets the
+/// Linux CLI drop the elevation path entirely.
+#[tauri::command]
+fn default_install_path() -> String {
+    #[cfg(windows)]
+    {
+        let root = std::env::var("ProgramData").unwrap_or_else(|_| "C:\\ProgramData".to_string());
+        format!("{root}\\Tribes Ascend")
+    }
+    #[cfg(not(windows))]
+    {
+        match std::env::var("HOME") {
+            Ok(home) => format!("{home}/Games/Tribes Ascend"),
+            Err(_) => String::new(),
+        }
+    }
+}
+
 /// Ask the running action to stop. The CLI winds down at its next safe point, logs why, and
 /// exits on its own, so the run's ordinary output and exit event still arrive. Cancelling
 /// when nothing is running, or twice over, does nothing.
@@ -134,7 +197,11 @@ pub fn run() {
             let _ = TAI_PATH.set(path);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_tai, cancel_tai])
+        .invoke_handler(tauri::generate_handler![
+            run_tai,
+            cancel_tai,
+            default_install_path
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vue-tsc --noEmit && vite build",
-		"build-sidecar": "go build -o ./src-tauri/binaries/tai-x86_64-pc-windows-msvc.exe ../tai",
+		"build-sidecar": "node ./scripts/build-sidecar.js",
+		"pretauri": "npm run build-sidecar",
 		"preview": "vite preview",
 		"tauri": "tauri"
 	},

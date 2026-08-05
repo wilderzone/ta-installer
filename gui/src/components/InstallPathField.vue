@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { open } from '@tauri-apps/plugin-dialog';
 import { computed } from 'vue';
+import { isWindows } from '../config';
 import { loading, store } from '../store';
 import { DirectoryState } from '../tai';
 
 const noPath = computed(() => !store.path);
+// Linux has no Start Menu; the equivalent is the applications menu, which is where the
+// desktop entry the CLI writes shows up.
+const shortcutLabel = isWindows ? 'Create Desktop & Start Menu shortcuts' : 'Create desktop & applications menu shortcuts';
 const typeImage = computed(() => {
 	const state = store.pathState;
 	const variant = store.pathVariant;
@@ -64,7 +68,7 @@ async function browse(): Promise<void> {
 				name="create-shortcuts"
 				v-model="store.createShortcuts"
 			>
-			<span>Create Desktop & Start Menu shortcuts</span>
+			<span>{{ shortcutLabel }}</span>
 		</label>
 
 		<p class="install-path-info">
