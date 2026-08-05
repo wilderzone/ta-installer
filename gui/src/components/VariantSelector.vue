@@ -3,6 +3,7 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { ScrollBarStyle } from '@tauri-apps/api/window';
 import { AppWindow } from '../config.ts';
 import { loading, store } from '../store.ts';
+import { byteCountSI } from '../utilities.ts';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
 
@@ -39,18 +40,19 @@ async function openAssetSelector(): Promise<void> {
 			<RadioOption
 				image="124.png"
 				label="Vanilla"
-				sublabel="(4.5GB)"
+				:sublabel="`(${byteCountSI(store.bundleSize.vanilla.packed)})`"
 				value="vanilla"
 			/>
 			<RadioOption
 				image="129.png"
 				label="Modded"
-				sublabel="(8GB)"
+				:sublabel="`(${byteCountSI(store.bundleSize.modded.packed)})`"
 				value="modded"
 			/>
 			<RadioOption
 				image="118.png"
 				label="Custom"
+				:sublabel="`(${byteCountSI(store.bundleSize.custom.packed)})`"
 				value="custom"
 			/>
 		</RadioRow>

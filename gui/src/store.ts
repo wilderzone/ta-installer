@@ -4,7 +4,7 @@ import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { defaultInstallPath, assetInclusions, models, repository, AppWindow } from './config';
-import { Manifest } from './manifest';
+import { BundleSize, Manifest } from './manifest';
 import { loadData, saveData } from './persist';
 import { Action, DirectoryState, TAI } from './tai';
 import { deduplicate, delay, normalisePath, parentDirectory, pathEndsWithTA, Semaphore } from './utilities';
@@ -12,6 +12,11 @@ import { deduplicate, delay, normalisePath, parentDirectory, pathEndsWithTA, Sem
 const useStore = defineStore('application', () => {
 	const isMainWindow = getCurrentWindow().label === AppWindow.Main;
 	const action = ref<Action>('install');
+	const bundleSize = reactive({
+		vanilla: <BundleSize> { packed: 0, unpacked: 0 },
+		modded: <BundleSize> { packed: 0, unpacked: 0 },
+		custom: <BundleSize> { packed: 0, unpacked: 0 }
+	});
 	const cancelling = ref(false);
 	const manifest = reactive({
 		local: <Manifest | undefined> undefined,
@@ -45,6 +50,23 @@ const useStore = defineStore('application', () => {
 	function next(): void {
 		if (step.value + 1 > 3) return;
 		step.value++;
+	}
+
+	function calculateBundleSizes(): void {
+		if (!manifest.remote) return;
+		const vanillaAssets = manifest.remote.assets.filter(asset => (
+			assetInclusions.vanilla.includes(asset.type)
+			|| assetInclusions.vanilla.includes(asset.name)
+		));
+		const customAssets = manifest.remote.assets.filter(asset => (
+			requiredCustomAssets.value.has(asset.type)
+			|| requiredCustomAssets.value.has(asset.name)
+			|| selectedCustomAssets.value.has(asset.type)
+			|| selectedCustomAssets.value.has(asset.name)
+		));
+		bundleSize.vanilla = TAI.determineBundleSize(vanillaAssets);
+		bundleSize.modded = TAI.determineBundleSize(manifest.remote.assets);
+		bundleSize.custom = TAI.determineBundleSize(customAssets);
 	}
 
 	function updateProgressBar(data: string | 0): void {
@@ -198,13 +220,19 @@ const useStore = defineStore('application', () => {
 			await delay(500);
 			repositoryFound.value = found;
 			requiredCustomAssets.value = new Set(TAI.determineRequiredAssets(manifest.remote?.assets ?? []).map(asset => asset.name));
+			calculateBundleSizes();
 			loading.remove();
 		});
 	}
 
+	// Update the custom bundle size when new assets are selected.
+	watch(requiredCustomAssets, calculateBundleSizes);
+	watch(selectedCustomAssets, calculateBundleSizes);
+
 	return {
 		action,
 		back,
+		bundleSize,
 		cancel,
 		cancelling,
 		manifest,

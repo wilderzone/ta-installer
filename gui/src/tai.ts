@@ -1,6 +1,6 @@
 import { Channel, invoke } from '@tauri-apps/api/core';
 import { ref } from 'vue';
-import { Asset, Manifest } from './manifest';
+import { Asset, BundleSize, Manifest } from './manifest';
 
 export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 'uninstall';
 
@@ -160,6 +160,12 @@ export class TAI {
 			}
 		}
 		return Array.from(output);
+	}
+
+	public static determineBundleSize(assets: Array<Asset>): BundleSize {
+		const packed = assets.reduce((sum, asset) => sum + asset.packedSize, 0);
+		const unpacked = assets.reduce((sum, asset) => sum + asset.unpackedSize, 0);
+		return { packed, unpacked };
 	}
 
 	/**

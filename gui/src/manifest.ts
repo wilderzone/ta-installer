@@ -12,6 +12,11 @@ export interface Asset {
 	files: Array<File>;
 }
 
+export interface BundleSize {
+	packed: number;
+	unpacked: number;
+}
+
 interface File {
 	checksum: string;
 	file: string;

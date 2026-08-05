@@ -1,5 +1,24 @@
 import { computed, ref, watch } from 'vue';
 
+// Convert a given byte count to a string formatted with SI units.
+export function byteCountSI(bytes: number): string {
+	const unit = 1000;
+	const magnitudes = "kMGTPE";
+
+	if (bytes < unit) {
+		return `${bytes} B`;
+	}
+
+	let divisor = unit;
+	let exponent = 0;
+	for (let n = bytes / unit; n >= unit; n /= unit) {
+		divisor *= unit;
+		exponent++;
+	}
+
+	return `${(bytes / divisor).toFixed(1)} ${magnitudes[exponent]}B`;
+}
+
 /** Deduplicate the contents of a given array. */
 export function deduplicate<T>(array: Array<T>): Array<T> {
 	return Array.from(new Set(array));
