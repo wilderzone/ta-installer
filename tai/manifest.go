@@ -7,9 +7,21 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"wilderzone.org/tai/internal/assets"
 )
+
+// forThisPlatform drops the assets that belong to a different operating system.
+//
+// Every manifest passes through here, so nothing downstream - installing, verifying,
+// updating, listing, or the sizes the GUI totals up - ever has to think about platforms. The
+// game's own files carry no platform and so are always kept; only the pieces that genuinely
+// differ, such as the compatibility runtime, are filtered out.
+func forThisPlatform(manifest Manifest) Manifest {
+	manifest.Assets = assets.FilterByPlatform(manifest.Assets, runtime.GOOS)
+	return manifest
+}
 
 // Read the content of the local manifest file.
 func readManifest(logger *Logger, root string) (Manifest, error) {
@@ -28,7 +40,7 @@ func readManifest(logger *Logger, root string) (Manifest, error) {
 		return manifest, fmt.Errorf("decode manifest %s: %w", source, err)
 	}
 
-	return manifest, nil
+	return forThisPlatform(manifest), nil
 }
 
 // Retrieve a manifest file from the given repo URL.
@@ -51,7 +63,7 @@ func getManifest(ctx context.Context, logger *Logger, repo string) (Manifest, er
 		return manifest, fmt.Errorf("decode manifest from %s: %w", source, err)
 	}
 
-	return manifest, nil
+	return forThisPlatform(manifest), nil
 }
 
 // Handle the "asset" command.
@@ -60,6 +72,7 @@ func GenerateAssetFile(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't read the files in %s to build the asset.", arguments.path)
 	}
+	asset.Platform = arguments.platform
 	path := filepath.Join(arguments.path, arguments.name + ".json")
 	file, err := os.Create(path)
 	if err != nil {

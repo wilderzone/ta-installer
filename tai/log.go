@@ -110,6 +110,7 @@ var (
 	INSTALLING                = LogLine{Type: "INSTALLING", Message: "Installing..."}
 	INSTALLING_DEPENDENCIES   = LogLine{Type: "INSTALLING_DEPENDENCIES", Message: "Also installing required assets:"}
 	INTERRUPTED               = LogLine{Type: "INTERRUPTED", Message: "Interrupted."}
+	LAUNCHING                 = LogLine{Type: "LAUNCHING", Message: fmt.Sprintf("Launching %s...", PRODUCT_NAME)}
 	MANIFEST_CONTENTS         = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED          = LogLine{Type: "MANIFEST_CREATED", Message: ""}
 	MANIFEST_UNREADABLE       = LogLine{Type: "MANIFEST_UNREADABLE", Message: ""}
@@ -125,6 +126,12 @@ var (
 	REDOWNLOADING             = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
 	REPO_FOUND                = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND            = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
+	RUNTIME_CHECK_FAILED      = LogLine{Type: "RUNTIME_CHECK_FAILED", Message: "The compatibility layer may not run on this system:"}
+	RUNTIME_DOWNLOADING       = LogLine{Type: "RUNTIME_DOWNLOADING", Message: "Downloading the compatibility runtime..."}
+	RUNTIME_FAILED            = LogLine{Type: "RUNTIME_FAILED", Message: "Failed to prepare the compatibility layer:"}
+	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility runtime is missing. Run \"install\" or \"verify\" to restore it."}
+	RUNTIME_PREPARING         = LogLine{Type: "RUNTIME_PREPARING", Message: "Preparing the compatibility layer..."}
+	RUNTIME_READY             = LogLine{Type: "RUNTIME_READY", Message: "Compatibility layer ready."}
 	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. You may need to re-run the installer with admin permissions to create shortcuts."}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
 	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}

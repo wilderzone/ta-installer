@@ -23,6 +23,12 @@ type Asset struct {
 	Destination  string    `json:"destination"`
 	// The names of any other assets that this asset depends on.
 	Dependencies []string  `json:"dependencies"`
+	// The platform this asset applies to, as a GOOS value ("windows", "linux"). Empty
+	// means every platform, which is what the game's own files are: they're Windows
+	// binaries either way, and a Linux installation runs them through a compatibility
+	// layer. Only the pieces of the installation that differ per platform - the
+	// compatibility runtime, the installation utilities - set this.
+	Platform     string    `json:"platform,omitempty"`
 	PackedSize   uint64    `json:"packedSize"`
 	UnpackedSize uint64    `json:"unpackedSize"`
 	// Whether this asset was installed to satisfy another asset's dependency, rather
