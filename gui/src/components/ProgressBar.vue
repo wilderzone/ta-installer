@@ -18,6 +18,7 @@ const valuePercentage = computed(() => props.max ? props.value / props.max * 100
 		<progress :max :value="value">{{ value.toFixed(0) }}%</progress>
 		<div class="track">
 			<div class="bar" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
+			<div class="bar glow" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
 			<div v-if="label" class="percentage">{{ label }}</div>
 			<div v-if="!label && !indeterminate" class="percentage">{{ (valuePercentage || 0).toFixed(0) }}%</div>
 		</div>
@@ -56,17 +57,31 @@ const valuePercentage = computed(() => props.max ? props.value / props.max * 100
 		filter: grayscale(0);
 		animation: progress 0.4s linear infinite;
 		transition: 0.1s ease filter;
+
+		&.glow {
+			filter: blur(5px) brightness(1.5) opacity(0.35);
+			mix-blend-mode: plus-lighter;
+			transition: 0.1s ease opacity;
+		}
 	}
 
 	& .percentage {
+		--inset: 5px;
 		position: absolute;
-		max-width: 100%;
-		padding: 0 1ch;
+		top: var(--inset);
+		bottom: var(--inset);
+		left: var(--inset);
+		display: flex;
+		align-items: center;
+		max-width: calc(100% - var(--inset) * 2);
+		padding: 0 var(--inset);
 		color: white;
 		font-weight: 300;
 		font-style: italic;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		background: var(--color-card);
+		border-radius: 2px;
 		overflow: hidden;
 	}
 }
@@ -84,6 +99,10 @@ const valuePercentage = computed(() => props.max ? props.value / props.max * 100
 
 	& .bar {
 		filter: grayscale(1);
+
+		&.glow {
+			opacity: 0;
+		}
 	}
 }
 
