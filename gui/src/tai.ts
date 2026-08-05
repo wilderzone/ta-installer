@@ -13,6 +13,15 @@ export enum DirectoryState {
 
 type Callback = (data: string) => void;
 
+export interface DownloadProgress {
+	/** The bytes received so far. */
+	bytes: number;
+	/** The bytes expected in total. */
+	size: number;
+	/** The transfer rate, in bytes per second. */
+	rate: number;
+}
+
 export interface LogLineData {
 	type: 'error' | 'info';
 	message: string;
@@ -96,6 +105,8 @@ export class TAI {
 		error: <Array<Callback>> [],
 		complete: <Array<Callback>> []
 	};
+	/** The download the CLI is currently measuring, or `undefined` if there isn't one. */
+	public static download = ref<DownloadProgress | undefined>();
 	public static log = ref<Array<LogLineData>>([]);
 	public static status = ref();
 
@@ -212,8 +223,35 @@ export class TAI {
 		TAI.log.value.length = 0;
 	}
 
+	/**
+	 * Interpret a line as a download-progress report, updating {@link download} applicable.
+	 * @returns `true` if the line was a progress report, `false` if it was any other log message.
+	 */
+	private static measure(data: string): boolean {
+		if (!data.startsWith('{')) {
+			return false;
+		}
+		try {
+			const message = JSON.parse(data);
+			switch (message?.type) {
+				case 'DOWNLOAD_STARTED':
+				case 'DOWNLOAD_PROGRESS':
+					TAI.download.value = {
+						bytes: Number(message.bytes ?? 0),
+						size: Number(message.size ?? 0),
+						rate: Number(message.rate ?? 0)
+					};
+					return true;
+				case 'DOWNLOAD_COMPLETE':
+					TAI.download.value = undefined;
+					return true;
+			}
+		} catch {}
+		return false;
+	}
+
 	public static async run(action: Action, path: string, repo: string, filter: string, shortcuts = true): Promise<void> {
-		const args = [action, '-y', `--path=${path}`, `--repo=${repo}`];
+		const args = [action, '-y', '-p', `--path=${path}`, `--repo=${repo}`];
 		if (!shortcuts) {
 			args.push('--shortcuts=false');
 		}
@@ -225,6 +263,7 @@ export class TAI {
 			TAI.log.value.unshift({ type: 'info', message: '' });
 		}
 
+		TAI.download.value = undefined;
 		await spawn(args, (event) => {
 			if (event.type === 'stderr') {
 				TAI.log.value.unshift({ type: 'error', message: event.data });
@@ -232,11 +271,15 @@ export class TAI {
 					callback(event.data);
 				}
 			} else if (event.type === 'stdout') {
+				if (TAI.measure(event.data)) {
+					return;
+				}
 				TAI.log.value.unshift({ type: 'info', message: event.data });
 				for (const callback of TAI.callbacks.info) {
 					callback(event.data);
 				}
 			} else if (event.type === 'exit') {
+				TAI.download.value = undefined;
 				for (const callback of TAI.callbacks.complete) {
 					callback('');
 				}

@@ -30,6 +30,7 @@ import VariantSelector from './VariantSelector.vue';
 			>
 				<div class="output">
 					<ProgressBar
+						:detail="store.progressDetail"
 						:indeterminate="store.progressIndeterminate"
 						:max="store.progressMax"
 						:value="store.progressValue"

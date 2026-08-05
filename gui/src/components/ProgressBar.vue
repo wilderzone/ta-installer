@@ -1,32 +1,43 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
 	value: number;
 	max: number
+	detail?: string;
 	disabled?: boolean;
 	indeterminate?: boolean;
 	label?: string;
 }>();
 
+const ease = ref(false);
 const complete = computed(() => props.value >= props.max && props.value);
 const valuePercentage = computed(() => props.max ? props.value / props.max * 100 : 0);
+
+// The bar should ease when moving forwards, but snap when moving backwards (ie, resetting).
+watch(valuePercentage, (value, previous) => {
+	ease.value = value > previous;
+});
 </script>
 
 <template>
-	<div class="progress-bar" :class="{ complete, disabled, indeterminate }">
+	<div class="progress-bar" :class="{ complete, disabled, ease, indeterminate }">
 		<progress :max :value="value">{{ value.toFixed(0) }}%</progress>
 		<div class="track">
 			<div class="bar" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
 			<div class="bar glow" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
 			<div v-if="label" class="percentage">{{ label }}</div>
-			<div v-if="!label && !indeterminate" class="percentage">{{ (valuePercentage || 0).toFixed(0) }}%</div>
+			<div v-if="!label && !indeterminate" class="percentage">
+				<span>{{ (valuePercentage || 0).toFixed(0) }}%</span>
+				<span v-if="detail" class="detail">{{ detail }}</span>
+			</div>
 		</div>
 	</div>
 </template>
 
 <style scoped>
 .progress-bar {
+	--bar-transition: 0s linear width;
 	width: 100%;
 	height: 100%;
 	min-height: var(--input-height);
@@ -56,12 +67,12 @@ const valuePercentage = computed(() => props.max ? props.value / props.max * 100
 			0 100% / 30px 50% linear-gradient(115deg, var(--color-secondary) 10px, var(--color-tertiary) 10px, var(--color-tertiary) 24px, var(--color-secondary) 24px) repeat-x;
 		filter: grayscale(0);
 		animation: progress 0.4s linear infinite;
-		transition: 0.1s ease filter;
+		transition: 0.1s ease filter, var(--bar-transition);
 
 		&.glow {
 			filter: blur(5px) brightness(1.5) opacity(0.35);
 			mix-blend-mode: plus-lighter;
-			transition: 0.1s ease opacity;
+			transition: 0.1s ease opacity, var(--bar-transition);
 		}
 	}
 
@@ -83,7 +94,21 @@ const valuePercentage = computed(() => props.max ? props.value / props.max * 100
 		background: var(--color-card);
 		border-radius: 2px;
 		overflow: hidden;
+
+		& .detail {
+			min-width: 0;
+			opacity: 0.7;
+
+			&::before {
+				content: '•';
+				margin: 0 1ch;
+			}
+		}
 	}
+}
+
+.progress-bar.ease:not(.indeterminate) {
+	--bar-transition: 0.2s linear width;
 }
 
 .progress-bar.complete:not(.indeterminate) {

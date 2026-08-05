@@ -7,7 +7,7 @@ import { defaultInstallPath, assetInclusions, models, repository, AppWindow } fr
 import { BundleSize, Manifest } from './manifest';
 import { loadData, saveData } from './persist';
 import { Action, DirectoryState, TAI } from './tai';
-import { deduplicate, delay, normalisePath, parentDirectory, pathEndsWithTA, Semaphore } from './utilities';
+import { deduplicate, delay, Estimator, formatDuration, normalisePath, parentDirectory, pathEndsWithTA, Semaphore } from './utilities';
 
 const useStore = defineStore('application', () => {
 	const isMainWindow = getCurrentWindow().label === AppWindow.Main;
@@ -19,6 +19,7 @@ const useStore = defineStore('application', () => {
 	});
 	const cancelling = ref(false);
 	const createShortcuts = ref(true);
+	const estimator = new Estimator();
 	const manifest = reactive({
 		local: <Manifest | undefined> undefined,
 		remote: <Manifest | undefined> undefined
@@ -27,8 +28,10 @@ const useStore = defineStore('application', () => {
 	const path = ref(defaultInstallPath);
 	const pathState = ref(DirectoryState.Valid);
 	const pathVariant = ref('');
+	const progressDetail = ref('');
 	const progressIndeterminate = ref(false);
 	const progressMax = ref(0);
+	const progressMeasured = ref(false);
 	const progressValue = ref(0);
 	const progressComplete = computed(() => progressValue.value >= progressMax.value && progressValue.value);
 	const repositoryFound = ref(true);
@@ -71,16 +74,25 @@ const useStore = defineStore('application', () => {
 	}
 
 	function updateProgressBar(data: string | 0): void {
-		progressIndeterminate.value = false;
 		if (data === 0) {
+			progressIndeterminate.value = false;
+			progressDetail.value = '';
 			progressMax.value = 0;
 			progressValue.value = 0;
-		} else {
-			const result = /\[(\d+)\/(\d+)\]/g.exec(data);
-			if (result && result[1] && result[2]) {
-				progressMax.value = Number(result[2]);
-				progressValue.value = Number(result[1]);
-			}
+			estimator.reset();
+			return;
+		}
+		// A measured download counts bytes, and the assets it counts them for are logged
+		// as they finish. Letting both drive the bar would drag it back and forth between
+		// the two scales, so the finer measure wins for as long as it is running.
+		if (progressMeasured.value) {
+			return;
+		}
+		progressIndeterminate.value = false;
+		const result = /\[(\d+)\/(\d+)\]/g.exec(data);
+		if (result && result[1] && result[2]) {
+			progressMax.value = Number(result[2]);
+			progressValue.value = Number(result[1]);
 		}
 	}
 
@@ -118,6 +130,7 @@ const useStore = defineStore('application', () => {
 	async function cancel(): Promise<void> {
 		if (!running.value || cancelling.value) return;
 		cancelling.value = true;
+		progressDetail.value = '';
 		progressIndeterminate.value = true;
 		await TAI.cancel();
 	}
@@ -131,6 +144,14 @@ const useStore = defineStore('application', () => {
 	}
 
 	function onComplete(_data: string): void {
+		// The bar holds an indeterminate state while work it can't measure finishes off.
+		// The run is over now, so settle it at full rather than leaving it animating away
+		// at nothing. A cancelled run clears the bar for itself.
+		if (progressIndeterminate.value && !cancelling.value) {
+			progressIndeterminate.value = false;
+			progressMax.value = progressMax.value || 1;
+			progressValue.value = progressMax.value;
+		}
 		refreshDirectory();
 		loading.remove();
 	}
@@ -230,6 +251,35 @@ const useStore = defineStore('application', () => {
 	watch(requiredCustomAssets, calculateBundleSizes);
 	watch(selectedCustomAssets, calculateBundleSizes);
 
+	// Follow the CLI's download progress.
+	watch(TAI.download, download => {
+		progressMeasured.value = Boolean(download);
+		if (!download) {
+			progressDetail.value = '';
+			estimator.reset();
+			return;
+		}
+		// A cancelled run is winding down: leave the bar indeterminate rather than
+		// animating out the last few bytes of a download that has been abandoned.
+		if (cancelling.value) {
+			return;
+		}
+		progressMax.value = download.size;
+		progressValue.value = Math.min(download.bytes, download.size);
+		// Every byte has arrived, but the run isn't over: the last assets are still being
+		// unpacked, and the prerequisites are installed after them. A bar sitting full and
+		// still reads as a run that has finished - or stalled - so it goes back to being
+		// indeterminate until the work behind it really is done.
+		if (download.bytes >= download.size) {
+			progressDetail.value = '';
+			progressIndeterminate.value = true;
+			return;
+		}
+		progressIndeterminate.value = false;
+		const remaining = estimator.update(download.bytes, download.size);
+		progressDetail.value = remaining === undefined ? '' : `${formatDuration(remaining)} left`;
+	});
+
 	return {
 		action,
 		back,
@@ -244,6 +294,7 @@ const useStore = defineStore('application', () => {
 		pathState,
 		pathVariant,
 		progressComplete,
+		progressDetail,
 		progressIndeterminate,
 		progressMax,
 		progressValue,

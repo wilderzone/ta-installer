@@ -171,7 +171,7 @@ Installing...
 ⠋ Downloading... 42% of 2.8 GB - 4 minutes left
 ```
 
-An interface driving TAI has no spinner to read, so passing the `-p` flag instructs TAI to report JSON-formatted progress lines instead. A download declares the total size, reports the number of bytes that have arrived several times per second, and declares when it is complete:
+An interface driving TAI has no spinner to read, so passing the `-p` flag instructs TAI to produce JSON-formatted progress updates instead. A download declares the total size, reports the number of bytes that have arrived several times per second, and declares when it is complete:
 ```
 > tai-cli.exe install -p --path="G:/tribes"
 ...

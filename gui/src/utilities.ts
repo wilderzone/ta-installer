@@ -31,6 +31,26 @@ export async function delay(duration: number): Promise<void> {
 	});
 }
 
+/**
+ * Format a duration (in seconds) as a rough estimate in plain English.
+ * A second-accurate countdown on a large download would be false precision,
+ * and would spend the whole download flickering.
+ */
+export function formatDuration(seconds: number): string {
+	if (seconds < 10) return 'a few seconds';
+	// Rounding can carry a duration up into the next unit, so each threshold is measured
+	// against the rounded figure rather than the raw one: "60 minutes" is nobody's idea of
+	// an estimate.
+	const rounded = Math.round(seconds / 5) * 5;
+	if (seconds < 60 && rounded < 60) return `${rounded} seconds`;
+	const minutes = Math.round(seconds / 60);
+	if (minutes < 2) return '1 minute';
+	if (minutes < 60) return `${minutes} minutes`;
+	const hours = seconds / 3600;
+	if (hours === 1) return `1 hour`
+	return `${hours.toFixed(hours < 10 ? 1 : 0)} hours`;
+}
+
 /** Check if the final segment of the given path is "Tribes Ascend". */
 export function pathEndsWithTA(path: string): boolean {
 	return /[\\\/]Tribes Ascend[\\\/]?$/.test(path);
@@ -47,6 +67,60 @@ export function parentDirectory(path: string): string {
 	const segments = path.replace(/[\\\/]$/, '').split(/[\\\/]/);
 	segments.pop();
 	return segments.join('\\');
+}
+
+/**
+ * A rolling estimate of how much longer a transfer has left to run.
+ * The rate is measured across a window of recent samples rather than the whole transfer,
+ * so the estimate follows a connection that speeds up or slows down, and each new estimate
+ * is eased into the last, so a momentary stall doesn't throw the number around.
+ */
+export class Estimator {
+	/** How much recent history the rate is measured across (ms). */
+	private historyWindow = 10000;
+	/** How long that history must span before an estimate is worth showing (ms). */
+	private settlingPeriod = 1500;
+	/** The weight given to each new estimate when easing towards it. */
+	private smoothing = 0.2;
+	private samples: Array<{ time: number, bytes: number }> = [];
+	private estimate: number | undefined;
+
+	/** Record the progress of the transfer, and estimate the time remaining (in seconds). */
+	public update(bytes: number, size: number): number | undefined {
+		const time = performance.now();
+		this.samples.push({ time, bytes });
+		while (this.samples.length > 2 && time - this.samples[0].time > this.historyWindow) {
+			this.samples.shift();
+		}
+
+		// Every byte has arrived. Whatever the transfer is still finishing off, this isn't
+		// measuring it, so it has nothing left to estimate.
+		if (bytes >= size) {
+			this.estimate = undefined;
+			return undefined;
+		}
+
+		const oldest = this.samples[0];
+		const span = time - oldest.time;
+		const transferred = bytes - oldest.bytes;
+		// Too early to tell, or nothing has moved since the window opened. Holding the
+		// previous estimate rides out a stall without the text flickering away.
+		if (span < this.settlingPeriod || transferred <= 0) {
+			return this.estimate;
+		}
+
+		const remaining = (size - bytes) / (transferred / span) / 1000;
+		this.estimate = this.estimate === undefined
+			? remaining
+			: this.estimate + (remaining - this.estimate) * this.smoothing;
+		return this.estimate;
+	}
+
+	/** Forget the transfer measured so far. */
+	public reset(): void {
+		this.samples.length = 0;
+		this.estimate = undefined;
+	}
 }
 
 /** A reactive semaphore for tracking a group of resource locks. */
