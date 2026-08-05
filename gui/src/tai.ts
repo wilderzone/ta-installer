@@ -212,10 +212,10 @@ export class TAI {
 		TAI.log.value.length = 0;
 	}
 
-	public static async run(action: Action, path: string, repo: string, filter: string, machineReadable = false): Promise<void> {
+	public static async run(action: Action, path: string, repo: string, filter: string, shortcuts = true): Promise<void> {
 		const args = [action, '-y', `--path=${path}`, `--repo=${repo}`];
-		if (machineReadable) {
-			args.push('-m');
+		if (!shortcuts) {
+			args.push('--shortcuts=false');
 		}
 		if (filter) {
 			args.push(filter);
@@ -227,16 +227,12 @@ export class TAI {
 
 		await spawn(args, (event) => {
 			if (event.type === 'stderr') {
-				if (!machineReadable) {
-					TAI.log.value.unshift({ type: 'error', message: event.data });
-				}
+				TAI.log.value.unshift({ type: 'error', message: event.data });
 				for (const callback of TAI.callbacks.error) {
 					callback(event.data);
 				}
 			} else if (event.type === 'stdout') {
-				if (!machineReadable) {
-					TAI.log.value.unshift({ type: 'info', message: event.data });
-				}
+				TAI.log.value.unshift({ type: 'info', message: event.data });
 				for (const callback of TAI.callbacks.info) {
 					callback(event.data);
 				}

@@ -18,6 +18,7 @@ const useStore = defineStore('application', () => {
 		custom: <BundleSize> { packed: 0, unpacked: 0 }
 	});
 	const cancelling = ref(false);
+	const createShortcuts = ref(true);
 	const manifest = reactive({
 		local: <Manifest | undefined> undefined,
 		remote: <Manifest | undefined> undefined
@@ -94,7 +95,7 @@ const useStore = defineStore('application', () => {
 			assets.push(...requiredCustomAssets.value, ...selectedCustomAssets.value);
 		}
 		const filter = TAI.filter('include', deduplicate(assets));
-		await TAI.run(action.value, path.value, repository, filter);
+		await TAI.run(action.value, path.value, repository, filter, createShortcuts.value);
 
 		// An interrupted install still leaves a partial installation behind, and the selected
 		// variant is what identifies it, so record the variant either way.
@@ -235,6 +236,7 @@ const useStore = defineStore('application', () => {
 		bundleSize,
 		cancel,
 		cancelling,
+		createShortcuts,
 		manifest,
 		model,
 		next,

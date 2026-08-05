@@ -57,6 +57,16 @@ async function browse(): Promise<void> {
 			@click="browse()"
 		>Browse</button>
 
+		<label for="create-shortcuts" class="create-shortcuts">
+			<input
+				type="checkbox"
+				id="create-shortcuts"
+				name="create-shortcuts"
+				v-model="store.createShortcuts"
+			>
+			<span>Create Desktop & Start Menu shortcuts</span>
+		</label>
+
 		<p class="install-path-info">
 			<span v-if="noPath" class="red">No location specified.</span>
 			<span v-else-if="store.pathState === DirectoryState.Installed || store.pathState === DirectoryState.NeedsUpdate" class="green">
@@ -69,9 +79,9 @@ async function browse(): Promise<void> {
 			<span v-else class="red">Location invalid.</span>
 	
 			<template v-if="store.pathState === DirectoryState.Valid">
-				<span v-if="store.variant === 'vanilla'"><br>A new vanilla installation will be created here.</span>
-				<span v-else-if="store.variant === 'modded'"><br>A new modded installation will be created here.</span>
-				<span v-else-if="store.variant === 'custom'"><br>A new custom installation will be created here.</span>
+				<span v-if="store.variant === 'vanilla'">A new vanilla installation will be created here.</span>
+				<span v-else-if="store.variant === 'modded'">A new modded installation will be created here.</span>
+				<span v-else-if="store.variant === 'custom'">A new custom installation will be created here.</span>
 			</template>
 
 			<template v-if="store.pathState === DirectoryState.NeedsUpdate">
@@ -85,10 +95,13 @@ async function browse(): Promise<void> {
 .install-path-field {
 	display: grid;
 	grid-template:
-		'icon .    input .    button' var(--input-height)
-		'.    .    info  info info  ' auto
-		/ var(--input-height) 0 1fr var(--gap-m) auto;
+		'icon     input    .        button  ' var(--input-height)
+		'.        info     info     info    ' 1fr
+		'.        .        .        .       ' var(--gap-s)
+		'shortcut shortcut shortcut shortcut' auto
+		/ var(--input-height) 1fr var(--gap-m) auto;
 	width: 100%;
+	height: 100%;
 }
 
 .install-path-icon {
@@ -126,5 +139,22 @@ async function browse(): Promise<void> {
 
 .install-path-info {
 	grid-area: info;
+}
+
+.create-shortcuts {
+	grid-area: shortcut;
+	display: flex;
+	align-items: center;
+	gap: var(--fieldset-inline-padding);
+	height: var(--input-height);
+	padding-inline: var(--fieldset-inline-padding);
+	font-size: 0.8rem;
+	font-style: italic;
+	background: var(--color-card);
+	border-radius: var(--border-radius);
+
+	& input[type="checkbox"] {
+		margin: 0;
+	}
 }
 </style>
