@@ -25,7 +25,7 @@ func downloadInstallationUtilities(ctx context.Context, logger *Logger, argument
 
 	// Download.
 	spinner := logger.spin("")
-	err := download(ctx, DEFAULT_REPO, arguments.path, INSTALLATION_UTILITIES)
+	err := download(ctx, DEFAULT_REPO, arguments.path, INSTALLATION_UTILITIES, nil)
 	spinner.stop()
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func repairUtilities(ctx context.Context, logger *Logger, root string, damaged [
 		logger.detail("stage utilities repair", err)
 		return
 	}
-	err = download(ctx, DEFAULT_REPO, staging, INSTALLATION_UTILITIES)
+	err = download(ctx, DEFAULT_REPO, staging, INSTALLATION_UTILITIES, nil)
 	if err != nil {
 		_ = os.RemoveAll(staging)
 		// A cancelled run reports the interruption itself; nothing has been touched yet.

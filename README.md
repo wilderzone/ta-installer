@@ -55,6 +55,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
 | `--keep`           | A comma-separated list of asset names or types.     | Uninstall everything except the provided assets.                                                                |
 | `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                                    |
+| `-p`               | _NA_                                                | Report the progress of a download as JSON lines on stdout. See [Download progress](#download-progress).         |
 | `-s`               | _NA_                                                | Run silently.                                                                                                   |
 | `-v`               | _NA_                                                | Enable verbose logging of otherwise-hidden errors (such as failed best-effort steps) to stderr, for debugging.  |
 | `-y`               | _NA_                                                | Automatically approve confirmation prompts.                                                                     |
@@ -99,6 +100,9 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `ASSETS_ARE_DAMAGED`
 - `CHECKING_ASSETS`
 - `CHECKING_FOR_UPDATES`
+- `DOWNLOAD_COMPLETE`
+- `DOWNLOAD_PROGRESS`
+- `DOWNLOAD_STARTED`
 - `DOWNLOADING_MANIFEST`
 - `ERROR`
 - `INSTALL_FAILURE`
@@ -120,6 +124,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `PREREQUISITES_FAILED`
 - `PREREQUISITES_INSTALLING`
 - `PREREQUISITES_REQUIRED`
+- `PROGRESS`
 - `PROMPT_PROCEED`
 - `PROMPT_REMOVE_DEPENDENTS`
 - `PROMPT_UNINSTALL_ANYWAY`
@@ -152,8 +157,32 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `UTILITIES_SUCCESS`
 - `UTILITIES_VERIFIED`
 - `VERIFY_INTERRUPTED`
-- `PROGRESS`
 </details>
+
+
+### Download progress
+
+Assets are downloaded in batches and only logged as each one finishes, so a large download can sit on the same line for a long time. In a terminal, the spinner fills that gap with the bytes as they arrive:
+```
+> tai-cli.exe install --path="G:/tribes"
+
+Installing...
+[1/34] Prerequisites: Downloaded
+⠋ Downloading... 42% of 2.8 GB - 4 minutes left
+```
+
+An interface driving TAI has no spinner to read, so passing the `-p` flag instructs TAI to report JSON-formatted progress lines instead. A download declares the total size, reports the number of bytes that have arrived several times per second, and declares when it is complete:
+```
+> tai-cli.exe install -p --path="G:/tribes"
+...
+{"size":2782785536,"message":"","type":"DOWNLOAD_STARTED"}
+{"bytes":15728640,"size":2782785536,"rate":6553600,"message":"","type":"DOWNLOAD_PROGRESS"}
+{"bytes":32505856,"size":2782785536,"rate":6684672,"message":"","type":"DOWNLOAD_PROGRESS"}
+...
+{"bytes":2782785536,"size":2782785536,"message":"","type":"DOWNLOAD_COMPLETE"}
+```
+
+`bytes` is what has arrived so far, `size` what is expected in total, and `rate` a smoothed average of the bytes per second. These lines are always JSON, with or without `-m`. A manifest that doesn't record the size of every asset it is downloading can't be measured, and reports nothing rather than an inaccurate total.
 
 
 ## Development

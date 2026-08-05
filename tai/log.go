@@ -12,12 +12,13 @@ import (
 )
 
 type Counter struct {
-	logger  *Logger
-	spinner *Spinner
-	mu      sync.Mutex
-	index   int
-	total   int
-	label   string
+	logger   *Logger
+	spinner  *Spinner
+	progress *Progress
+	mu       sync.Mutex
+	index    int
+	total    int
+	label    string
 }
 
 // next advances the counter and logs a progress line. It is safe to call from
@@ -34,31 +35,46 @@ func (c *Counter) next(message string) {
 }
 
 // status is the text shown beside the spinner while the counter's work is still
-// in flight.
+// in flight. A measured download adds how far through it is, so the line moves
+// between the counter's own, much rarer, steps.
 func (c *Counter) status() string {
-	return fmt.Sprintf("%s...", c.label)
+	status := fmt.Sprintf("%s...", c.label)
+	if summary := c.progress.summary(); summary != "" {
+		status += " " + summary
+	}
+	return status
 }
 
-// done stops the counter's spinner. Call it once every item has been counted.
+// done stops the counter's spinner and closes off any measured download. Call it
+// once every item has been counted.
 func (c *Counter) done() {
+	c.progress.stop()
 	c.spinner.stop()
 }
 
 type LogLine struct {
 	Index   int    `json:"index,omitempty"`
 	Total   int    `json:"total,omitempty"`
+	// Set on the lines a measured download reports itself with: the bytes received so
+	// far, the bytes expected in total, and the smoothed transfer rate per second.
+	Bytes   uint64 `json:"bytes,omitempty"`
+	Size    uint64 `json:"size,omitempty"`
+	Rate    uint64 `json:"rate,omitempty"`
 	Message string `json:"message"`
 	Type    string `json:"type"`
 }
 
 type Logger struct {
-	machine bool
-	silent  bool
-	verbose bool
+	machine  bool
+	// progress emits the download-progress lines that logProgress describes. They are
+	// opt-in because only an interface reading the output has any use for them.
+	progress bool
+	silent   bool
+	verbose  bool
 	// mu serialises writes to stdout, so spinner frames are never interleaved
 	// with log lines. It also guards the spinner's own fields.
-	mu      sync.Mutex
-	spinner *Spinner
+	mu       sync.Mutex
+	spinner  *Spinner
 }
 
 // Spinner animates a single line at the bottom of the output, so the user can
@@ -79,6 +95,9 @@ var (
 	ASSETS_ARE_DAMAGED        = LogLine{Type: "ASSETS_ARE_DAMAGED", Message: ""}
 	CHECKING_ASSETS           = LogLine{Type: "CHECKING_ASSETS", Message: "Checking assets..."}
 	CHECKING_FOR_UPDATES      = LogLine{Type: "CHECKING_FOR_UPDATES", Message: "Checking for updates..."}
+	DOWNLOAD_COMPLETE         = LogLine{Type: "DOWNLOAD_COMPLETE", Message: ""}
+	DOWNLOAD_PROGRESS         = LogLine{Type: "DOWNLOAD_PROGRESS", Message: ""}
+	DOWNLOAD_STARTED          = LogLine{Type: "DOWNLOAD_STARTED", Message: ""}
 	DOWNLOADING_MANIFEST      = LogLine{Type: "DOWNLOADING_MANIFEST", Message: "Downloading manifest from:"}
 	INSTALL_FAILURE           = LogLine{Type: "INSTALL_FAILURE", Message: "Installation failed."}
 	INSTALL_FOUND             = LogLine{Type: "INSTALL_FOUND", Message: "Installation found."}
@@ -360,6 +379,33 @@ func (l *Logger) log(message LogLine, additional ...any) {
 
 	// Redraw immediately, so the spinner reappears beneath the new line instead
 	// of leaving a gap until the next tick.
+	if l.spinner != nil {
+		l.spinner.draw()
+	}
+}
+
+// logProgress writes a line describing a download in flight. Unlike the ordinary log
+// lines, this one is always JSON, in every mode: it is emitted several times a second for
+// an interface to read, and a person watching a terminal is shown the spinner instead.
+func (l *Logger) logProgress(message LogLine) {
+	if l.silent {
+		return
+	}
+
+	// Hold the lock across the write for the same reason log does, and wipe the spinner
+	// first in case one is running alongside the reports.
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.spinner != nil {
+		fmt.Print(CLEAR_LINE)
+	}
+
+	encoder := json.NewEncoder(os.Stdout)
+	err := encoder.Encode(message)
+	if err != nil {
+		l.error(err.Error())
+	}
+
 	if l.spinner != nil {
 		l.spinner.draw()
 	}

@@ -27,7 +27,7 @@ func prerequisites(ctx context.Context, logger *Logger, arguments arguments) err
 	// Download the prerequisites asset.
 	logger.log(PREREQUISITES_DOWNLOADING)
 	spinner := logger.spin("")
-	err := download(ctx, DEFAULT_REPO, arguments.path, PREREQUISITES)
+	err := download(ctx, DEFAULT_REPO, arguments.path, PREREQUISITES, nil)
 	spinner.stop()
 	if err != nil {
 		if cancelled := ctx.Err(); cancelled != nil {

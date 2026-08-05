@@ -19,11 +19,14 @@ import (
 func downloadAssets(ctx context.Context, logger *Logger, arguments arguments, assets []Asset, successLabel string) []Asset {
 	counter := logger.count(len(assets), "Downloading")
 	defer counter.done()
+	// Assets are only counted one at a time, and a large one takes minutes to arrive, so
+	// the bytes are measured too. That is what moves while an asset is in flight.
+	progress := counter.measure(totalPackedSize(assets))
 	var mu sync.Mutex
 	failed := []Asset{}
 	parallel(ctx, assets, DOWNLOAD_CONCURRENCY, func(asset Asset) {
 		message := asset.Name
-		err := download(ctx, arguments.repo, arguments.path, asset)
+		err := download(ctx, arguments.repo, arguments.path, asset, progress)
 		if ctx.Err() != nil {
 			// Whatever error a cancelled download reported is a consequence of the
 			// cancellation, not a failure the user should be told to retry.
@@ -39,6 +42,20 @@ func downloadAssets(ctx context.Context, logger *Logger, arguments arguments, as
 		counter.next(message)
 	})
 	return failed
+}
+
+// totalPackedSize returns the number of bytes the given assets will transfer, or 0 if any
+// one of them doesn't declare a size. A partial total would only mislead: the download
+// would appear to overshoot it, and every estimate drawn from it would be wrong.
+func totalPackedSize(assets []Asset) uint64 {
+	total := uint64(0)
+	for _, asset := range assets {
+		if asset.PackedSize == 0 {
+			return 0
+		}
+		total += asset.PackedSize
+	}
+	return total
 }
 
 // get issues a cancellable GET and returns the response, whose body the caller must close.
@@ -82,7 +99,10 @@ func fileExists(filename string) bool {
 	return false 
 }
 
-func download(ctx context.Context, repo string, root string, asset Asset) error {
+// download fetches an asset and unpacks it into the installation. `progress`, when the
+// caller is measuring a batch of them, counts the bytes as they arrive; a nil one is fine
+// for a download nobody is watching that closely.
+func download(ctx context.Context, repo string, root string, asset Asset, progress *Progress) error {
 	// Download the asset into the temp directory.
 	tempDirectory := filepath.Join(root, TEMP_DIRECTORY)
 	err := os.MkdirAll(tempDirectory, os.FileMode(0777))
@@ -114,7 +134,7 @@ func download(ctx context.Context, repo string, root string, asset Asset) error 
 	}
 	defer response.Body.Close()
 	// A cancelled context closes the response body, so this stops of its own accord.
-	_, err = io.Copy(file, response.Body)
+	_, err = io.Copy(file, progress.reader(response.Body))
 	if err != nil {
 		return fmt.Errorf("download %s: %w", source, err)
 	}

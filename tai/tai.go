@@ -21,7 +21,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := Logger{machine: arguments.machine, silent: arguments.silent, verbose: arguments.verbose}
+	logger := Logger{machine: arguments.machine, progress: arguments.progress, silent: arguments.silent, verbose: arguments.verbose}
 
 	// Commands that can run for a long time take a context, so they can be stopped part-way through.
 	ctx, cancel := cancellation()
