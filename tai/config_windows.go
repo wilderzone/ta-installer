@@ -3,8 +3,6 @@ package main
 const CLI_NAME = "tai-cli.exe"
 const SHORTCUT_NAME = "Tribes Ascend.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
-
-// The hint shown when shortcuts couldn't be created.
 const SHORTCUTS_FAILURE_HINT = "You may need to re-run the installer with admin permissions to create shortcuts."
 const UNINSTALLER_REGISTRY_PATH = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Tribes Ascend`
 

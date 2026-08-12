@@ -12,8 +12,8 @@ use tauri::ipc::Channel;
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-/// The CLI is embedded rather than shipped beside the app, so a single downloaded file is
-/// the whole installer on every platform. `build-sidecar` produces the matching binary.
+/// The CLI is embedded so that a single file comprises the entire installer.
+/// `npm run build-sidecar` produces the matching binary.
 #[cfg(windows)]
 const TAI_BIN: &[u8] = include_bytes!("../binaries/tai-x86_64-pc-windows-msvc.exe");
 #[cfg(windows)]
@@ -152,11 +152,10 @@ async fn run_tai(
     .map_err(|error| error.to_string())?
 }
 
-/// Where the game is installed when the user doesn't choose somewhere else.
+/// Where the game is installed by default.
 ///
-/// Windows keeps it out of Program Files so an install doesn't need elevating. ~/Games is
-/// the equivalent convention on Linux, and being under the user's own home is what lets the
-/// Linux CLI drop the elevation path entirely.
+/// On Windows the default is ProgramData so the installation doesn't require elevation.
+/// On Linux the default is ~/Games by convention, and doesn't require elevation.
 #[tauri::command]
 fn default_install_path() -> String {
     #[cfg(windows)]

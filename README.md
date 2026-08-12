@@ -4,12 +4,10 @@ A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://
 
 ## GUI
 
-To use TAI GUI, download and run the portable `tai-gui.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
+To use TAI GUI, download and run the appropriate portable executable for your operating system from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
 You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the folder in which to install TA. Modded is the recommended option, and includes community maps and CTF routes.
 
 _Note: `tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI._
-
-On Linux, download the `.deb` or `.rpm` package for your distribution instead. Everything else works the same way: pick a folder, pick a variant, and install. See [Running on Linux](#running-on-linux) for what TAI sets up behind the scenes.
 
 <p align="center">
   <img width="1262" height="902" alt="image" src="https://github.com/user-attachments/assets/c4da7aa5-9c3a-40e2-a74f-635f9fb22405" />
@@ -223,28 +221,19 @@ The local `manifest.json` records this by marking dependency-installed assets wi
 
 ### Running on Linux
 
-Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a compatibility layer alongside the game files. TAI manages all of it — there is no Wine to install and no drivers to fix up:
-
-```
-~/Games/Tribes Ascend/
-  Binaries/ TribesGame/ Engine/   the game, byte-for-byte the same as on Windows
-  Runtime/                        a pinned Proton build, plus the umu launcher
-  Prefix/                         the Wine prefix this installation runs in
-  Installer/tai-cli               the CLI, which the desktop entries launch through
-```
-
-Everything lives inside the installation directory, so uninstalling remains "remove one folder", and `verify` checks the runtime the same way it checks the game.
+Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a compatibility layer alongside the game files. TAI manages all of it automatically, including validating the compatibility layer when you run `verify`.
 
 A few things differ from Windows by necessity:
 
-- **Shortcuts are desktop entries.** They go in the applications menu, on the desktop, and in the installation directory, and they run `tai-cli play` rather than the game directly — so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
-- **Nothing is elevated.** The default install path is under your home directory, and DirectX is served by the runtime's own Direct3D 9 implementation rather than installed system-wide, so no step needs a password.
-- **The container image is fetched by umu**, into `~/.local/share/umu`, the first time a prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
-- **Settings and saves live inside the prefix**, under `Prefix/pfx/drive_c/users/`, because that's where the game looks for its Documents folder. Uninstalling removes them along with everything else — on Windows they sit in your real Documents folder and survive an uninstall. Copy that directory out first if you want to keep them.
+- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run `tai-cli play` rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
+- The default install path is under your home directory.
+- DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
+- The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
+- TA and TAMods settings live inside the Wine prefix, under `Prefix/pfx/drive_c/users/`, because that's where the game looks for its Documents folder. Uninstalling removes them along with everything else, whereas on Windows they sit in your real Documents folder and survive an uninstall. Copy that directory out first if you want to keep your game settings.
 
-`install` reports anything about the machine that would get in the way — a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled — before committing you to a multi-gigabyte download. None of them stops an install.
+`install` reports anything about the machine that would get in the way (eg, a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled) before committing to a multi-gigabyte download. None of them stops an install.
 
-The runtime is published as an ordinary manifest asset tagged with `"platform": "linux"`. Assets that name a platform are filtered out everywhere else, and assets that name none — the game's own files — are installed on both. Generate one with:
+The runtime is published as an ordinary manifest asset tagged with `"platform": "linux"`. Assets that name a platform are filtered out everywhere else, and assets that name none (eg, the game's own files) are installed on both. Generate one with:
 
 ```sh
 tai-cli asset --path=<extracted runtime> --name=Runtime --platform=linux

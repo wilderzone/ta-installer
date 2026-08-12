@@ -13,7 +13,7 @@ import { pinia, store } from './store.ts';
 import { usePathSeparator } from './utilities.ts';
 
 /**
- * Learn what platform this is, then start the app.
+ * Check what platform the app is running on, then start the app.
  *
  * The separator is settled synchronously, before anything can await, because the store's
  * path watcher fires on a microtask and the path helpers it reaches for are synchronous.

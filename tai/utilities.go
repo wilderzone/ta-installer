@@ -142,6 +142,7 @@ func copyFile(sourcePath string, targetPath string, mode os.FileMode) error {
 		return err
 	}
 	_, err = io.Copy(out, in)
+	// Close the out file, regardless of copy errors.
 	if closeErr := out.Close(); err == nil {
 		err = closeErr
 	}

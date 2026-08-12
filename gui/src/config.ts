@@ -12,9 +12,9 @@ export enum AppWindow {
 export const customInstructions = 'https://github.com/wilderzone/ta-installer#cli';
 
 /**
- * Where the game is installed when the user doesn't choose somewhere else.
- * The value is platform-specific, so it comes from the backend during startup rather than
- * being hardcoded here. `main.ts` sets it before the store is created, which is what reads it.
+ * Where the game is installed by default.
+ * The value is platform-specific, so it comes from the Rust backend during startup rather than
+ * being hardcoded here.
  */
 export let defaultInstallPath = '';
 export function useDefaultInstallPath(value: string): void {
@@ -23,7 +23,7 @@ export function useDefaultInstallPath(value: string): void {
 
 /**
  * Whether the app is running on Windows. Set during startup, alongside the path default.
- * The path separator is the tell, which avoids pulling in a plugin just to ask.
+ * The path separator is the tell, which avoids pulling in a plugin just to check the platform.
  */
 export let isWindows = true;
 export function usePlatform(separator: string): void {

@@ -69,9 +69,6 @@ export function usePathSeparator(value: string): void {
 /** Normalise the given path such that the final segment is "Tribes Ascend". */
 export function normalisePath(path: string): string {
 	if (pathEndsWithTA(path)) return path;
-	// Only the joins are rewritten to the platform separator. Rewriting the whole path
-	// would mangle it on Linux, where a forward slash is the separator rather than
-	// something to be replaced.
 	return `${path}${separator}Tribes Ascend`.replaceAll(/[\\\/]+/g, separator);
 }
 
@@ -82,7 +79,7 @@ export function parentDirectory(path: string): string {
 	segments.pop();
 	const parent = segments.join(separator);
 	// A top-level path leaves nothing behind. Its parent is the filesystem root, which
-	// exists - returning an empty string would fail the existence check that follows.
+	// exists - returning an empty string would fail any existence checks that follow.
 	if (!parent) {
 		return separator === '/' ? '/' : trimmed;
 	}

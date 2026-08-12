@@ -1,4 +1,4 @@
-// Build the CLI that the app embeds.
+// Build the CLI that the GUI application embeds.
 //
 // The Rust crate names the file with a Rust target triple (see `TAI_BIN` in lib.rs), and the
 // binary is gitignored, so this has to run before the crate will compile at all - which is

@@ -71,8 +71,7 @@ func desktopDirectory() string {
 }
 
 // escapeDesktopValue escapes a string for use as a desktop entry value. Backslash is the
-// escape character in the file format itself, so a literal one has to be doubled before
-// anything else looks at the value.
+// escape character in the file format itself, so a literal one has to be doubled.
 func escapeDesktopValue(value string) string {
 	value = strings.ReplaceAll(value, `\`, `\\`)
 	value = strings.ReplaceAll(value, "\n", `\n`)

@@ -18,8 +18,8 @@ const UMU_DIRECTORY = "umu"
 const UMU_EXECUTABLE = "umu-run"
 
 // The identifier umu uses to look up per-game fixes. Tribes: Ascend's Steam application ID
-// opts the standalone build into the same protonfixes the Steam release gets. If those ever
-// do something the standalone build dislikes, "umu-default" turns them off.
+// opts the standalone build into the same Proton fixes the Steam release gets. If those fixes
+// ever do something the standalone build dislikes, "umu-default" turns them off.
 const UMU_GAME_ID = "umu-17080"
 
 // runtimeDirectory returns the directory the compatibility runtime is unpacked into.

@@ -6,8 +6,6 @@ import { loading, store } from '../store';
 import { DirectoryState } from '../tai';
 
 const noPath = computed(() => !store.path);
-// Linux has no Start Menu; the equivalent is the applications menu, which is where the
-// desktop entry the CLI writes shows up.
 const shortcutLabel = isWindows ? 'Create Desktop & Start Menu shortcuts' : 'Create desktop & applications menu shortcuts';
 const typeImage = computed(() => {
 	const state = store.pathState;
