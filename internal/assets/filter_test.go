@@ -25,34 +25,6 @@ func TestFilterAssetsEmptyReturnsAll(t *testing.T) {
 	}
 }
 
-func TestFilterByPlatformKeepsUnrestrictedAssets(t *testing.T) {
-	catalogue := []Asset{
-		{Name: "Core", Type: CORE},
-		{Name: "Compatibility Runtime", Type: PREREQUISITE, Platform: "linux"},
-		{Name: "Installation Utilities", Type: PREREQUISITE, Platform: "windows"},
-	}
-	// An asset without a platform belongs to every platform, so the game's own files
-	// survive the filter on both.
-	if got := names(FilterByPlatform(catalogue, "linux")); !slices.Equal(got, []string{"Core", "Compatibility Runtime"}) {
-		t.Errorf("got %v, want [Core Compatibility Runtime]", got)
-	}
-	if got := names(FilterByPlatform(catalogue, "windows")); !slices.Equal(got, []string{"Core", "Installation Utilities"}) {
-		t.Errorf("got %v, want [Core Installation Utilities]", got)
-	}
-}
-
-func TestFilterByPlatformExcludesForeignDependencies(t *testing.T) {
-	// A dependency on an asset for another platform must not survive the filter, or
-	// resolution would go looking for something that was never downloadable here.
-	catalogue := []Asset{
-		{Name: "Core", Type: CORE},
-		{Name: "Runtime", Type: PREREQUISITE, Platform: "linux", Dependencies: []string{"Core"}},
-	}
-	if got := names(FilterByPlatform(catalogue, "windows")); !slices.Equal(got, []string{"Core"}) {
-		t.Errorf("got %v, want [Core]", got)
-	}
-}
-
 func TestApplyAutomaticThreeCases(t *testing.T) {
 	assets := []Asset{{Name: "Explicit"}, {Name: "Kept"}, {Name: "New"}}
 	explicit := []Asset{{Name: "Explicit"}}

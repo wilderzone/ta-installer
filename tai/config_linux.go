@@ -1,5 +1,7 @@
 package main
 
+import "path/filepath"
+
 const CLI_NAME = "tai-cli"
 const SHORTCUT_NAME = "tribes-ascend.desktop"
 const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
@@ -27,5 +29,31 @@ var INSTALLATION_UTILITIES = Asset{
 	Files: []File{
 		{File: CLI_NAME},
 		{File: ICON_FILE},
+	},
+}
+
+// The location of the compatibility runtime's checksums, relative to the repository. As with
+// the utilities, they're fetched at verify time rather than compiled in: the runtime is
+// thousands of files, and its checksums change every time the pinned build does.
+const RUNTIME_CHECKSUMS_SOURCE = "/runtime/Runtime.json"
+
+// The compatibility runtime: a pinned Proton build and the umu launcher that drives it.
+//
+// This is a bespoke package rather than a manifest asset, for the same reason the DirectX 9
+// redistributable is on Windows. The manifest describes the game, and is served by whatever
+// repository --repo names; a custom repository shouldn't have to mirror half a gigabyte of
+// Proton for a Linux install to work. So, like the utilities, this always comes from
+// DEFAULT_REPO regardless of --repo.
+//
+// PackedSize only scales the progress bar, and is pinned alongside Source - a stale figure
+// mis-scales the bar but breaks nothing.
+var COMPATIBILITY_RUNTIME = Asset{
+	Name:         "Compatibility Runtime",
+	Type:         "prerequisite",
+	Source:       "/runtime/Runtime.tar.gz",
+	Destination:  "/" + RUNTIME_DIRECTORY,
+	PackedSize:   532500000,
+	Files: []File{
+		{File: filepath.Join(UMU_DIRECTORY, UMU_EXECUTABLE)},
 	},
 }

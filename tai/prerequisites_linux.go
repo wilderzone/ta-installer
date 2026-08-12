@@ -17,5 +17,9 @@ import (
 // game prefer them go in WINEDLLOVERRIDES at launch, rather than being written into the
 // prefix, so they stay reversible.
 func prerequisites(ctx context.Context, logger *Logger, arguments arguments) error {
+	err := downloadRuntime(ctx, logger, arguments.path)
+	if err != nil {
+		return err
+	}
 	return ensureRuntime(ctx, logger, arguments.path)
 }

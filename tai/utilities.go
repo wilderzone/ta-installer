@@ -47,7 +47,7 @@ func installationUtilitiesAreMissing(arguments arguments) bool {
 func verifyUtilities(ctx context.Context, logger *Logger, arguments arguments) {
 	// The checksums live on the CDN, not in this binary, so this needs the network. If it's
 	// unavailable, the game files have still been verified - don't fail over it.
-	util, err := getUtilitiesAsset(ctx, DEFAULT_REPO)
+	util, err := getPublishedAsset(ctx, DEFAULT_REPO, UTILITIES_CHECKSUMS_SOURCE, INSTALLATION_UTILITIES)
 	if err != nil {
 		// A cancelled run reports the interruption itself; this wasn't skipped.
 		if ctx.Err() == nil {

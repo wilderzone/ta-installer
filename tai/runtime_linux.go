@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"wilderzone.org/tai/internal/assets"
 )
 
 // The compatibility runtime lives inside the installation, so that uninstalling the game
@@ -98,15 +100,94 @@ func runtimeCommand(ctx context.Context, root string, executable string, args ..
 	return command, nil
 }
 
-// ensureRuntime prepares the compatibility layer: it confirms the runtime arrived with the
-// rest of the installation, then creates the prefix if it isn't there yet.
+// downloadRuntime fetches the compatibility runtime, unless it's already installed. It
+// mirrors downloadInstallationUtilities: always from DEFAULT_REPO, never from --repo, because
+// the runtime is TAI's own infrastructure rather than something a game repository provides.
+//
+// Unlike the utilities it's measured, because half a gigabyte behind a bare spinner reads as
+// a hang.
+func downloadRuntime(ctx context.Context, logger *Logger, root string) error {
+	if !runtimeIsMissing(root) {
+		return nil
+	}
+
+	logger.log(RUNTIME_DOWNLOADING)
+	counter := logger.count(1, "Downloading")
+	defer counter.done()
+	progress := counter.measure(COMPATIBILITY_RUNTIME.PackedSize)
+
+	err := download(ctx, DEFAULT_REPO, root, COMPATIBILITY_RUNTIME, progress)
+	if err != nil {
+		if cancelled := ctx.Err(); cancelled != nil {
+			return cancelled
+		}
+		counter.next(COMPATIBILITY_RUNTIME.Name + ": " + logger.colour("Failed", RED))
+		return userErrorf(err, "Couldn't download the compatibility layer, so the game won't be able to run.")
+	}
+
+	counter.next(COMPATIBILITY_RUNTIME.Name + ": " + logger.colour("Downloaded", GREEN))
+	return nil
+}
+
+// verifyRuntime checks the installed runtime against the checksums published on the official
+// CDN, and replaces it if the user agrees. Like verifyUtilities it never returns an error:
+// the game files have already been verified by the time it runs, so a missing network is
+// reported and swallowed rather than failing the whole command.
+func verifyRuntime(ctx context.Context, logger *Logger, arguments arguments) {
+	if runtimeIsMissing(arguments.path) {
+		logger.log(RUNTIME_MISSING)
+		return
+	}
+
+	asset, err := getPublishedAsset(ctx, DEFAULT_REPO, RUNTIME_CHECKSUMS_SOURCE, COMPATIBILITY_RUNTIME)
+	if err != nil {
+		// A cancelled run reports the interruption itself; this wasn't skipped.
+		if ctx.Err() == nil {
+			logger.log(RUNTIME_CHECK_SKIPPED, err.Error())
+		}
+		return
+	}
+
+	damaged := assets.VerifyAsset(ctx, arguments.path, asset)
+	if ctx.Err() != nil {
+		return
+	}
+	if len(damaged) == 0 {
+		logger.log(RUNTIME_VERIFIED)
+		return
+	}
+	logger.log(RUNTIME_DAMAGED, assets.Describe(damaged))
+
+	proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+	if !proceed {
+		return
+	}
+
+	// The runtime is replaced wholesale rather than file by file. It's a tree of symlinks
+	// and hardlinks that only makes sense as a unit, and removing it first is also what
+	// keeps a newly pinned build from being unpacked alongside the one it replaces.
+	err = os.RemoveAll(runtimeDirectory(arguments.path))
+	if err != nil {
+		logger.detail("remove the old compatibility runtime", err)
+		return
+	}
+	err = downloadRuntime(ctx, logger, arguments.path)
+	if err != nil {
+		logger.detail("replace the compatibility runtime", err)
+		return
+	}
+	logger.log(RUNTIME_REPAIRED)
+}
+
+// ensureRuntime prepares the compatibility layer: it confirms the runtime is present, then
+// creates the prefix if it isn't there yet.
 //
 // Creating the prefix is also what makes umu fetch its container image, which it keeps in
 // the user's data directory rather than in the installation. That download is outside TAI's
 // own progress reporting, so it runs behind a spinner with umu's own output going to the log.
 func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
 	if runtimeIsMissing(root) {
-		return userErrorf(nil, "The compatibility runtime wasn't installed, so the game can't run. Re-run the installer without excluding it.")
+		return userErrorf(nil, "The compatibility layer wasn't installed, so the game can't run. Run \"verify\" to restore it.")
 	}
 
 	// A prefix that already has a system drive has been through this once already.

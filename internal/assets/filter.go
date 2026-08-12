@@ -8,28 +8,6 @@ func MatchesTerms(asset Asset, terms []string) bool {
 	return slices.Contains(terms, string(asset.Type)) || slices.Contains(terms, asset.Name)
 }
 
-// MatchesPlatform reports whether an asset applies to the given platform, named by its GOOS
-// value. An asset that doesn't declare a platform applies to all of them.
-func MatchesPlatform(asset Asset, platform string) bool {
-	return asset.Platform == "" || asset.Platform == platform
-}
-
-// FilterByPlatform returns the assets that apply to the given platform.
-//
-// This runs ahead of FilterAssets so that everything downstream - the include/exclude terms,
-// dependency resolution, the "no assets matched" error, and the sizes the GUI totals up -
-// only ever sees assets this machine can actually use. A repository can then describe every
-// platform in one manifest.
-func FilterByPlatform(assets []Asset, platform string) []Asset {
-	filtered := []Asset{}
-	for _, asset := range assets {
-		if MatchesPlatform(asset, platform) {
-			filtered = append(filtered, asset)
-		}
-	}
-	return filtered
-}
-
 // FilterAssets returns the assets that satisfy the include/exclude terms. Include is
 // applied first (an empty include list means "include all"), then exclude.
 func FilterAssets(assets []Asset, include []string, exclude []string) []Asset {

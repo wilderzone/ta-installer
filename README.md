@@ -51,7 +51,6 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.                        |
 | `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                                 |
 | `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
-| `--platform`       | `windows` or `linux`. _Defaults to every platform if omitted._ | Restrict a generated asset to one platform, for the `asset` subcommand. An asset with a platform is ignored everywhere else. |
 | `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets. Assets that the provided assets require are installed as well. |
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
@@ -137,9 +136,14 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
 - `RUNTIME_CHECK_FAILED`
+- `RUNTIME_CHECK_SKIPPED`
+- `RUNTIME_DAMAGED`
+- `RUNTIME_DOWNLOADING`
 - `RUNTIME_MISSING`
 - `RUNTIME_PREPARING`
 - `RUNTIME_READY`
+- `RUNTIME_REPAIRED`
+- `RUNTIME_VERIFIED`
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
@@ -233,13 +237,15 @@ A few things differ from Windows by necessity:
 
 `install` reports anything about the machine that would get in the way (eg, a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled) before committing to a multi-gigabyte download. None of them stops an install.
 
-The runtime is published as an ordinary manifest asset tagged with `"platform": "linux"`. Assets that name a platform are filtered out everywhere else, and assets that name none (eg, the game's own files) are installed on both. Generate one with:
+The runtime is published separately from `manifest.json`, alongside the installation utilities and for the same reason the DirectX 9 redistributable is: the manifest describes the *game*, and is served by whatever repository `--repo` names. A custom repository shouldn't have to mirror half a gigabyte of Proton for a Linux install to work, so the runtime always comes from the official CDN regardless of `--repo`.
+
+Publish it as a `.tar.gz` rather than a `.zip` — the runtime carries symlinks and execute bits that a zip either can't represent or loses when packaged on Windows — and generate its checksum file the same way as the utilities':
 
 ```sh
-tai-cli asset --path=<extracted runtime> --name=Runtime --platform=linux
+tai-cli asset --path=<extracted runtime> --name=Runtime   # produces Runtime.json
 ```
 
-Publish it as a `.tar.gz` rather than a `.zip`: the runtime carries symlinks and execute bits that a zip either can't represent or loses when packaged on Windows.
+Publish both `Runtime.tar.gz` and `Runtime.json` under `/runtime/` on the CDN. `verify` fetches the checksums, and replaces the whole runtime if any file fails — which is also how a newly pinned Proton build reaches existing installations.
 
 ### Installation utilities
 

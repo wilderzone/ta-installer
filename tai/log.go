@@ -127,9 +127,14 @@ var (
 	REPO_FOUND                = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND            = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
 	RUNTIME_CHECK_FAILED      = LogLine{Type: "RUNTIME_CHECK_FAILED", Message: "The compatibility layer may not run on this system:"}
+	RUNTIME_CHECK_SKIPPED     = LogLine{Type: "RUNTIME_CHECK_SKIPPED", Message: "Couldn't check the compatibility layer:"}
+	RUNTIME_DAMAGED           = LogLine{Type: "RUNTIME_DAMAGED", Message: "The compatibility layer is damaged:"}
+	RUNTIME_DOWNLOADING       = LogLine{Type: "RUNTIME_DOWNLOADING", Message: "Downloading the compatibility layer..."}
 	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility runtime is missing. Run \"install\" or \"verify\" to restore it."}
 	RUNTIME_PREPARING         = LogLine{Type: "RUNTIME_PREPARING", Message: "Preparing the compatibility layer..."}
 	RUNTIME_READY             = LogLine{Type: "RUNTIME_READY", Message: "Compatibility layer ready."}
+	RUNTIME_REPAIRED          = LogLine{Type: "RUNTIME_REPAIRED", Message: "Replaced the compatibility layer."}
+	RUNTIME_VERIFIED          = LogLine{Type: "RUNTIME_VERIFIED", Message: "Compatibility layer verified."}
 	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. " + SHORTCUTS_FAILURE_HINT}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
 	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}

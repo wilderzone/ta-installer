@@ -27,12 +27,6 @@ var methods = [...]string{
 	"play",
 }
 
-// The platforms an asset can be restricted to, named by their GOOS values.
-var PLATFORMS = [...]string{
-	"windows",
-	"linux",
-}
-
 // commandSpec describes which arguments a subcommand requires.
 type commandSpec struct {
 	needsPath  bool // Requires a valid absolute installation path.
@@ -72,7 +66,6 @@ type arguments struct {
 	path      string
 	repo      string
 	name      string
-	platform  string
 	include   []string
 	exclude   []string
 	remove    []string
@@ -92,7 +85,6 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "Flags:\n")
 	fmt.Fprint(w, "  --path=<path>            The installation directory.\n")
 	fmt.Fprint(w, "  --repo=<url>             The repository URL to download from.\n")
-	fmt.Fprint(w, "  --platform=<goos>        Restrict a generated asset to one platform, e.g. \"linux\" (when generating).\n")
 	fmt.Fprint(w, "  --shortcuts=true|false   Create Desktop and Start Menu shortcuts for the game (when installing).\n")
 	fmt.Fprint(w, "  --include=<a,b,...>      Install/list only these assets (by type or name).\n")
 	fmt.Fprint(w, "  --exclude=<a,b,...>      Install/list everything except these assets (by type or name).\n")
@@ -136,7 +128,6 @@ func getArguments() (arguments, error) {
 	fs.StringVar(&args.path, "path", "", "")
 	fs.StringVar(&args.repo, "repo", "", "")
 	fs.StringVar(&args.name, "name", "", "")
-	fs.StringVar(&args.platform, "platform", "", "")
 	fs.BoolVar(&args.shortcuts, "shortcuts", true, "")
 	fs.BoolVar(&args.machine, "m", false, "")
 	fs.BoolVar(&args.progress, "p", false, "")
@@ -245,12 +236,6 @@ func validateArguments(arguments *arguments) error {
 		if !match {
 			return errors.New("The provided asset name is not valid. Please use only letters, numbers, and underscores.")
 		}
-	}
-
-	// Platform. An empty value means the asset applies everywhere, which is the
-	// default and what the game's own files use.
-	if len(arguments.platform) != 0 && !slices.Contains(PLATFORMS[:], arguments.platform) {
-		return fmt.Errorf("The provided platform %q is not valid. Use one of: %s.", arguments.platform, strings.Join(PLATFORMS[:], ", "))
 	}
 
 	return nil
