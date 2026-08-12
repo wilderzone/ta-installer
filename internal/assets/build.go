@@ -21,7 +21,7 @@ func CreateAsset(path string, name string) (Asset, error) {
 		// Symlinks are structure, not content: opening one reads whatever it points at,
 		// and one pointing at a directory can't be read at all. The compatibility runtime
 		// is full of them, so they're recorded by the archive and skipped here.
-		if entry.Type() & fs.ModeSymlink != 0 {
+		if (entry.Type() & fs.ModeSymlink) != 0 {
 			return nil
 		}
 
