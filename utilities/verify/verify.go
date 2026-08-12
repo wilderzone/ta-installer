@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-const CLI_EXE = "tai.exe"
+const CLI_EXE = "tai-cli.exe"
 const MANIFEST = "manifest.json"
 
 func main() {
