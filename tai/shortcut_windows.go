@@ -75,23 +75,34 @@ func getSpecialFolder(folder string) (string, error) {
 	return path, nil
 }
 
-// createShortcuts creates shortcuts to the game executable. The shortcuts are
-// placed in the game's install directory, the Start Menu, and on the user's Desktop,
-// and are preconfigured with the community server's host parameter.
+// createShortcuts creates shortcuts that launch the game. The shortcuts are placed in the
+// game's install directory, the Start Menu, and on the user's Desktop.
+//
+// They run the CLI's "play" command rather than the game directly, so that a shortcut
+// written by an older installation keeps working when the way the game is launched changes -
+// the launch arguments live in one place, and an update fixes them for every existing
+// shortcut at once. The icon still comes from the game executable, so nothing looks different.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
-	target := filepath.Join(cwd, GAME_BINARY_NAME)
-	icon := fmt.Sprintf("%s,0", target)
-	logs := filepath.Join(root, LOGS_DIRECTORY, LOG_NAME)
+	icon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
+	cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
+
+	// Downloading the utilities is best-effort, so the shortcuts' target may not be there.
+	// The caller reports this as a shortcut failure rather than aborting the install.
+	if !fileExists(cli) {
+		return fmt.Errorf("the installation utilities are missing, so a shortcut would have nothing to launch")
+	}
 
 	sc := shortcut.Shortcut{
 		ShortcutPath:     "",
-		Target:           target,
+		Target:           cli,
 		IconLocation:     icon,
-		Arguments:        fmt.Sprintf(SHORTCUT_ARGUMENTS, logs),
+		// %q quotes the path, which the default installation directory needs: this is a
+		// command line, so an unquoted space would split it into two arguments.
+		Arguments:        fmt.Sprintf("play --path=%q", root),
 		Description:      SHORTCUT_DESCRIPTION,
 		Hotkey:           "",
-		WindowStyle:      "1",
+		WindowStyle:      "7", // Minimised, so the CLI's console doesn't take focus.
 		WorkingDirectory: cwd,
 	}
 
