@@ -80,7 +80,7 @@ func getSpecialFolder(folder string) (string, error) {
 // and are preconfigured with the community server's host parameter.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
-	target := filepath.Join(cwd, "TribesAscend.exe")
+	target := filepath.Join(cwd, GAME_BINARY_NAME)
 	icon := fmt.Sprintf("%s,0", target)
 	logs := filepath.Join(root, LOGS_DIRECTORY, LOG_NAME)
 

@@ -117,7 +117,7 @@ func writeDesktopEntry(path string, entry desktopEntry) error {
 	file.WriteString("StartupNotify=true\n")
 	// Ties the game's window to this entry, so the taskbar shows its icon and name
 	// rather than a generic Wine one.
-	file.WriteString("StartupWMClass=TribesAscend.exe\n")
+	fmt.Fprintf(&file, "StartupWMClass=%s\n", escapeDesktopValue(GAME_BINARY_NAME))
 
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {

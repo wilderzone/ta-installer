@@ -158,7 +158,7 @@ func launchGame(ctx context.Context, logger *Logger, root string) error {
 	// The game reads -abslog as a Windows path, so it has to be given one even though
 	// everything around it here is a Unix path.
 	arguments := strings.Fields(fmt.Sprintf(SHORTCUT_ARGUMENTS, windowsPath(logs)))
-	command, err := runtimeCommand(ctx, root, filepath.Join(working, "TribesAscend.exe"), arguments...)
+	command, err := runtimeCommand(ctx, root, filepath.Join(working, GAME_BINARY_NAME), arguments...)
 	if err != nil {
 		return err
 	}

@@ -21,7 +21,7 @@ func launchGame(ctx context.Context, logger *Logger, root string) error {
 	}
 
 	arguments := strings.Fields(fmt.Sprintf(SHORTCUT_ARGUMENTS, logs))
-	command := exec.CommandContext(ctx, filepath.Join(working, "TribesAscend.exe"), arguments...)
+	command := exec.CommandContext(ctx, filepath.Join(working, GAME_BINARY_NAME), arguments...)
 	command.Dir = working
 
 	logger.log(LAUNCHING)

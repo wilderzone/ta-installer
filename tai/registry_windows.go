@@ -20,7 +20,7 @@ func addUninstallerToRegistry(root string) error {
 	}
 	defer key.Close()
 
-	executable := filepath.Join(root, "Binaries", "Win32", "TribesAscend.exe")
+	executable := filepath.Join(root, "Binaries", "Win32", GAME_BINARY_NAME)
 	err = key.SetStringValue("DisplayIcon", executable)
 	if err != nil {
 		return err
