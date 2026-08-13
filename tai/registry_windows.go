@@ -69,9 +69,10 @@ func addUninstallerToRegistry(root string) error {
 		return err
 	}
 
-	// Both strings are command lines, not paths, so the executable has to be quoted:
-	// an unquoted install path containing a space would otherwise be read as a command
-	// plus arguments.
+	// Both values are command lines, not paths, so the executable has to be quoted: the
+	// default installation directory contains a space, and unquoted it would be read as
+	// the command "C:\ProgramData\Tribes" with "Ascend\Installer\uninstall.exe" as an
+	// argument.
 	uninstallString := `"` + filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, "uninstall.exe") + `"`
 	quietUninstallString := uninstallString + " -s"
 	err = key.SetStringValue("UninstallString", uninstallString)
