@@ -11,9 +11,6 @@ import (
 	"wilderzone.org/tai/internal/assets"
 )
 
-// The compatibility runtime lives inside the installation, so that uninstalling the game
-// is still "remove one directory" and so that each installation pins the runtime it was
-// tested against.
 const RUNTIME_DIRECTORY = "Runtime"
 const PREFIX_DIRECTORY = "Prefix"
 const UMU_DIRECTORY = "umu"
@@ -104,7 +101,7 @@ func runtimeCommand(ctx context.Context, root string, executable string, args ..
 // mirrors downloadInstallationUtilities: always from DEFAULT_REPO, never from --repo, because
 // the runtime is TAI's own infrastructure rather than something a game repository provides.
 //
-// Unlike the utilities it's measured, because half a gigabyte behind a bare spinner reads as
+// Unlike the utilities, it's measured, because half a gigabyte behind a bare spinner looks like
 // a hang.
 func downloadRuntime(ctx context.Context, logger *Logger, root string) error {
 	if !runtimeIsMissing(root) {
@@ -122,7 +119,7 @@ func downloadRuntime(ctx context.Context, logger *Logger, root string) error {
 			return cancelled
 		}
 		counter.next(COMPATIBILITY_RUNTIME.Name + ": " + logger.colour("Failed", RED))
-		return userErrorf(err, "Couldn't download the compatibility layer, so the game won't be able to run.")
+		return userErrorf(err, "Couldn't download the compatibility layer, so the game won't be able to start.")
 	}
 
 	counter.next(COMPATIBILITY_RUNTIME.Name + ": " + logger.colour("Downloaded", GREEN))
@@ -187,7 +184,7 @@ func verifyRuntime(ctx context.Context, logger *Logger, arguments arguments) {
 // own progress reporting, so it runs behind a spinner with umu's own output going to the log.
 func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
 	if runtimeIsMissing(root) {
-		return userErrorf(nil, "The compatibility layer wasn't installed, so the game can't run. Run \"verify\" to restore it.")
+		return userErrorf(nil, "The compatibility layer wasn't installed, so the game won't be able to start. Run \"verify\" to restore it.")
 	}
 
 	// A prefix that already has a system drive has been through this once already.
@@ -226,7 +223,7 @@ func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
 func launchGame(ctx context.Context, logger *Logger, root string) error {
 	if runtimeIsMissing(root) {
 		logger.log(RUNTIME_MISSING)
-		return userErrorf(nil, "The compatibility runtime is missing, so the game can't start.")
+		return userErrorf(nil, "The compatibility runtime is missing, so the game won't be able to start.")
 	}
 
 	working := filepath.Join(root, "Binaries", "Win32")

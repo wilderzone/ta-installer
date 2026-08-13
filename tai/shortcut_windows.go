@@ -79,26 +79,20 @@ func getSpecialFolder(folder string) (string, error) {
 // game's install directory, the Start Menu, and on the user's Desktop.
 //
 // They run the CLI's "play" command rather than the game directly, so that a shortcut
-// written by an older installation keeps working when the way the game is launched changes -
-// the launch arguments live in one place, and an update fixes them for every existing
-// shortcut at once. The icon still comes from the game executable, so nothing looks different.
+// written by an older installation keeps working if the game's launch mechanism is ever changed.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
 	icon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
 	cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
 
-	// Downloading the utilities is best-effort, so the shortcuts' target may not be there.
-	// The caller reports this as a shortcut failure rather than aborting the install.
 	if !fileExists(cli) {
-		return fmt.Errorf("the installation utilities are missing, so a shortcut would have nothing to launch")
+		return fmt.Errorf("create shortcuts: the installation utilities are missing")
 	}
 
 	sc := shortcut.Shortcut{
 		ShortcutPath:     "",
 		Target:           cli,
 		IconLocation:     icon,
-		// %q quotes the path, which the default installation directory needs: this is a
-		// command line, so an unquoted space would split it into two arguments.
 		Arguments:        fmt.Sprintf("play --path=%q", root),
 		Description:      SHORTCUT_DESCRIPTION,
 		Hotkey:           "",

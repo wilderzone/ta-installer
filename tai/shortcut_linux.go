@@ -177,11 +177,12 @@ func gameEntry(root string, icon string) desktopEntry {
 
 // createShortcuts creates desktop entries that launch the game. They're placed in the
 // game's install directory, the applications menu, and on the user's desktop.
+//
+// They run the CLI's "play" command rather than the game directly, so that a shortcut
+// written by an older installation keeps working if the game's launch mechanism is ever changed.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
-	// Downloading the utilities is best-effort, so the entries' target may not be there.
-	// The caller reports this as a shortcut failure rather than aborting the install.
 	if !fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)) {
-		return fmt.Errorf("the installation utilities are missing, so a shortcut would have nothing to launch")
+		return fmt.Errorf("create shortcuts: the installation utilities are missing")
 	}
 
 	icon := installIcon(root)

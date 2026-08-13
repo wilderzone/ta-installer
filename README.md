@@ -39,7 +39,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `verify`           | Verify an existing TA installation in the given directory. Also checks the bundled installation utilities against checksums fetched from the CDN.                    | `tai-cli.exe verify --path=<path> --repo=<url>`                 |
 | `update`           | Update an existing TA installation.                                                                                                                                  | `tai-cli.exe update --path=<path> --repo=<url>`                 |
 | `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai-cli.exe uninstall --path=<path> --remove=dlc`              |
-| `play`             | Launch an installed game. The shortcuts an install creates point here rather than at the game itself, so the launch arguments live in one place; on Linux this also starts the game through the compatibility layer. | `tai-cli.exe play --path=<path>`                                |
+| `play`             | Launch an installed game. The shortcuts created by `install` point here rather than at the game itself, so the launch arguments live in one place. On Linux this also starts the game through the compatibility layer. | `tai-cli.exe play --path=<path>`                                |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai-cli.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai-cli.exe manifest --path=<path>`                            |
 | `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai-cli.exe list --path=<path>` or `tai-cli.exe list --repo=<url>` |
@@ -239,29 +239,29 @@ A few things differ from Windows by necessity:
 
 The runtime is published separately from `manifest.json`, alongside the installation utilities and for the same reason the DirectX 9 redistributable is: the manifest describes the *game*, and is served by whatever repository `--repo` names. A custom repository shouldn't have to mirror half a gigabyte of Proton for a Linux install to work, so the runtime always comes from the official CDN regardless of `--repo`.
 
-Publish it as a `.tar.gz` rather than a `.zip` — the runtime carries symlinks and execute bits that a zip either can't represent or loses when packaged on Windows — and generate its checksum file the same way as the utilities':
+Publish it as a `.tar.gz` rather than a `.zip` (the runtime carries symlinks and execute bits that a zip either can't represent or loses when packaged on Windows) and generate its checksum file the same way as the utilities':
 
 ```sh
 tai-cli asset --path=<extracted runtime> --name=Runtime   # produces Runtime.json
 ```
 
-Publish both `Runtime.tar.gz` and `Runtime.json` under `/runtime/` on the CDN. `verify` fetches the checksums, and replaces the whole runtime if any file fails — which is also how a newly pinned Proton build reaches existing installations.
+Publish both `Runtime.tar.gz` and `Runtime.json` under `/runtime/` on the CDN. `verify` fetches the checksums, and replaces the whole runtime if any file fails - which is also how a newly pinned Proton build reaches existing installations.
 
 ### Installation utilities
 
-Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. The Linux package contains `tai-cli` and the icon its desktop entries use — the other three executables exist to be double-clicked from Explorer, and desktop entries do that job instead. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
+Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. The Linux package contains only `tai-cli` and the icon its desktop entries use (the desktop entries handle the work of the other executables). `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the `verify` window is closed).
 
-Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
+Their checksums are **not** compiled into `tai-cli.exe` - that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
 
 ```sh
 tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json` — and build that zip **on Linux**, so the CLI keeps its execute bit.
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the CLI keeps its execute bit.
 
 ### Building
 
-The GUI embeds the CLI, and the embedded binary is gitignored, so a fresh clone can't compile the Rust crate until it has been built:
+The GUI embeds the CLI, and the embedded binary is gitignored. A fresh repository clone can't compile the Rust crate until it has been built:
 
 ```sh
 cd gui

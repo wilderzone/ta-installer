@@ -53,8 +53,7 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	}
 
 	// Also verify the packages that live outside the game manifest, whose checksums are
-	// fetched from the CDN: the installation utilities, and - where the game runs through
-	// one - the compatibility layer.
+	// fetched from the CDN: the installation utilities, and the Linux compatibility layer.
 	verifyUtilities(ctx, logger, arguments)
 	if err := ctx.Err(); err != nil {
 		return err

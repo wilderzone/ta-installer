@@ -10,17 +10,15 @@ const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
 // under the user's own home, so a failure is about that directory, not about permissions.
 const SHORTCUTS_FAILURE_HINT = "Check that your home directory is writable."
 
-// The location of the utilities' checksums, relative to the repository. Fetched at verify
-// time and hashed against the installed utilities.
+// The location of the utilities' checksums, relative to the repository.
 const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer-linux-amd64.json"
 
 // The installation utilities package. Checksums are deliberately omitted: they're fetched
-// from UTILITIES_CHECKSUMS_SOURCE. The file names are still needed so
-// installationUtilitiesAreMissing can tell whether the utilities are already installed.
+// from UTILITIES_CHECKSUMS_SOURCE. The file names are still needed so TAI can tell whether
+// the utilities are already installed.
 //
 // Linux only needs the CLI itself. The Windows package also carries uninstall/update/verify
-// executables, which exist purely to be double-clicked from Explorer; desktop entries do
-// that job here, and they point straight at the CLI.
+// executables; desktop entries do that job here, and they point straight at the CLI.
 var INSTALLATION_UTILITIES = Asset{
 	Name:        "Installation Utilities",
 	Type:        "prerequisite",
@@ -32,18 +30,13 @@ var INSTALLATION_UTILITIES = Asset{
 	},
 }
 
-// The location of the compatibility runtime's checksums, relative to the repository. As with
-// the utilities, they're fetched at verify time rather than compiled in: the runtime is
-// thousands of files, and its checksums change every time the pinned build does.
+// The location of the compatibility runtime's checksums, relative to the repository.
 const RUNTIME_CHECKSUMS_SOURCE = "/runtime/Runtime.json"
 
 // The compatibility runtime: a pinned Proton build and the umu launcher that drives it.
 //
 // This is a bespoke package rather than a manifest asset, for the same reason the DirectX 9
-// redistributable is on Windows. The manifest describes the game, and is served by whatever
-// repository --repo names; a custom repository shouldn't have to mirror half a gigabyte of
-// Proton for a Linux install to work. So, like the utilities, this always comes from
-// DEFAULT_REPO regardless of --repo.
+// redistributable is on Windows.
 //
 // PackedSize only scales the progress bar, and is pinned alongside Source - a stale figure
 // mis-scales the bar but breaks nothing.
