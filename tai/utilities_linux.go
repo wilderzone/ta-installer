@@ -43,7 +43,7 @@ func createUninstallShortcut(root string) error {
 	cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
 	entry := desktopEntry{
 		Name:       "Uninstall " + PRODUCT_NAME,
-		Comment:    "Remove " + PRODUCT_NAME + " and its compatibility runtime.",
+		Comment:    "Remove " + PRODUCT_NAME + " and its compatibility layer.",
 		Exec:       fmt.Sprintf("%s uninstall --path=%s", quoteExecArgument(cli), quoteExecArgument(root)),
 		Icon:       ICON_NAME,
 		Categories: "Game;",

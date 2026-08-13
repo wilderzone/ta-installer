@@ -130,7 +130,7 @@ var (
 	RUNTIME_CHECK_SKIPPED     = LogLine{Type: "RUNTIME_CHECK_SKIPPED", Message: "Couldn't check the compatibility layer:"}
 	RUNTIME_DAMAGED           = LogLine{Type: "RUNTIME_DAMAGED", Message: "The compatibility layer is damaged:"}
 	RUNTIME_DOWNLOADING       = LogLine{Type: "RUNTIME_DOWNLOADING", Message: "Downloading the compatibility layer..."}
-	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility runtime is missing. Run \"install\" or \"verify\" to restore it."}
+	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility layer is missing. Run \"install\" or \"verify\" to restore it."}
 	RUNTIME_PREPARING         = LogLine{Type: "RUNTIME_PREPARING", Message: "Preparing the compatibility layer..."}
 	RUNTIME_READY             = LogLine{Type: "RUNTIME_READY", Message: "Compatibility layer ready."}
 	RUNTIME_REPAIRED          = LogLine{Type: "RUNTIME_REPAIRED", Message: "Replaced the compatibility layer."}

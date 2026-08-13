@@ -41,7 +41,7 @@ const RUNTIME_CHECKSUMS_SOURCE = "/runtime/Runtime.json"
 // PackedSize only scales the progress bar, and is pinned alongside Source - a stale figure
 // mis-scales the bar but breaks nothing.
 var COMPATIBILITY_RUNTIME = Asset{
-	Name:         "Compatibility Runtime",
+	Name:         "Compatibility Layer",
 	Type:         "prerequisite",
 	Source:       "/runtime/Runtime.tar.gz",
 	Destination:  "/" + RUNTIME_DIRECTORY,

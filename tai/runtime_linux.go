@@ -165,12 +165,12 @@ func verifyRuntime(ctx context.Context, logger *Logger, arguments arguments) {
 	// keeps a newly pinned build from being unpacked alongside the one it replaces.
 	err = os.RemoveAll(runtimeDirectory(arguments.path))
 	if err != nil {
-		logger.detail("remove the old compatibility runtime", err)
+		logger.detail("remove the old compatibility layer", err)
 		return
 	}
 	err = downloadRuntime(ctx, logger, arguments.path)
 	if err != nil {
-		logger.detail("replace the compatibility runtime", err)
+		logger.detail("replace the compatibility layer", err)
 		return
 	}
 	logger.log(RUNTIME_REPAIRED)
@@ -223,7 +223,7 @@ func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
 func launchGame(ctx context.Context, logger *Logger, root string) error {
 	if runtimeIsMissing(root) {
 		logger.log(RUNTIME_MISSING)
-		return userErrorf(nil, "The compatibility runtime is missing, so the game won't be able to start.")
+		return userErrorf(nil, "The compatibility layer is missing, so the game won't be able to start.")
 	}
 
 	working := filepath.Join(root, "Binaries", "Win32")
