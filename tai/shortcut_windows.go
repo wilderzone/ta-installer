@@ -93,8 +93,6 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		ShortcutPath:     "",
 		Target:           launcher,
 		IconLocation:     icon,
-		// The launcher finds the installation it belongs to from its own location, so
-		// there is nothing to pass it.
 		Arguments:        "",
 		Description:      SHORTCUT_DESCRIPTION,
 		Hotkey:           "",

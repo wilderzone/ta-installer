@@ -1,14 +1,3 @@
-// Command play starts an installed copy of the game.
-//
-// It sits beside the other installation utilities and, like them, works out which
-// installation it belongs to from its own location. Launching lives here rather than in the
-// CLI because TAI is an installer: it puts the game on disk and keeps it healthy, and what
-// it takes to actually run the game - the arguments, and on Linux a whole compatibility
-// layer - is a separate concern with a separate lifetime.
-//
-// Keeping it in an executable of its own, rather than in the shortcut, means the launch
-// recipe lives in one place: a shortcut written by an older installation keeps working after
-// the recipe changes, because an update replaces this binary.
 package main
 
 import (
@@ -20,13 +9,11 @@ import (
 )
 
 const MANIFEST = "manifest.json"
-const LOGS_DIRECTORY = "Logs"
 const LOG_NAME = "log.txt"
+const LOGIN_SERVER = "18.197.240.229"
+const LOGS_DIRECTORY = "Logs"
 const LAUNCHER_LOG_NAME = "launcher.txt"
 const GAME_BINARY_NAME = "TribesAscend.exe"
-
-// The community login server the game is pointed at.
-const LOGIN_SERVER = "18.197.240.229"
 
 type arguments struct {
 	prepare bool
@@ -44,7 +31,7 @@ func run() int {
 	fs.SetOutput(io.Discard) // Errors are surfaced below instead.
 	// Set up the compatibility layer and exit, without starting the game. The installer
 	// runs this at the end of an install so the first launch isn't the one that pays for
-	// it. On a platform that runs the game directly it does nothing.
+	// it. On a platform that runs the game directly this does nothing.
 	fs.BoolVar(&args.prepare, "prepare", false, "")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {

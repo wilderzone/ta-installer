@@ -202,15 +202,13 @@ func refreshDesktopDatabase() {
 }
 
 // gameEntry describes the desktop entry that launches the game. Launching goes through the
-// play utility rather than the executable directly, because here the game needs a whole
-// compatibility layer configured around it, which is that utility's job.
+// play utility rather than the game's executable directly, to account for the Linux
+// compatibility layer.
 func gameEntry(root string, icon string) desktopEntry {
 	launcher := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)
 	return desktopEntry{
 		Name:       PRODUCT_NAME,
 		Comment:    SHORTCUT_DESCRIPTION,
-		// The launcher finds the installation it belongs to from its own location, so
-		// there is nothing to pass it.
 		Exec:       quoteExecArgument(launcher),
 		Icon:       icon,
 		Path:       filepath.Join(root, "Binaries", "Win32"),

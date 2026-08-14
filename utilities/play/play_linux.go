@@ -8,9 +8,6 @@ import (
 	"strings"
 )
 
-// The compatibility layer the installer put inside the installation. Everything the game
-// needs to run lives under the installation directory, so removing that directory removes
-// the lot.
 const RUNTIME_DIRECTORY = "Runtime"
 const PREFIX_DIRECTORY = "Prefix"
 const UMU_DIRECTORY = "umu"
