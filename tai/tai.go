@@ -49,7 +49,6 @@ func main() {
 		case "list":
 			err = List(ctx, &logger, arguments)
 
-
 		case "uninstall":
 			err = Uninstall(ctx, &logger, arguments)
 
