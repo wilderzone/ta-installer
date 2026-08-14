@@ -45,7 +45,7 @@ var COMPATIBILITY_RUNTIME = Asset{
 	Type:         "prerequisite",
 	Source:       "/runtime/Runtime.tar.gz",
 	Destination:  "/" + RUNTIME_DIRECTORY,
-	PackedSize:   532500000,
+	PackedSize:   533499712,
 	Files: []File{
 		{File: filepath.Join(UMU_DIRECTORY, UMU_EXECUTABLE)},
 	},
