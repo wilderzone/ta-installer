@@ -252,7 +252,17 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 
 `play` is the game's launcher, and is what every shortcut points at. It lives here rather than in the CLI because TAI is an installer: putting the game on disk and keeping it healthy is a different job, with a different lifetime, from running it. Keeping it out of the shortcut matters too - a shortcut is written once at install time and never touched again, so a launch recipe baked into one goes stale the moment it changes, whereas replacing this binary fixes every existing shortcut at once. It works out which installation it belongs to from its own location, so it takes no arguments.
 
-The rest (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) exist so Windows can uninstall the game through the normal Settings/Control Panel channel, and so those actions can be run by double-clicking. The Linux package contains `tai-cli`, `play`, and the icon its desktop entries use - desktop entries handle the work of the other three. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the `verify` window is closed).
+The rest (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) exist so Windows can uninstall the game through the normal Settings/Control Panel channel, and so those actions can be run by double-clicking. The Linux package contains `tai-cli`, `play`, and `icon.png` - desktop entries handle the work of the other three.
+
+`icon.png` is the game's icon, extracted from `TribesAscend.exe` once at release time (desktop entries can't read icons out of a Windows executable, whereas a `.lnk` can, which is why only Linux needs this):
+
+```sh
+wrestool -x --type=group_icon --output=tribes.ico Binaries/Win32/TribesAscend.exe
+icotool --list tribes.ico          # see what sizes the executable carries
+icotool --extract --index=1 --output=icon.png tribes.ico
+```
+
+Ship whatever size the executable has: `install` reads the PNG's dimensions and files it under the matching `hicolor` size directory, so it doesn't need to be any particular size - only a PNG. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the `verify` window is closed).
 
 Their checksums are **not** compiled into `tai-cli.exe` - that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
 

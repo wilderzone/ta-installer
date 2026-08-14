@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"image/png"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -126,19 +127,60 @@ func writeDesktopEntry(path string, entry desktopEntry) error {
 	return os.WriteFile(path, []byte(file.String()), os.FileMode(0755))
 }
 
+// The sizes the hicolor theme indexes. A directory outside this set doesn't appear in the
+// theme's index, and an icon filed there is simply never found.
+var ICON_SIZES = [...]int{16, 22, 24, 32, 36, 48, 64, 72, 96, 128, 192, 256, 512}
+
+// iconSizeDirectory returns the hicolor directory an icon of the given dimensions belongs in.
+//
+// Themes are indexed by directory, not by inspecting the images, so the directory is a claim
+// about the icon's size. It snaps down to the nearest indexed size rather than up, because
+// claiming an icon is larger than it is gets it chosen for contexts it can't fill, and shows
+// up as a blurry upscale.
+func iconSizeDirectory(width int, height int) string {
+	// The larger edge decides: a non-square icon still has to fit the box it's given.
+	size := max(width, height)
+	chosen := ICON_SIZES[0]
+	for _, candidate := range ICON_SIZES {
+		if candidate <= size {
+			chosen = candidate
+		}
+	}
+	return fmt.Sprintf("%dx%d", chosen, chosen)
+}
+
+// removeInstalledIcons deletes the icon from every size directory it could be in. Which one
+// was used depends on the dimensions of the icon that shipped, and those can change between
+// releases, so a stale copy in another directory could otherwise outrank the current one.
+func removeInstalledIcons(data string) {
+	for _, size := range ICON_SIZES {
+		_ = os.Remove(filepath.Join(data, "icons", "hicolor", fmt.Sprintf("%dx%d", size, size), "apps", ICON_NAME + ".png"))
+	}
+}
+
 // installIcon copies the icon shipped with the utilities into the user's icon theme and
 // reports the name to reference it by. An installation whose utilities failed to download
 // has no icon to install, so this reports an empty name and the entries simply go without.
 func installIcon(root string) string {
 	source := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, ICON_FILE)
-	if !fileExists(source) {
+	file, err := os.Open(source)
+	if err != nil {
 		return ""
 	}
+	// Only the header is read, so the size of the image doesn't matter here.
+	config, err := png.DecodeConfig(file)
+	file.Close()
+	if err != nil {
+		return ""
+	}
+
 	data := dataDirectory()
 	if data == "" {
 		return ""
 	}
-	target := filepath.Join(data, "icons", "hicolor", "256x256", "apps", ICON_NAME + ".png")
+	removeInstalledIcons(data)
+
+	target := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(config.Width, config.Height), "apps", ICON_NAME + ".png")
 	if err := os.MkdirAll(filepath.Dir(target), os.FileMode(0755)); err != nil {
 		return ""
 	}
@@ -259,9 +301,9 @@ func removeShortcuts(root string) error {
 		firstErr = fmt.Errorf("locate the desktop directory")
 	}
 
-	// The installed icon.
+	// The installed icon, from whichever size directory it landed in.
 	if data := dataDirectory(); data != "" {
-		remove(filepath.Join(data, "icons", "hicolor", "256x256", "apps", ICON_NAME + ".png"))
+		removeInstalledIcons(data)
 	}
 
 	refreshDesktopDatabase()
