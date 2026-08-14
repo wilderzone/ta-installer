@@ -148,10 +148,11 @@ func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
 	return nil
 }
 
-// preflight reports anything about this machine that would stop the compatibility layer
-// working. These are findings rather than errors: they're worth telling the user about
-// before a multi-gigabyte download, but none of them is worth refusing to install over.
-func preflight(logger *Logger) {
+// preflight reports anything about this machine that would stop the compatibility
+// layer working, before TAI commits to a multi-gigabyte download.
+//
+// Returns true if the preflight check was successful.
+func preflight(logger *Logger) bool {
 	problems := []string{}
 
 	// DXVK translates the game's Direct3D 9 calls to Vulkan. Without a Vulkan driver the
@@ -173,7 +174,10 @@ func preflight(logger *Logger) {
 
 	if len(problems) != 0 {
 		logger.log(RUNTIME_CHECK_FAILED, strings.Join(problems, ", "))
+		return false
 	}
+
+	return true
 }
 
 // hasVulkanDriver reports whether any Vulkan driver has registered itself. The ICD manifests
