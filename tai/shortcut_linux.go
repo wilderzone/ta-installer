@@ -160,14 +160,16 @@ func refreshDesktopDatabase() {
 }
 
 // gameEntry describes the desktop entry that launches the game. Launching goes through the
-// CLI's "play" command rather than the executable directly, because on Linux the game needs
-// a compatibility runtime configured around it - see runtime_linux.go.
+// play utility rather than the executable directly, because here the game needs a whole
+// compatibility layer configured around it, which is that utility's job.
 func gameEntry(root string, icon string) desktopEntry {
-	cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
+	launcher := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)
 	return desktopEntry{
 		Name:       PRODUCT_NAME,
 		Comment:    SHORTCUT_DESCRIPTION,
-		Exec:       fmt.Sprintf("%s play --path=%s", quoteExecArgument(cli), quoteExecArgument(root)),
+		// The launcher finds the installation it belongs to from its own location, so
+		// there is nothing to pass it.
+		Exec:       quoteExecArgument(launcher),
 		Icon:       icon,
 		Path:       filepath.Join(root, "Binaries", "Win32"),
 		Categories: "Game;ActionGame;",
@@ -178,11 +180,11 @@ func gameEntry(root string, icon string) desktopEntry {
 // createShortcuts creates desktop entries that launch the game. They're placed in the
 // game's install directory, the applications menu, and on the user's desktop.
 //
-// They run the CLI's "play" command rather than the game directly, so that a shortcut
-// written by an older installation keeps working if the game's launch mechanism is ever changed.
+// They run the play utility rather than the game directly, so that a shortcut written by an
+// older installation keeps working if the game's launch mechanism is ever changed.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
-	if !fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)) {
-		return fmt.Errorf("create shortcuts: the installation utilities are missing")
+	if !fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)) {
+		return fmt.Errorf("create shortcuts: the play utility is missing")
 	}
 
 	icon := installIcon(root)

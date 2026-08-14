@@ -1,6 +1,7 @@
 package main
 
 const CLI_NAME = "tai-cli.exe"
+const PLAY_NAME = "play.exe"
 const SHORTCUT_NAME = "Tribes Ascend.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
 const SHORTCUTS_FAILURE_HINT = "You may need to re-run the installer with admin permissions to create shortcuts."
@@ -20,6 +21,7 @@ var INSTALLATION_UTILITIES = Asset{
 	Destination: "/Installer",
 	Files: []File{
 		{File: CLI_NAME},
+		{File: PLAY_NAME},
 		{File: "uninstall.exe"},
 		{File: "update.exe"},
 		{File: "verify.exe"},

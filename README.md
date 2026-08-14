@@ -39,7 +39,6 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `verify`           | Verify an existing TA installation in the given directory. Also checks the bundled installation utilities against checksums fetched from the CDN.                    | `tai-cli.exe verify --path=<path> --repo=<url>`                 |
 | `update`           | Update an existing TA installation.                                                                                                                                  | `tai-cli.exe update --path=<path> --repo=<url>`                 |
 | `uninstall`        | Remove a TA installation. Remove only a subset with `--remove`/`--keep`. Assets that require a removed asset are removed too. A full uninstall also removes the Start Menu and Desktop shortcuts. | `tai-cli.exe uninstall --path=<path> --remove=dlc`              |
-| `play`             | Launch an installed game. The shortcuts created by `install` point here rather than at the game itself, so the launch arguments live in one place. On Linux this also starts the game through the compatibility layer. | `tai-cli.exe play --path=<path>`                                |
 | `asset`            | Generate an asset file with the given name from the given path. The `<name>.json` file will be exported at the root of `<path>`.                                     | `tai-cli.exe asset --path=<path> --name=<name>`                 |
 | `manifest`         | Generate a manifest file from a collection of asset files at the given path. The `manifest.json` file will be exported at the root of `<path>`.                      | `tai-cli.exe manifest --path=<path>`                            |
 | `list`             | List the contents of a manifest file in the given path or repo. Results can be filtered by type or name with `--include=<a,b,...>` and `--exclude=<a,b,...>`         | `tai-cli.exe list --path=<path>` or `tai-cli.exe list --repo=<url>` |
@@ -117,7 +116,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `INSTALLING`
 - `INSTALLING_DEPENDENCIES`
 - `INTERRUPTED`
-- `LAUNCHING`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
 - `MANIFEST_UNREADABLE`
@@ -140,6 +138,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `RUNTIME_DAMAGED`
 - `RUNTIME_DOWNLOADING`
 - `RUNTIME_MISSING`
+- `RUNTIME_PREPARE_FAILED`
 - `RUNTIME_PREPARING`
 - `RUNTIME_READY`
 - `RUNTIME_REPAIRED`
@@ -229,7 +228,7 @@ Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a comp
 
 A few things differ from Windows by necessity:
 
-- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run `tai-cli play` rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
+- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
 - The default install path is under your home directory.
 - DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
 - The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
@@ -249,15 +248,27 @@ Publish both `Runtime.tar.gz` and `Runtime.json` under `/runtime/` on the CDN. `
 
 ### Installation utilities
 
-Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. The Linux package contains only `tai-cli` and the icon its desktop entries use (the desktop entries handle the work of the other executables). `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the `verify` window is closed).
+Alongside the game, TAI installs a small set of helper executables into the `Installer` directory.
 
-Their checksums are **not** compiled into `tai-cli.exe` - that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
+`play` is the game's launcher, and is what every shortcut points at. It lives here rather than in the CLI because TAI is an installer: putting the game on disk and keeping it healthy is a different job, with a different lifetime, from running it. Keeping it out of the shortcut matters too - a shortcut is written once at install time and never touched again, so a launch recipe baked into one goes stale the moment it changes, whereas replacing this binary fixes every existing shortcut at once. It works out which installation it belongs to from its own location, so it takes no arguments.
+
+The rest (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) exist so Windows can uninstall the game through the normal Settings/Control Panel channel, and so those actions can be run by double-clicking. The Linux package contains `tai-cli`, `play`, and the icon its desktop entries use - desktop entries handle the work of the other three. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the `verify` window is closed).
+
+Their checksums are **not** compiled into `tai-cli.exe` - that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
 
 ```sh
 tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the CLI keeps its execute bit.
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so `tai-cli` and `play` keep their execute bits.
+
+Build `play.exe` for the Windows subsystem, so starting the game doesn't flash up a console window:
+
+```sh
+GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
+```
+
+Its errors go to `Logs/launcher.txt` inside the installation, which is where to look if a shortcut appears to do nothing. The other three utilities stay console programs - they print output the user is meant to read.
 
 ### Building
 

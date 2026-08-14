@@ -40,13 +40,18 @@ jobs:
             echo "::endgroup::"
           done
 
-      # Three separate modules, so ./... in the root doesn't reach them.
+      # Separate modules, so ./... in the root doesn't reach them. The launcher runs on
+      # both platforms; the other three are Windows-only shims for Explorer.
       - name: Build the installation utilities
         shell: bash
         run: |
           for module in uninstall update verify; do
             (cd "utilities/$module" && GOOS=windows GOARCH=amd64 go build -o /dev/null .)
           done
+          for target in linux windows; do
+            (cd utilities/play && GOOS=$target GOARCH=amd64 go build -o /dev/null . && GOOS=$target go vet ./...)
+          done
+          (cd utilities/play && go test -count=1 ./...)
 
   gui:
     name: GUI (${{ matrix.os }})

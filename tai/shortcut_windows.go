@@ -78,25 +78,27 @@ func getSpecialFolder(folder string) (string, error) {
 // createShortcuts creates shortcuts that launch the game. The shortcuts are placed in the
 // game's install directory, the Start Menu, and on the user's Desktop.
 //
-// They run the CLI's "play" command rather than the game directly, so that a shortcut
-// written by an older installation keeps working if the game's launch mechanism is ever changed.
+// They run the play utility rather than the game directly, so that a shortcut written by an
+// older installation keeps working if the game's launch mechanism is ever changed.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
 	icon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
-	cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
+	launcher := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)
 
-	if !fileExists(cli) {
-		return fmt.Errorf("create shortcuts: the installation utilities are missing")
+	if !fileExists(launcher) {
+		return fmt.Errorf("create shortcuts: the play utility is missing")
 	}
 
 	sc := shortcut.Shortcut{
 		ShortcutPath:     "",
-		Target:           cli,
+		Target:           launcher,
 		IconLocation:     icon,
-		Arguments:        fmt.Sprintf("play --path=%q", root),
+		// The launcher finds the installation it belongs to from its own location, so
+		// there is nothing to pass it.
+		Arguments:        "",
 		Description:      SHORTCUT_DESCRIPTION,
 		Hotkey:           "",
-		WindowStyle:      "7", // Minimised, so the CLI's console doesn't take focus.
+		WindowStyle:      "7", // Minimised, in case the launcher was built with a console.
 		WorkingDirectory: cwd,
 	}
 

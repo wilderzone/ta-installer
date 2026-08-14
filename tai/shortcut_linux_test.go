@@ -33,13 +33,6 @@ func TestEscapeDesktopValueDoublesBackslashes(t *testing.T) {
 	}
 }
 
-func TestWindowsPathMapsOntoTheZDrive(t *testing.T) {
-	got := windowsPath("/home/user/Games/Tribes Ascend/Logs/log.txt")
-	if got != `Z:\home\user\Games\Tribes Ascend\Logs\log.txt` {
-		t.Errorf("got %s, want a Z: path with backslashes", got)
-	}
-}
-
 func TestWriteDesktopEntryIsLaunchable(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "Tribes Ascend")
 	path := filepath.Join(root, SHORTCUT_NAME)
@@ -65,9 +58,8 @@ func TestWriteDesktopEntryIsLaunchable(t *testing.T) {
 	if !strings.HasPrefix(entry, "[Desktop Entry]\n") {
 		t.Error("the entry must start with its group header")
 	}
-	// The install path has a space in it, so both arguments have to come back quoted.
-	want := "Exec=" + quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)) +
-		" play --path=" + quoteExecArgument(root) + "\n"
+	// The install path has a space in it, so the launcher's path has to come back quoted.
+	want := "Exec=" + quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)) + "\n"
 	if !strings.Contains(entry, want) {
 		t.Errorf("got:\n%s\nwant an Exec line of:\n%s", entry, want)
 	}

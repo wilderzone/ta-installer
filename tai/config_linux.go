@@ -1,8 +1,7 @@
 package main
 
-import "path/filepath"
-
 const CLI_NAME = "tai-cli"
+const PLAY_NAME = "play"
 const SHORTCUT_NAME = "tribes-ascend.desktop"
 const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
 
@@ -26,6 +25,7 @@ var INSTALLATION_UTILITIES = Asset{
 	Destination: "/Installer",
 	Files: []File{
 		{File: CLI_NAME},
+		{File: PLAY_NAME},
 		{File: ICON_FILE},
 	},
 }
@@ -47,6 +47,6 @@ var COMPATIBILITY_RUNTIME = Asset{
 	Destination:  "/" + RUNTIME_DIRECTORY,
 	PackedSize:   533499712,
 	Files: []File{
-		{File: filepath.Join(UMU_DIRECTORY, UMU_EXECUTABLE)},
+		{File: "umu/umu-run"},
 	},
 }

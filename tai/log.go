@@ -110,7 +110,6 @@ var (
 	INSTALLING                = LogLine{Type: "INSTALLING", Message: "Installing..."}
 	INSTALLING_DEPENDENCIES   = LogLine{Type: "INSTALLING_DEPENDENCIES", Message: "Also installing required assets:"}
 	INTERRUPTED               = LogLine{Type: "INTERRUPTED", Message: "Interrupted."}
-	LAUNCHING                 = LogLine{Type: "LAUNCHING", Message: fmt.Sprintf("Launching %s...", PRODUCT_NAME)}
 	MANIFEST_CONTENTS         = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED          = LogLine{Type: "MANIFEST_CREATED", Message: ""}
 	MANIFEST_UNREADABLE       = LogLine{Type: "MANIFEST_UNREADABLE", Message: ""}
@@ -131,6 +130,7 @@ var (
 	RUNTIME_DAMAGED           = LogLine{Type: "RUNTIME_DAMAGED", Message: "The compatibility layer is damaged:"}
 	RUNTIME_DOWNLOADING       = LogLine{Type: "RUNTIME_DOWNLOADING", Message: "Downloading the compatibility layer..."}
 	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility layer is missing. Run \"install\" or \"verify\" to restore it."}
+	RUNTIME_PREPARE_FAILED    = LogLine{Type: "RUNTIME_PREPARE_FAILED", Message: "Couldn't prepare the compatibility layer. It will be prepared the first time the game is started."}
 	RUNTIME_PREPARING         = LogLine{Type: "RUNTIME_PREPARING", Message: "Preparing the compatibility layer..."}
 	RUNTIME_READY             = LogLine{Type: "RUNTIME_READY", Message: "Compatibility layer ready."}
 	RUNTIME_REPAIRED          = LogLine{Type: "RUNTIME_REPAIRED", Message: "Replaced the compatibility layer."}

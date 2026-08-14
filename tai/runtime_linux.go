@@ -11,90 +11,27 @@ import (
 	"wilderzone.org/tai/internal/assets"
 )
 
+// The compatibility runtime lives inside the installation, so that uninstalling the game
+// is still "remove one directory" and so that each installation pins the runtime it was
+// tested against. What it takes to *run* the game through it belongs to the play utility;
+// the installer only puts it there and keeps it healthy.
 const RUNTIME_DIRECTORY = "Runtime"
-const PREFIX_DIRECTORY = "Prefix"
-const UMU_DIRECTORY = "umu"
-const UMU_EXECUTABLE = "umu-run"
-
-// The identifier umu uses to look up per-game fixes. Tribes: Ascend's Steam application ID
-// opts the standalone build into the same Proton fixes the Steam release gets. If those fixes
-// ever do something the standalone build dislikes, "umu-default" turns them off.
-const UMU_GAME_ID = "umu-17080"
 
 // runtimeDirectory returns the directory the compatibility runtime is unpacked into.
 func runtimeDirectory(root string) string {
 	return filepath.Join(root, RUNTIME_DIRECTORY)
 }
 
-// prefixDirectory returns the WINEPREFIX for this installation.
-func prefixDirectory(root string) string {
-	return filepath.Join(root, PREFIX_DIRECTORY)
-}
-
-// umuExecutable returns the path to the launcher shim.
-func umuExecutable(root string) string {
-	return filepath.Join(runtimeDirectory(root), UMU_DIRECTORY, UMU_EXECUTABLE)
-}
-
-// protonDirectory finds the unpacked Proton build inside the runtime directory. The build is
-// located by looking for the "proton" entry point rather than by name, so that publishing a
-// newer GE-Proton doesn't need a matching change here.
-func protonDirectory(root string) (string, error) {
-	entries, err := os.ReadDir(runtimeDirectory(root))
-	if err != nil {
-		return "", fmt.Errorf("read the runtime directory: %w", err)
-	}
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		candidate := filepath.Join(runtimeDirectory(root), entry.Name())
-		if fileExists(filepath.Join(candidate, "proton")) {
-			return candidate, nil
-		}
-	}
-	return "", fmt.Errorf("no Proton build found in %s", runtimeDirectory(root))
-}
-
-// runtimeIsMissing reports whether the pieces the game needs to run are absent. It mirrors
-// installationUtilitiesAreMissing: cheap, and only ever used to decide whether to set things
-// up, never to declare an installation broken.
+// runtimeIsMissing reports whether the compatibility runtime is absent. It mirrors
+// installationUtilitiesAreMissing: cheap, and only ever used to decide whether to fetch it,
+// never to declare an installation broken.
 func runtimeIsMissing(root string) bool {
-	if !fileExists(umuExecutable(root)) {
-		return true
+	for _, file := range COMPATIBILITY_RUNTIME.Files {
+		if !fileExists(filepath.Join(root, COMPATIBILITY_RUNTIME.Destination, file.File)) {
+			return true
+		}
 	}
-	_, err := protonDirectory(root)
-	return err != nil
-}
-
-// windowsPath converts an absolute Unix path to the form the game sees from inside the
-// prefix. Wine maps the whole filesystem onto the Z: drive, so no prefix surgery is needed
-// to make an installation outside the prefix reachable.
-func windowsPath(path string) string {
-	return "Z:" + strings.ReplaceAll(path, "/", `\`)
-}
-
-// runtimeCommand builds a command that runs a Windows executable inside this installation's
-// prefix. Everything umu needs is passed through the environment; nothing is written to the
-// user's shell configuration or to a wrapper script.
-func runtimeCommand(ctx context.Context, root string, executable string, args ...string) (*exec.Cmd, error) {
-	proton, err := protonDirectory(root)
-	if err != nil {
-		return nil, err
-	}
-
-	command := exec.CommandContext(ctx, umuExecutable(root), append([]string{executable}, args...)...)
-	command.Env = append(os.Environ(),
-		"GAMEID=" + UMU_GAME_ID,
-		"STORE=none",
-		"PROTONPATH=" + proton,
-		"WINEPREFIX=" + prefixDirectory(root),
-		"PROTON_VERB=waitforexitandrun",
-		// The runtime is pinned by the manifest and verified by checksum, so leave it
-		// alone rather than letting umu check for a newer one on every launch.
-		"UMU_RUNTIME_UPDATE=0",
-	)
-	return command, nil
+	return false
 }
 
 // downloadRuntime fetches the compatibility runtime, unless it's already installed. It
@@ -176,34 +113,25 @@ func verifyRuntime(ctx context.Context, logger *Logger, arguments arguments) {
 	logger.log(RUNTIME_REPAIRED)
 }
 
-// ensureRuntime prepares the compatibility layer: it confirms the runtime is present, then
-// creates the prefix if it isn't there yet.
+// ensureRuntime has the compatibility layer prepared, by asking the play utility to do it.
 //
-// Creating the prefix is also what makes umu fetch its container image, which it keeps in
-// the user's data directory rather than in the installation. That download is outside TAI's
-// own progress reporting, so it runs behind a spinner with umu's own output going to the log.
+// The launch contract - which Proton build, which environment, which prefix - belongs to the
+// launcher, so the installer delegates rather than keeping a second copy of it that could
+// drift. Preparing it now rather than on first launch matters because it is also when umu
+// fetches its container image: several hundred megabytes that would otherwise be paid for
+// when the user expects the game to start, with nothing on screen to explain the wait.
+//
+// A failure here is reported but not fatal. The runtime is installed either way, and the
+// launcher prepares the prefix itself on first launch if this didn't get to it.
 func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
-	if runtimeIsMissing(root) {
-		return userErrorf(nil, "The compatibility layer wasn't installed, so the game won't be able to start. Run \"verify\" to restore it.")
-	}
-
-	// A prefix that already has a system drive has been through this once already.
-	if fileExists(filepath.Join(prefixDirectory(root), "pfx", "drive_c", "windows")) {
+	launcher := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)
+	if !fileExists(launcher) {
+		logger.detail("prepare the compatibility layer", fmt.Errorf("%s isn't installed", PLAY_NAME))
 		return nil
 	}
 
 	logger.log(RUNTIME_PREPARING)
-	err := os.MkdirAll(prefixDirectory(root), os.FileMode(0755))
-	if err != nil {
-		return fmt.Errorf("create the prefix directory: %w", err)
-	}
-
-	// wineboot only initialises the prefix and exits, which is all this needs; the point
-	// is the setup umu does around it.
-	command, err := runtimeCommand(ctx, root, "wineboot", "-u")
-	if err != nil {
-		return err
-	}
+	command := exec.CommandContext(ctx, launcher, "-prepare")
 	spinner := logger.spin("")
 	output, err := command.CombinedOutput()
 	spinner.stop()
@@ -212,40 +140,12 @@ func ensureRuntime(ctx context.Context, logger *Logger, root string) error {
 	}
 	if err != nil {
 		logger.detail("prepare the compatibility layer", fmt.Errorf("%w: %s", err, strings.TrimSpace(string(output))))
-		return userErrorf(err, "Couldn't prepare the compatibility layer. Check that this system can run containers, then try again.")
+		logger.log(RUNTIME_PREPARE_FAILED)
+		return nil
 	}
 
 	logger.log(RUNTIME_READY)
 	return nil
-}
-
-// launchGame starts the game inside the compatibility layer.
-func launchGame(ctx context.Context, logger *Logger, root string) error {
-	if runtimeIsMissing(root) {
-		logger.log(RUNTIME_MISSING)
-		return userErrorf(nil, "The compatibility layer is missing, so the game won't be able to start.")
-	}
-
-	working := filepath.Join(root, "Binaries", "Win32")
-	logs := filepath.Join(root, LOGS_DIRECTORY, LOG_NAME)
-	err := os.MkdirAll(filepath.Dir(logs), os.FileMode(0755))
-	if err != nil {
-		return fmt.Errorf("create the logs directory: %w", err)
-	}
-
-	// The game reads -abslog as a Windows path, so it has to be given one even though
-	// everything around it here is a Unix path.
-	arguments := strings.Fields(fmt.Sprintf(SHORTCUT_ARGUMENTS, windowsPath(logs)))
-	command, err := runtimeCommand(ctx, root, filepath.Join(working, GAME_BINARY_NAME), arguments...)
-	if err != nil {
-		return err
-	}
-	command.Dir = working
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-
-	logger.log(LAUNCHING)
-	return command.Run()
 }
 
 // preflight reports anything about this machine that would stop the compatibility layer

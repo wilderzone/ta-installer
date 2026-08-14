@@ -24,7 +24,6 @@ var methods = [...]string{
 	"verify",
 	"update",
 	"uninstall",
-	"play",
 }
 
 // commandSpec describes which arguments a subcommand requires.
@@ -46,7 +45,6 @@ var commands = map[string]commandSpec{
 	"verify":        {needsPath: true, needsRepo: true},
 	"update":        {needsPath: true, needsRepo: true},
 	"uninstall":     {needsPath: true},
-	"play":          {needsPath: true},
 }
 
 // Guard against `methods` and `commands` drifting out of sync.
