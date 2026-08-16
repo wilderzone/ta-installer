@@ -5,6 +5,7 @@ const PLAY_NAME = "play.exe"
 const SHORTCUT_NAME = "Tribes Ascend.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
 const SHORTCUTS_FAILURE_HINT = "You may need to re-run the installer with admin permissions to create shortcuts."
+const UTILITIES_FAILURE_HINT = "Uninstalling the game via the Windows Settings menu or Control Panel may not be possible."
 const UNINSTALLER_REGISTRY_PATH = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Tribes Ascend`
 
 // The location of the utilities' checksums, relative to the repository. Fetched at verify

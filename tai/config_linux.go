@@ -8,6 +8,7 @@ const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
 // The hint shown when shortcuts couldn't be created. Everything TAI writes on Linux is
 // under the user's own home, so a failure is about that directory, not about permissions.
 const SHORTCUTS_FAILURE_HINT = "Check that your home directory is writable."
+const UTILITIES_FAILURE_HINT = "Uninstalling the game via the applications menu may not be possible."
 
 // The location of the utilities' checksums, relative to the repository.
 const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer-linux-amd64.json"
