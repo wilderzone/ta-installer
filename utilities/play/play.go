@@ -68,7 +68,8 @@ func gameDirectory() (string, error) {
 	}
 
 	// The game's root is the parent of this utilities directory.
-	game := filepath.Dir(resolved)
+	directory := filepath.Dir(resolved)
+	game := filepath.Dir(directory)
 	_, err = os.Stat(filepath.Join(game, MANIFEST))
 	if err != nil {
 		return "", fmt.Errorf("no installation found at %s: %w", game, err)
