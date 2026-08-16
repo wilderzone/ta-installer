@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -60,14 +61,18 @@ func windowsPath(path string) string {
 // runtimeCommand builds a command that runs a Windows executable inside this installation's
 // prefix. Everything umu needs is passed through the environment; nothing is written to the
 // user's shell configuration or to a wrapper script.
-func runtimeCommand(game string, executable string, args ...string) (*exec.Cmd, error) {
+//
+// The command is wired up to report as it goes, rather than to have its output collected and
+// inspected afterwards: umu fetching its container image and Proton setting up a prefix both
+// take long enough that their progress is worth seeing, and either can fail in a way only
+// their own output explains.
+func runtimeCommand(game string, log io.Writer, executable string, args ...string) (*exec.Cmd, error) {
 	proton, err := protonDirectory(game)
 	if err != nil {
 		return nil, err
 	}
 
-	command := exec.Command(umuExecutable(game), append([]string{executable}, args...)...)
-	command.Env = append(os.Environ(),
+	environment := []string{
 		"GAMEID=" + UMU_GAME_ID,
 		"STORE=none",
 		"PROTONPATH=" + proton,
@@ -76,7 +81,23 @@ func runtimeCommand(game string, executable string, args ...string) (*exec.Cmd, 
 		// The runtime is pinned by the installer and verified against published
 		// checksums, so leave it alone rather than letting umu fetch a newer one.
 		"UMU_RUNTIME_UPDATE=0",
-	)
+	}
+
+	command := exec.Command(umuExecutable(game), append([]string{executable}, args...)...)
+	command.Env = append(os.Environ(), environment...)
+
+	// Which Proton build ran, against which prefix, is the first thing anyone reading this
+	// log will need, and none of it can be recovered from the command line alone.
+	fmt.Fprintln(log, strings.Join(command.Args, " "))
+	for _, variable := range environment {
+		fmt.Fprintf(log, "\t%s\n", variable)
+	}
+
+	// Written to both, so that a launch from a terminal still shows what it's doing while a
+	// launch from a shortcut - which has no console at all - still leaves a record.
+	command.Stdout = io.MultiWriter(os.Stdout, log)
+	command.Stderr = io.MultiWriter(os.Stderr, log)
+
 	return command, nil
 }
 
@@ -87,7 +108,7 @@ func runtimeCommand(game string, executable string, args ...string) (*exec.Cmd, 
 // be paid for on the first launch, with nothing on screen to explain the wait. The installer
 // runs this at the end of an install for exactly that reason, but launching falls back to it
 // so that an installation whose utilities arrived late still works.
-func prepareRuntime(game string) error {
+func prepareRuntime(game string, log io.Writer) error {
 	if _, err := os.Stat(filepath.Join(prefixDirectory(game), "pfx", "drive_c", "windows")); err == nil {
 		return nil
 	}
@@ -99,13 +120,15 @@ func prepareRuntime(game string) error {
 
 	// wineboot only initialises the prefix and exits, which is all this needs; the point
 	// is the setup umu does around it.
-	command, err := runtimeCommand(game, "wineboot", "-u")
+	command, err := runtimeCommand(game, log, "wineboot", "-u")
 	if err != nil {
 		return err
 	}
-	output, err := command.CombinedOutput()
+	err = command.Run()
 	if err != nil {
-		return fmt.Errorf("prepare the compatibility layer: %w: %s", err, strings.TrimSpace(string(output)))
+		// Whatever went wrong said so on its way past, into this same log and onto the
+		// console the installer reads, so there's nothing to repeat here.
+		return fmt.Errorf("prepare the compatibility layer: %w", err)
 	}
 
 	return nil
@@ -115,8 +138,8 @@ func prepareRuntime(game string) error {
 //
 // Unlike the Windows launch this waits for the game to exit, because umu is the parent of
 // the game's process tree and returning would tear it down.
-func launchGame(game string) error {
-	err := prepareRuntime(game)
+func launchGame(game string, log io.Writer) error {
+	err := prepareRuntime(game, log)
 	if err != nil {
 		return err
 	}
@@ -130,13 +153,11 @@ func launchGame(game string) error {
 	// The game reads -abslog as a Windows path, so it has to be given one even though
 	// everything around it here is a Unix path.
 	arguments := gameArguments(windowsPath(gameLogPath(game)))
-	command, err := runtimeCommand(game, filepath.Join(working, GAME_BINARY_NAME), arguments...)
+	command, err := runtimeCommand(game, log, filepath.Join(working, GAME_BINARY_NAME), arguments...)
 	if err != nil {
 		return err
 	}
 	command.Dir = working
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
 
 	return command.Run()
 }
