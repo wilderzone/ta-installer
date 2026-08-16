@@ -258,6 +258,14 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | `update`    | ✓       |       | Allows the game to be updated via a simple double-click. On Linux this action is handled by desktop entries.                      |
 | `verify`    | ✓       |       | Allows the game files to be verified via a simple double-click. On Linux this action is handled by desktop entries.               |
 
+Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo.
+```sh
+./utilities/build.sh
+```
+
+<details>
+<summary>Manual steps</summary>
+
 On Linux, `icon.png` is also included in this directory. Desktop entries can't read icons out of a Windows executable, whereas a Windows shortcut can. It is extracted from `TribesAscend.exe` at release time:
 
 ```sh
@@ -283,6 +291,8 @@ GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
 ```
 
 The `play` utility's errors are directed into `Logs/launcher.txt` inside the installation. The other three utilities print their output to the console window they were launched from.
+
+</details>
 
 ### Building
 
