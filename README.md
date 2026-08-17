@@ -290,7 +290,8 @@ Build `play.exe` for Windows, configured so starting the game doesn't flash up a
 GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
 ```
 
-The `play` utility writes `Logs/launcher.txt` inside the installation, replacing it on each launch. It records what was started and why a launch failed, and on Linux everything umu, Proton and Wine reported underneath it - which is the file to ask an end user for when the game won't start, since a shortcut launches the game with no console for any of it to go to. The other three utilities print their output to the console window they were launched from.
+The `play` utility writes to `Logs/launcher.txt` inside the installation, replacing it on each launch. The log includes output from the compatibility layer as well.
+The other three utilities print their output to the console window they were launched from.
 
 </details>
 

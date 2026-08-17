@@ -61,11 +61,6 @@ func windowsPath(path string) string {
 // runtimeCommand builds a command that runs a Windows executable inside this installation's
 // prefix. Everything umu needs is passed through the environment; nothing is written to the
 // user's shell configuration or to a wrapper script.
-//
-// The command is wired up to report as it goes, rather than to have its output collected and
-// inspected afterwards: umu fetching its container image and Proton setting up a prefix both
-// take long enough that their progress is worth seeing, and either can fail in a way only
-// their own output explains.
 func runtimeCommand(game string, log io.Writer, executable string, args ...string) (*exec.Cmd, error) {
 	proton, err := protonDirectory(game)
 	if err != nil {
@@ -86,15 +81,14 @@ func runtimeCommand(game string, log io.Writer, executable string, args ...strin
 	command := exec.Command(umuExecutable(game), append([]string{executable}, args...)...)
 	command.Env = append(os.Environ(), environment...)
 
-	// Which Proton build ran, against which prefix, is the first thing anyone reading this
-	// log will need, and none of it can be recovered from the command line alone.
+	// Log the launch arguments.
 	fmt.Fprintln(log, strings.Join(command.Args, " "))
 	for _, variable := range environment {
 		fmt.Fprintf(log, "\t%s\n", variable)
 	}
 
-	// Written to both, so that a launch from a terminal still shows what it's doing while a
-	// launch from a shortcut - which has no console at all - still leaves a record.
+	// Written to both stdout and stderr, so that a launch from a terminal still shows what it's
+	// doing while a launch from a shortcut (which has no console) still leaves a record.
 	command.Stdout = io.MultiWriter(os.Stdout, log)
 	command.Stderr = io.MultiWriter(os.Stderr, log)
 
@@ -126,8 +120,6 @@ func prepareRuntime(game string, log io.Writer) error {
 	}
 	err = command.Run()
 	if err != nil {
-		// Whatever went wrong said so on its way past, into this same log and onto the
-		// console the installer reads, so there's nothing to repeat here.
 		return fmt.Errorf("prepare the compatibility layer: %w", err)
 	}
 

@@ -19,8 +19,7 @@ func prepareRuntime(game string, log io.Writer) error {
 // needs to outlive the launch, and a launcher that lingers would keep a console window or a
 // taskbar entry around for the whole session.
 //
-// Because it returns straight away, the game's own output isn't this launcher's to collect;
-// the log records what was started, and the game writes the rest itself through -abslog.
+// The game manages its own log output; it isn't included in the launcher's logs.
 func launchGame(game string, log io.Writer) error {
 	working := filepath.Join(game, "Binaries", "Win32")
 

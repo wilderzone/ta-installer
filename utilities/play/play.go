@@ -59,16 +59,10 @@ func run() int {
 	return 0
 }
 
-// openLog opens the launcher's log, along with the function that closes it.
+// openLog opens the launcher's log, and returns a handle to the file along with the function that closes it.
 //
-// Everything a launch produces is written here: this launcher's own errors, and on a platform
-// with a compatibility layer, whatever umu, Proton and Wine had to say underneath it. A
-// shortcut starts the game with no console attached, so without this all of it is lost - and
-// it's the only thing worth asking an end user for when the game doesn't start.
-//
-// Each run replaces the last, because the run being asked about is the one that just happened.
-// A log that can't be opened isn't worth failing a launch over, so the caller is handed a
-// writer that discards instead.
+// The log includes this launcher's own errors, and any errors from the compatibility layer.
+// Log output is discarded if the log file can't be created or opened.
 func openLog(game string) (io.Writer, func()) {
 	path := filepath.Join(game, LOGS_DIRECTORY, LAUNCHER_LOG_NAME)
 	if os.MkdirAll(filepath.Dir(path), os.FileMode(0755)) != nil {
@@ -79,8 +73,6 @@ func openLog(game string) (io.Writer, func()) {
 		return io.Discard, func() {}
 	}
 
-	// Dated, so that a log sent in days later can be told apart from the run it's meant
-	// to describe.
 	fmt.Fprintf(file, "%s\n", time.Now().Format(time.RFC1123))
 
 	return file, func() { file.Close() }
@@ -126,9 +118,7 @@ func gameLogPath(game string) string {
 	return filepath.Join(game, LOGS_DIRECTORY, LOG_NAME)
 }
 
-// fail reports why the game didn't start, to the console if there is one and to the launcher's
-// log either way - where it lands after whatever the compatibility layer said on its way down,
-// which is usually the part that explains it.
+// fail reports why the game didn't start, to the launcher's log file, and to the console (if there is one).
 func fail(log io.Writer, err error) int {
 	fmt.Fprintln(os.Stderr, err.Error())
 	fmt.Fprintln(log, err.Error())
