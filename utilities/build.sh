@@ -7,53 +7,52 @@ SCRIPT_WINDOWS_SUFFIX="-windows-amd64"
 build() {
 	local PLATFORM=$1
 	local EXTENSION=$2
+	local OUT="$SCRIPT_CWD/dist/$PLATFORM"
 
 	echo ""
 	echo $PLATFORM
 
-	rm -r "$SCRIPT_CWD/dist/$PLATFORM"
+	rm -rf $OUT
 
 	# Build shared utilities.
 	echo "- CLI"
-	cd "$SCRIPT_CWD/../tai" && go build -o "$SCRIPT_CWD/dist/$PLATFORM/tai-cli$EXTENSION" .
-	chmod +x "$SCRIPT_CWD/dist/$PLATFORM/tai-cli$EXTENSION"
+	cd "$SCRIPT_CWD/../tai" && go build -o "$OUT/tai-cli$EXTENSION" .
+	chmod +x "$OUT/tai-cli$EXTENSION"
 
+	echo "- play"
 	if [[ $PLATFORM == "Linux" ]]; then
-		echo "- play"
-		cd "$SCRIPT_CWD/play"   && go build -o "$SCRIPT_CWD/dist/$PLATFORM/play$EXTENSION" .
-		chmod +x "$SCRIPT_CWD/dist/$PLATFORM/play$EXTENSION"
+		cd "$SCRIPT_CWD/play"   && go build -o "$OUT/play$EXTENSION" .
 	fi
 	if [[ $PLATFORM == "Windows" ]]; then
-		echo "- play"
-		cd "$SCRIPT_CWD/play"   && go build -ldflags="-H=windowsgui" -o "$SCRIPT_CWD/dist/$PLATFORM/play$EXTENSION" .
-		chmod +x "$SCRIPT_CWD/dist/$PLATFORM/play$EXTENSION"
+		cd "$SCRIPT_CWD/play"   && go build -ldflags="-H=windowsgui" -o "$OUT/play$EXTENSION" .
 	fi
+	chmod +x "$OUT/play$EXTENSION"
 
 	## Build Windows-specific utilities.
 	if [[ $PLATFORM == "Windows" ]]; then
 		echo "- uninstall"
-		cd "$SCRIPT_CWD/uninstall" && go build -o "$SCRIPT_CWD/dist/$PLATFORM/uninstall$EXTENSION" .
-		chmod +x "$SCRIPT_CWD/dist/$PLATFORM/uninstall$EXTENSION"
+		cd "$SCRIPT_CWD/uninstall" && go build -o "$OUT/uninstall$EXTENSION" .
+		chmod +x "$OUT/uninstall$EXTENSION"
 		echo "- update"
-		cd "$SCRIPT_CWD/update"    && go build -o "$SCRIPT_CWD/dist/$PLATFORM/update$EXTENSION" .
-		chmod +x "$SCRIPT_CWD/dist/$PLATFORM/update$EXTENSION"
+		cd "$SCRIPT_CWD/update"    && go build -o "$OUT/update$EXTENSION" .
+		chmod +x "$OUT/update$EXTENSION"
 		echo "- verify"
-		cd "$SCRIPT_CWD/verify"    && go build -o "$SCRIPT_CWD/dist/$PLATFORM/verify$EXTENSION" .
-		chmod +x "$SCRIPT_CWD/dist/$PLATFORM/verify$EXTENSION"
+		cd "$SCRIPT_CWD/verify"    && go build -o "$OUT/verify$EXTENSION" .
+		chmod +x "$OUT/verify$EXTENSION"
 	fi
 
 	# Copy the icon file.
-	cp "$SCRIPT_CWD/icon.png" "$SCRIPT_CWD/dist/$PLATFORM/icon.png"
+	cp "$SCRIPT_CWD/icon.png" "$OUT/icon.png"
 
 	# Generate the asset file and zip the package.
-	$SCRIPT_CWD/dist/Linux/tai-cli asset --path="$SCRIPT_CWD/dist/$PLATFORM" --name=Installer
+	$SCRIPT_CWD/dist/Linux/tai-cli asset --path="$OUT" --name=Installer
 	if [[ $PLATFORM == "Linux" ]]; then
-		mv "$SCRIPT_CWD/dist/$PLATFORM/Installer.json" "$SCRIPT_CWD/dist/$PLATFORM/Installer$SCRIPT_LINUX_SUFFIX.json"
-		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer$SCRIPT_LINUX_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION"
+		mv "$OUT/Installer.json" "$OUT/Installer$SCRIPT_LINUX_SUFFIX.json"
+		cd "$OUT" && zip -9 "Installer$SCRIPT_LINUX_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION"
 	fi
 	if [[ $PLATFORM == "Windows" ]]; then
-		mv "$SCRIPT_CWD/dist/$PLATFORM/Installer.json" "$SCRIPT_CWD/dist/$PLATFORM/Installer$SCRIPT_WINDOWS_SUFFIX.json"
-		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer$SCRIPT_WINDOWS_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
+		mv "$OUT/Installer.json" "$OUT/Installer$SCRIPT_WINDOWS_SUFFIX.json"
+		cd "$OUT" && zip -9 "Installer$SCRIPT_WINDOWS_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
 	fi
 }
 
