@@ -242,8 +242,9 @@ func (s *Spinner) run() {
 // caller must hold the logger's lock.
 func (s *Spinner) draw() {
 	text := SPINNER_FRAMES[s.frame % len(SPINNER_FRAMES)]
+	text += " "
 	if s.message != "" {
-		text += " " + s.message
+		text += s.message
 	}
 	fmt.Print(CLEAR_LINE + s.logger.colour(text, GREY))
 }
