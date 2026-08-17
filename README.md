@@ -258,7 +258,7 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | `update`    | ✓       |       | Allows the game to be updated via a simple double-click. On Linux this action is handled by desktop entries.                      |
 | `verify`    | ✓       |       | Allows the game files to be verified via a simple double-click. On Linux this action is handled by desktop entries.               |
 
-Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo.
+Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
 ```sh
 ./utilities/build.sh
 ```

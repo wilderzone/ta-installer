@@ -1,6 +1,7 @@
 #! /bin/bash
 
 SCRIPT_CWD="$(dirname "$(readlink -f "$0")")"
+SCRIPT_LINUX_SUFFIX="-linux-amd64"
 
 build() {
 	local PLATFORM=$1
@@ -45,10 +46,13 @@ build() {
 
 	# Generate the asset file.
 	$SCRIPT_CWD/dist/Linux/tai-cli asset --path="$SCRIPT_CWD/dist/$PLATFORM" --name=Installer
+	if [[ $PLATFORM == "Linux" ]]; then
+		mv "$SCRIPT_CWD/dist/$PLATFORM/Installer.json" "$SCRIPT_CWD/dist/$PLATFORM/Installer$SCRIPT_LINUX_SUFFIX.json"
+	fi
 
 	# Zip each asset.
 	if [[ $PLATFORM == "Linux" ]]; then
-		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer-linux-amd64.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION"
+		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer$SCRIPT_LINUX_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION"
 	fi
 	if [[ $PLATFORM == "Windows" ]]; then
 		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
