@@ -91,7 +91,7 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "  -m                       Output machine-readable JSON.\n")
 	fmt.Fprint(w, "  -p                       Output download progress updates in JSON.\n")
 	fmt.Fprint(w, "  -s                       Suppress all output.\n")
-	fmt.Fprint(w, "  -v                       Enable verbose logging of otherwise-hidden errors, for debugging.\n")
+	fmt.Fprint(w, "  -v                       Enable verbose logging.\n")
 	fmt.Fprint(w, "  -y                       Skip confirmation prompts.\n")
 }
 
