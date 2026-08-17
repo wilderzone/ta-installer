@@ -58,6 +58,28 @@ func windowsPath(path string) string {
 	return "Z:" + strings.ReplaceAll(path, "/", `\`)
 }
 
+// runtimeEnvironment returns the configuration for umu and Proton. It's kept separate
+// from the command so that the contract it describes can be logged and tested directly.
+//
+// Nothing here disables umu's own runtime updates. The Proton build in the Runtime directory is
+// pinned and checksummed by the installer, but the container it runs inside lives in the user's
+// data directory and belongs to umu - pinning that only stops umu repairing an installation TAI
+// has no way to repair itself.
+func runtimeEnvironment(game string, proton string) []string {
+	return []string{
+		"GAMEID=" + UMU_GAME_ID,
+		"STORE=none",
+		"PROTONPATH=" + proton,
+		"WINEPREFIX=" + prefixDirectory(game),
+		"PROTON_VERB=waitforexitandrun",
+		// Proton gives the installation's parent a drive letter of its own, the way Steam
+		// does with a library folder. umu leaves this empty for an executable it was handed
+		// by path, and Proton then reports the empty path as an error and carries on
+		// without the mapping.
+		"STEAM_COMPAT_INSTALL_PATH=" + game,
+	}
+}
+
 // runtimeCommand builds a command that runs a Windows executable inside this installation's
 // prefix. Everything umu needs is passed through the environment; nothing is written to the
 // user's shell configuration or to a wrapper script.
@@ -67,16 +89,7 @@ func runtimeCommand(game string, log io.Writer, executable string, args ...strin
 		return nil, err
 	}
 
-	environment := []string{
-		"GAMEID=" + UMU_GAME_ID,
-		"STORE=none",
-		"PROTONPATH=" + proton,
-		"WINEPREFIX=" + prefixDirectory(game),
-		"PROTON_VERB=waitforexitandrun",
-		// The runtime is pinned by the installer and verified against published
-		// checksums, so leave it alone rather than letting umu fetch a newer one.
-		"UMU_RUNTIME_UPDATE=0",
-	}
+	environment := runtimeEnvironment(game, proton)
 
 	command := exec.Command(umuExecutable(game), append([]string{executable}, args...)...)
 	command.Env = append(os.Environ(), environment...)

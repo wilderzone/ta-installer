@@ -12,6 +12,24 @@ func TestWindowsPathMapsOntoTheZDrive(t *testing.T) {
 	}
 }
 
+func TestRuntimeEnvironmentLocatesTheInstallation(t *testing.T) {
+	// Proton needs to be told where the game is installed; umu doesn't work it out from the
+	// executable it's handed. And the container runtime is umu's to update, so nothing here
+	// may switch that off.
+	got := runtimeEnvironment("/home/user/Games/Tribes Ascend", "/home/user/Games/Tribes Ascend/Runtime/GE-Proton")
+	want := []string{
+		"GAMEID=" + UMU_GAME_ID,
+		"STORE=none",
+		"PROTONPATH=/home/user/Games/Tribes Ascend/Runtime/GE-Proton",
+		"WINEPREFIX=/home/user/Games/Tribes Ascend/Prefix",
+		"PROTON_VERB=waitforexitandrun",
+		"STEAM_COMPAT_INSTALL_PATH=/home/user/Games/Tribes Ascend",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
 func TestGameArgumentsAreNotQuoted(t *testing.T) {
 	// These go straight to the process rather than through a shell or a shortcut's
 	// command line, so a quoted path would leave the quotes in the value - and a path
