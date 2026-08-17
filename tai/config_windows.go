@@ -10,7 +10,7 @@ const UNINSTALLER_REGISTRY_PATH = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uni
 
 // The location of the utilities' checksums, relative to the repository. Fetched at verify
 // time and hashed against the installed utilities.
-const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer.json"
+const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer-windows-amd64.json"
 
 // The installation utilities package. Checksums are deliberately omitted: they're fetched
 // from UTILITIES_CHECKSUMS_SOURCE. The file names are still needed so
@@ -18,7 +18,7 @@ const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer.json"
 var INSTALLATION_UTILITIES = Asset{
 	Name:        "Installation Utilities",
 	Type:        "prerequisite",
-	Source:      "/installer/Installer.zip",
+	Source:      "/installer/Installer-windows-amd64.zip",
 	Destination: "/Installer",
 	Files: []File{
 		{File: CLI_NAME},

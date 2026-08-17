@@ -73,8 +73,8 @@ jobs:
           path: |
             utilities/dist/Linux/Installer-linux-amd64.json
             utilities/dist/Linux/Installer-linux-amd64.zip
-            utilities/dist/Windows/Installer.json
-            utilities/dist/Windows/Installer.zip
+            utilities/dist/Windows/Installer-windows-amd64.json
+            utilities/dist/Windows/Installer-windows-amd64.zip
           if-no-files-found: warn
 
   gui:

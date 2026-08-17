@@ -2,6 +2,7 @@
 
 SCRIPT_CWD="$(dirname "$(readlink -f "$0")")"
 SCRIPT_LINUX_SUFFIX="-linux-amd64"
+SCRIPT_WINDOWS_SUFFIX="-windows-amd64"
 
 build() {
 	local PLATFORM=$1
@@ -28,7 +29,7 @@ build() {
 		chmod +x "$SCRIPT_CWD/dist/$PLATFORM/play$EXTENSION"
 	fi
 
-	## Build Windows-specific utilities
+	## Build Windows-specific utilities.
 	if [[ $PLATFORM == "Windows" ]]; then
 		echo "- uninstall"
 		cd "$SCRIPT_CWD/uninstall" && go build -o "$SCRIPT_CWD/dist/$PLATFORM/uninstall$EXTENSION" .
@@ -44,18 +45,15 @@ build() {
 	# Copy the icon file.
 	cp "$SCRIPT_CWD/icon.png" "$SCRIPT_CWD/dist/$PLATFORM/icon.png"
 
-	# Generate the asset file.
+	# Generate the asset file and zip the package.
 	$SCRIPT_CWD/dist/Linux/tai-cli asset --path="$SCRIPT_CWD/dist/$PLATFORM" --name=Installer
 	if [[ $PLATFORM == "Linux" ]]; then
 		mv "$SCRIPT_CWD/dist/$PLATFORM/Installer.json" "$SCRIPT_CWD/dist/$PLATFORM/Installer$SCRIPT_LINUX_SUFFIX.json"
-	fi
-
-	# Zip each asset.
-	if [[ $PLATFORM == "Linux" ]]; then
 		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer$SCRIPT_LINUX_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION"
 	fi
 	if [[ $PLATFORM == "Windows" ]]; then
-		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
+		mv "$SCRIPT_CWD/dist/$PLATFORM/Installer.json" "$SCRIPT_CWD/dist/$PLATFORM/Installer$SCRIPT_WINDOWS_SUFFIX.json"
+		cd "$SCRIPT_CWD/dist/$PLATFORM" && zip -9 "Installer$SCRIPT_WINDOWS_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
 	fi
 }
 
