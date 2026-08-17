@@ -53,6 +53,30 @@ jobs:
           done
           (cd utilities/play && go test -count=1 ./...)
 
+  utilities:
+    name: Utilities (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build
+        run: cd utilities && bash ./build.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tai-utilities
+          path: |
+            utilities/dist/Linux/Installer-linux-amd64.json
+            utilities/dist/Linux/Installer-linux-amd64.zip
+            utilities/dist/Windows/Installer.json
+            utilities/dist/Windows/Installer.zip
+          if-no-files-found: warn
+
   gui:
     name: GUI (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
