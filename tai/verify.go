@@ -59,6 +59,8 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 		return err
 	}
 
+	preflight(logger)
+
 	verifyRuntime(ctx, logger, arguments)
 	if err := ctx.Err(); err != nil {
 		return err
