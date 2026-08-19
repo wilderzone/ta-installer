@@ -100,8 +100,12 @@ func writeTestIcon(t *testing.T, root string, width int, height int) {
 	if err := os.MkdirAll(directory, os.FileMode(0755)); err != nil {
 		t.Fatalf("create utilities directory: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(directory, ICON_FILE), encoded.Bytes(), os.FileMode(0644)); err != nil {
-		t.Fatalf("write icon: %v", err)
+	// Both icons ship in the utilities package, and installIcons wants the pair, so a helper
+	// that wrote only one would be testing a package that never gets published.
+	for _, name := range []string{ICON_FILE, UNINSTALL_ICON_FILE} {
+		if err := os.WriteFile(filepath.Join(directory, name), encoded.Bytes(), os.FileMode(0644)); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
 	}
 }
 
