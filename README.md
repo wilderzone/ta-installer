@@ -246,6 +246,16 @@ tai-cli asset --path=<extracted runtime> --name=Runtime   # produces Runtime.jso
 
 Publish both `Runtime.tar.gz` and `Runtime.json` under `/runtime/` on the CDN. `verify` fetches the checksums, and replaces the whole runtime if any file fails - which is also how a newly pinned Proton build reaches existing installations.
 
+#### Graphics Drivers
+
+The game is a 32-bit program, so it needs the 32-bit build of your graphics card's Vulkan driver. The compatibility layer's container supplies its own 32-bit system libraries, but the graphics drivers can't come from the container - they have to match the running kernel, so they're taken from the host. Without them the game exits silently during startup. TAI checks for this case and prints the exact commands for your distribution, but can't actually run the commands itself. On Debian and Ubuntu the commands are:
+
+```sh
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install libvulkan1:i386 mesa-vulkan-drivers:i386 libgl1-mesa-dri:i386
+```
+
 ### Installation utilities
 
 Alongside the game, TAI installs a small set of helper executables into the `Installer` directory.

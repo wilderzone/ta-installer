@@ -129,6 +129,7 @@ var (
 	RUNTIME_CHECK_SKIPPED     = LogLine{Type: "RUNTIME_CHECK_SKIPPED", Message: "Couldn't check the compatibility layer:"}
 	RUNTIME_DAMAGED           = LogLine{Type: "RUNTIME_DAMAGED", Message: "The compatibility layer is damaged:"}
 	RUNTIME_DOWNLOADING       = LogLine{Type: "RUNTIME_DOWNLOADING", Message: "Downloading the compatibility layer..."}
+	RUNTIME_DRIVERS_HINT      = LogLine{Type: "RUNTIME_DRIVERS_HINT", Message: fmt.Sprintf("%s is a 32-bit program, so it needs 32-bit drivers for your graphics card. Install them with:", PRODUCT_NAME)}
 	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility layer is missing. Run \"install\" or \"verify\" to restore it."}
 	RUNTIME_PREPARE_FAILED    = LogLine{Type: "RUNTIME_PREPARE_FAILED", Message: "Couldn't prepare the compatibility layer. It will be prepared the first time the game is started."}
 	RUNTIME_PREPARING         = LogLine{Type: "RUNTIME_PREPARING", Message: "Preparing the compatibility layer..."}
