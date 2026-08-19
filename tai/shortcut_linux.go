@@ -16,6 +16,8 @@ import (
 // entry keep working if the installation directory is later moved.
 const ICON_FILE = "icon.png"
 const ICON_NAME = "tribes-ascend"
+const UNINSTALL_ICON_FILE = "uninstall.png"
+const UNINSTALL_ICON_NAME = "tribes-ascend-uninstall"
 
 // desktopEntry is the subset of the Desktop Entry specification TAI writes.
 // See: https://specifications.freedesktop.org/desktop-entry-spec/latest/
@@ -155,39 +157,59 @@ func iconSizeDirectory(width int, height int) string {
 func removeInstalledIcons(data string) {
 	for _, size := range ICON_SIZES {
 		_ = os.Remove(filepath.Join(data, "icons", "hicolor", fmt.Sprintf("%dx%d", size, size), "apps", ICON_NAME + ".png"))
+		_ = os.Remove(filepath.Join(data, "icons", "hicolor", fmt.Sprintf("%dx%d", size, size), "apps", UNINSTALL_ICON_NAME + ".png"))
 	}
 }
 
-// installIcon copies the icon shipped with the utilities into the user's icon theme and
-// reports the name to reference it by. An installation whose utilities failed to download
-// has no icon to install, so this reports an empty name and the entries simply go without.
-func installIcon(root string) string {
-	source := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, ICON_FILE)
-	file, err := os.Open(source)
+// installIcons copies the icons shipped with the utilities into the user's icon theme and
+// reports the names to reference them by. An installation whose utilities failed to download
+// has no icons to install, so this reports empty names and the entries simply go without.
+//
+// The first returned string is the game icon, the second is the uninstall icon.
+func installIcons(root string) (string, string) {
+	iSource := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, ICON_FILE)
+	uSource := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, UNINSTALL_ICON_FILE)
+	iFile, err := os.Open(iSource)
 	if err != nil {
-		return ""
+		return "", ""
+	}
+	uFile, err := os.Open(uSource)
+	if err != nil {
+		return "", ""
 	}
 	// Only the header is read, so the size of the image doesn't matter here.
-	config, err := png.DecodeConfig(file)
-	file.Close()
+	iConfig, err := png.DecodeConfig(iFile)
+	iFile.Close()
 	if err != nil {
-		return ""
+		return "", ""
+	}
+	uConfig, err := png.DecodeConfig(uFile)
+	uFile.Close()
+	if err != nil {
+		return "", ""
 	}
 
 	data := dataDirectory()
 	if data == "" {
-		return ""
+		return "", ""
 	}
 	removeInstalledIcons(data)
 
-	target := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(config.Width, config.Height), "apps", ICON_NAME + ".png")
-	if err := os.MkdirAll(filepath.Dir(target), os.FileMode(0755)); err != nil {
-		return ""
+	iTarget := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(iConfig.Width, iConfig.Height), "apps", ICON_NAME + ".png")
+	uTarget := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(uConfig.Width, uConfig.Height), "apps", UNINSTALL_ICON_NAME + ".png")
+	if err := os.MkdirAll(filepath.Dir(iTarget), os.FileMode(0755)); err != nil {
+		return "", ""
 	}
-	if err := replaceInPlace(source, target); err != nil {
-		return ""
+	if err := replaceInPlace(iSource, iTarget); err != nil {
+		return "", ""
 	}
-	return ICON_NAME
+	if err := os.MkdirAll(filepath.Dir(uTarget), os.FileMode(0755)); err != nil {
+		return ICON_NAME, ""
+	}
+	if err := replaceInPlace(uSource, uTarget); err != nil {
+		return ICON_NAME, ""
+	}
+	return ICON_NAME, UNINSTALL_ICON_NAME
 }
 
 // refreshDesktopDatabase asks the desktop environment to re-read the applications
@@ -227,7 +249,7 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		return fmt.Errorf("create shortcuts: the play utility is missing")
 	}
 
-	icon := installIcon(root)
+	icon, _ := installIcons(root)
 	entry := gameEntry(root, icon)
 
 	// Create an entry in the installation directory for convenience.

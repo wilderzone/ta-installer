@@ -9,7 +9,6 @@ build() {
 	local EXTENSION=$2
 	local OUT="$SCRIPT_CWD/dist/$PLATFORM"
 
-	echo ""
 	echo $PLATFORM
 
 	rm -rf $OUT
@@ -41,23 +40,28 @@ build() {
 		chmod +x "$OUT/verify$EXTENSION"
 	fi
 
-	# Copy the icon file.
+	# Copy the icon files.
 	cp "$SCRIPT_CWD/icon.png" "$OUT/icon.png"
+	cp "$SCRIPT_CWD/uninstall.png" "$OUT/uninstall.png"
 
 	# Generate the asset file and zip the package.
 	$SCRIPT_CWD/dist/Linux/tai-cli asset --path="$OUT" --name=Installer
 	if [[ $PLATFORM == "Linux" ]]; then
 		mv "$OUT/Installer.json" "$OUT/Installer$SCRIPT_LINUX_SUFFIX.json"
-		cd "$OUT" && zip -9 "Installer$SCRIPT_LINUX_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION"
+		cd "$OUT" && zip -9 "Installer$SCRIPT_LINUX_SUFFIX.zip" "icon.png" "uninstall.png" "tai-cli$EXTENSION" "play$EXTENSION"
 	fi
 	if [[ $PLATFORM == "Windows" ]]; then
 		mv "$OUT/Installer.json" "$OUT/Installer$SCRIPT_WINDOWS_SUFFIX.json"
-		cd "$OUT" && zip -9 "Installer$SCRIPT_WINDOWS_SUFFIX.zip" "icon.png" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
+		cd "$OUT" && zip -9 "Installer$SCRIPT_WINDOWS_SUFFIX.zip" "tai-cli$EXTENSION" "play$EXTENSION" "uninstall$EXTENSION" "update$EXTENSION" "verify$EXTENSION"
 	fi
 }
 
+echo ""
+
 export GOOS=linux
 build "Linux" ""
+echo ""
 
 export GOOS=windows
 build "Windows" ".exe"
+echo ""

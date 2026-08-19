@@ -45,7 +45,7 @@ func createUninstallShortcut(root string) error {
 		Name:       "Uninstall " + PRODUCT_NAME,
 		Comment:    "Remove " + PRODUCT_NAME + " and its compatibility layer.",
 		Exec:       fmt.Sprintf("%s uninstall --path=%s", quoteExecArgument(cli), quoteExecArgument(root)),
-		Icon:       ICON_NAME,
+		Icon:       UNINSTALL_ICON_NAME,
 		Categories: "Game;",
 		// Uninstalling asks for confirmation and reports what it removed, so it needs
 		// somewhere to ask and somewhere to print.

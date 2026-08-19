@@ -28,6 +28,7 @@ var INSTALLATION_UTILITIES = Asset{
 		{File: CLI_NAME},
 		{File: PLAY_NAME},
 		{File: ICON_FILE},
+		{File: UNINSTALL_ICON_FILE},
 	},
 }
 

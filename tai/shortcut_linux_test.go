@@ -111,8 +111,12 @@ func TestInstallIconFilesByItsRealSize(t *testing.T) {
 	root := t.TempDir()
 
 	writeTestIcon(t, root, 48, 48)
-	if name := installIcon(root); name != ICON_NAME {
-		t.Fatalf("got %q, want %q", name, ICON_NAME)
+	icon1, icon2 := installIcons(root)
+	if icon1 != ICON_NAME {
+		t.Fatalf("got %q, want %q", icon1, ICON_NAME)
+	}
+	if icon2 != UNINSTALL_ICON_NAME {
+		t.Fatalf("got %q, want %q", icon2, UNINSTALL_ICON_NAME)
 	}
 	installed := filepath.Join(data, "icons", "hicolor", "48x48", "apps", ICON_NAME + ".png")
 	if _, err := os.Stat(installed); err != nil {
@@ -122,8 +126,12 @@ func TestInstallIconFilesByItsRealSize(t *testing.T) {
 	// A later release ships a different size. The old copy has to go, or it can outrank
 	// the new one in the theme's lookup.
 	writeTestIcon(t, root, 256, 256)
-	if name := installIcon(root); name != ICON_NAME {
-		t.Fatalf("got %q, want %q", name, ICON_NAME)
+	icon1, icon2 = installIcons(root)
+	if icon1 != ICON_NAME {
+		t.Fatalf("got %q, want %q", icon1, ICON_NAME)
+	}
+	if icon2 != UNINSTALL_ICON_NAME {
+		t.Fatalf("got %q, want %q", icon2, UNINSTALL_ICON_NAME)
 	}
 	if _, err := os.Stat(filepath.Join(data, "icons", "hicolor", "256x256", "apps", ICON_NAME + ".png")); err != nil {
 		t.Errorf("resized icon not installed: %v", err)
@@ -136,7 +144,11 @@ func TestInstallIconFilesByItsRealSize(t *testing.T) {
 func TestInstallIconWithoutOneReportsNoName(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
 	// An install whose utilities failed to download has no icon; entries go without.
-	if name := installIcon(t.TempDir()); name != "" {
-		t.Errorf("got %q, want an empty name", name)
+	icon1, icon2 := installIcons(t.TempDir())
+	if icon1 != "" {
+		t.Errorf("got %q, want an empty name", icon1)
+	}
+	if icon2 != "" {
+		t.Errorf("got %q, want an empty name", icon2)
 	}
 }
