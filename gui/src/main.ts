@@ -5,7 +5,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { createApp } from 'vue';
 import './root.css';
 import App from './App.vue';
-import { AppWindow, useDefaultInstallPath, usePlatform } from './config.ts';
+import { AppWindow, isWindows, useDefaultInstallPath, usePlatform } from './config.ts';
 import { vGrid } from './directives.ts';
 import { router } from './router.ts';
 import { handleShortcuts } from './shortcuts.ts';
@@ -24,6 +24,10 @@ async function start(): Promise<void> {
 	const separator = sep();
 	usePathSeparator(separator);
 	usePlatform(separator);
+
+	// Linux draws neither a shadow nor rounded corners for an
+	// undecorated window, so the stylesheet does it instead.
+	document.documentElement.classList.toggle('linux', !isWindows);
 
 	const path = await invoke<string>('default_install_path');
 	useDefaultInstallPath(path);
