@@ -395,6 +395,18 @@ func (l *Logger) log(message LogLine, additional ...any) {
 	}
 }
 
+// event writes a line as JSON for an interface to act on, alongside any readable lines that have
+// already been written.
+//
+// Only the value is sent, and only under -p, not -m where log already writes all lines as JSON.
+func (l *Logger) event(message LogLine, value ...any) {
+	if !l.progress || l.machine {
+		return
+	}
+	message.Message = strings.TrimSpace(fmt.Sprint(value...))
+	l.logProgress(message)
+}
+
 // logProgress writes a line describing a download in flight. Unlike the ordinary log
 // lines, this one is always JSON, in every mode: it is emitted several times a second for
 // an interface to read, and a person watching a terminal is shown the spinner instead.

@@ -107,6 +107,7 @@ export class TAI {
 	};
 	/** The download the CLI is currently measuring, or `undefined` if there isn't one. */
 	public static download = ref<DownloadProgress | undefined>();
+	public static driversHint = ref<string | undefined>();
 	public static log = ref<Array<LogLineData>>([]);
 	public static status = ref();
 
@@ -224,10 +225,10 @@ export class TAI {
 	}
 
 	/**
-	 * Interpret a line as a download-progress report, updating {@link download} applicable.
-	 * @returns `true` if the line was a progress report, `false` if it was any other log message.
+	 * Interpret a line as one of the structured events the CLI emits under `-p`.
+	 * @returns `true` if the line was an event, `false` if it was an ordinary log message.
 	 */
-	private static measure(data: string): boolean {
+	private static intercept(data: string): boolean {
 		if (!data.startsWith('{')) {
 			return false;
 		}
@@ -244,6 +245,9 @@ export class TAI {
 					return true;
 				case 'DOWNLOAD_COMPLETE':
 					TAI.download.value = undefined;
+					return true;
+				case 'RUNTIME_DRIVERS_HINT':
+					TAI.driversHint.value = String(message.message ?? '');
 					return true;
 			}
 		} catch {}
@@ -264,6 +268,7 @@ export class TAI {
 		}
 
 		TAI.download.value = undefined;
+		TAI.driversHint.value = undefined;
 		await spawn(args, (event) => {
 			if (event.type === 'stderr') {
 				TAI.log.value.unshift({ type: 'error', message: event.data });
@@ -271,7 +276,7 @@ export class TAI {
 					callback(event.data);
 				}
 			} else if (event.type === 'stdout') {
-				if (TAI.measure(event.data)) {
+				if (TAI.intercept(event.data)) {
 					return;
 				}
 				TAI.log.value.unshift({ type: 'info', message: event.data });

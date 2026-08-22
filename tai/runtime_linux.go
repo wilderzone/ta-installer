@@ -199,6 +199,8 @@ func preflight(logger *Logger) bool {
 	if !drivers.hardware32 {
 		if command := driverInstructions(drivers, distribution()); command != "" {
 			logger.log(RUNTIME_DRIVERS_HINT, command)
+			// Sent again as an event, so an interface can offer the command to be copied.
+			logger.event(RUNTIME_DRIVERS_HINT, command)
 		}
 	}
 
