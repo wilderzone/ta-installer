@@ -3,7 +3,7 @@
 
 <template>
 	<div class="logo">
-		<img src="../assets/tribes_ascend.png" alt="Tribes: Ascend" draggable="false">
+		<img src="../assets/tribes_ascend.png" alt="" draggable="false">
 		<img src="../assets/tribes_ascend.png" alt="Tribes: Ascend" draggable="false">
 	</div>
 </template>
