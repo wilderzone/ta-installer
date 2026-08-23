@@ -62,7 +62,7 @@ body {
 		border-radius: var(--window-border-radius);
 		background-color: var(--color-background);
 		box-shadow: 0 2px 10px -2px #000a;
-		contain: paint;
+		contain: layout;
 	}
 }
 

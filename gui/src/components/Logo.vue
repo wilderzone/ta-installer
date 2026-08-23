@@ -27,3 +27,9 @@
 	}
 }
 </style>
+
+<style>
+:root.linux .logo img:nth-of-type(1) {
+	display: none;
+}
+</style>
