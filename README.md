@@ -4,7 +4,7 @@ A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://
 
 ## GUI
 
-To use TAI GUI, download and run the portable `tai-gui.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
+To use TAI GUI, download and run the appropriate portable executable for your operating system from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
 You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the folder in which to install TA. Modded is the recommended option, and includes community maps and CTF routes.
 
 _Note: `tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI._
@@ -133,6 +133,16 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `REDOWNLOADING`
 - `REPO_FOUND`
 - `REPO_NOT_FOUND`
+- `RUNTIME_CHECK_FAILED`
+- `RUNTIME_CHECK_SKIPPED`
+- `RUNTIME_DAMAGED`
+- `RUNTIME_DOWNLOADING`
+- `RUNTIME_MISSING`
+- `RUNTIME_PREPARE_FAILED`
+- `RUNTIME_PREPARING`
+- `RUNTIME_READY`
+- `RUNTIME_REPAIRED`
+- `RUNTIME_VERIFIED`
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`
@@ -212,14 +222,100 @@ TAI resolves the graph automatically:
 
 The local `manifest.json` records this by marking dependency-installed assets with `"automatic": true` (repository manifests don't carry this field).
 
-### Installation utilities
+### Running on Linux
 
-Alongside the game, TAI installs a small set of helper executables (`tai-cli.exe`, `uninstall.exe`, `update.exe`, `verify.exe`) into the `Installer` directory, so Windows can uninstall the game through the normal Settings/Control Panel channel. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the window is closed).
+Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a compatibility layer alongside the game files. TAI manages all of it automatically, including validating the compatibility layer when you run `verify`.
 
-Their checksums are **not** compiled into `tai-cli.exe` — that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the four executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
+A few things differ from Windows by necessity:
+
+- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
+- The default install path is under your home directory.
+- DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
+- The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
+- **Install the GUI from the `.deb` or `.rpm` rather than running the binary on its own.** Its taskbar icon comes from the desktop entry those packages install, and under Wayland that is the only mechanism there is - a loose binary has nothing for the shell to match it against, and falls back to a generic icon. The binary is named `tribes-ascend-installer` to match the entry's filename, which is what the shell matches on.
+- The GUI draws its own window corners and shadow. An undecorated window gets neither from the desktop - the compositor won't decorate it, and GTK's own decorations are what turning decorations off removes - so it dresses itself against a transparent window, and gives up `--window-shadow` pixels per side to do it.
+- TA and TAMods settings live inside the Wine prefix, under `Prefix/pfx/drive_c/users/`, because that's where the game looks for its Documents folder. Uninstalling removes them along with everything else, whereas on Windows they sit in your real Documents folder and survive an uninstall. Copy that directory out first if you want to keep your game settings.
+
+`install` reports anything about the machine that would get in the way (eg, a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled) before committing to a multi-gigabyte download. None of them stops an install. `verify` runs the same checks as well.
+
+The runtime is published separately from `manifest.json`, alongside the installation utilities and for the same reason the DirectX 9 redistributable is: the manifest describes the *game*, and is served by whatever repository `--repo` names. A custom repository shouldn't have to mirror half a gigabyte of Proton for a Linux install to work, so the runtime always comes from the official CDN regardless of `--repo`.
+
+Publish it as a `.tar.gz` rather than a `.zip` (the runtime carries symlinks and execute bits that a zip either can't represent or loses when packaged on Windows) and generate its checksum file the same way as the utilities':
 
 ```sh
-tai-cli.exe asset --path=<installer build dir> --name=Installer   # produces Installer.json
+tai-cli asset --path=<extracted runtime> --name=Runtime   # produces Runtime.json
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root.
+Publish both `Runtime.tar.gz` and `Runtime.json` under `/runtime/` on the CDN. `verify` fetches the checksums, and replaces the whole runtime if any file fails - which is also how a newly pinned Proton build reaches existing installations.
+
+#### Graphics Drivers
+
+The game is a 32-bit program, so it needs the 32-bit build of your graphics card's Vulkan driver. The compatibility layer's container supplies its own 32-bit system libraries, but the graphics drivers can't come from the container - they have to match the running kernel, so they're taken from the host. Without them the game exits silently during startup. TAI checks for this case and prints the exact commands for your distribution, but can't actually run the commands itself. On Debian and Ubuntu the commands are:
+
+```sh
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install libvulkan1:i386 mesa-vulkan-drivers:i386 libgl1-mesa-dri:i386
+```
+
+### Installation utilities
+
+Alongside the game, TAI installs a small set of helper executables into the `Installer` directory.
+
+| Utility     | Windows | Linux | Purpose                                                                                                                           |
+| :---------- | :------ | :---- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `tai-cli`   | ✓       | ✓     | A local copy of TAI CLI.                                                                                                          |
+| `play`      | ✓       | ✓     | Launches the game. All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
+| `uninstall` | ✓       |       | Allows the game to be uninstalled via the Control Panel or the Settings menu. On Linux this action is handled by desktop entries. |
+| `update`    | ✓       |       | Allows the game to be updated via a simple double-click. On Linux this action is handled by desktop entries.                      |
+| `verify`    | ✓       |       | Allows the game files to be verified via a simple double-click. On Linux this action is handled by desktop entries.               |
+
+Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
+```sh
+./utilities/build.sh
+```
+
+<details>
+<summary>Manual steps</summary>
+
+On Linux, `icon.png` is also included in this directory. Desktop entries can't read icons out of a Windows executable, whereas a Windows shortcut can. It is extracted from `TribesAscend.exe` at release time:
+
+```sh
+wrestool -x --type=group_icon --output=tribes.ico Binaries/Win32/TribesAscend.exe
+icotool --list tribes.ico          # Check what icon sizes exist in the executable.
+icotool --extract --index=1 --output=icon.png tribes.ico
+```
+
+The icon size doesn't matter; `install` reads the PNG's dimensions and files it under the matching `hicolor` size directory, it just needs to be a PNG. `verify` checks these files too, and offers to repair any that are damaged (re-downloading the package and, for an executable that's currently running, replacing it after the `verify` window is closed).
+
+Their checksums are **not** compiled into `tai-cli.exe` - that would be circular, since the checksum of `tai-cli.exe` can't be known until after it's built. Instead they're published on the CDN and fetched at verify time. When cutting a release, after building the executables into a directory, generate the checksum file and publish it next to `Installer.zip`:
+
+```sh
+tai-cli.exe asset --path=<installer build dir> --name=Installer
+```
+
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so `tai-cli` and `play` keep their execute bits.
+
+Build `play.exe` for Windows, configured so starting the game doesn't flash up a console window:
+
+```sh
+GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
+```
+
+The `play` utility writes to `Logs/launcher.txt` inside the installation, replacing it on each launch. The log includes output from the compatibility layer as well.
+The other three utilities print their output to the console window they were launched from.
+
+</details>
+
+### Building
+
+The GUI embeds the CLI, and the embedded binary is gitignored. A fresh repository clone can't compile the Rust crate until it has been built:
+
+```sh
+cd gui
+npm ci
+npm run build-sidecar        # cross-compile with GOOS=linux / GOOS=windows
+npm run tauri build          # `pretauri` runs build-sidecar for you
+```
+
+Building the GUI on Linux needs the WebKitGTK stack: `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`, `libdbus-1-dev`, `patchelf`, and `rpm` for the `.rpm` bundle. CI builds both platforms on every push.

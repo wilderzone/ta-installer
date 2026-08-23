@@ -22,6 +22,11 @@
 	--gap-s: 12px;
 	--gap-m: 24px;
 	--input-height: 30px;
+	--window-border-color: #343537;
+	--window-border-radius: 10px;
+	/* The margin the window's shadow is drawn into. It's taken out of the window rather than
+	   added to it, so the content area is this much smaller per side on Linux. */
+	--window-shadow: 14px;
 }
 
 * {
@@ -45,6 +50,20 @@ body {
 	height: 100%;
 	margin: 0;
 	padding: var(--gap-m);
+}
+
+/* Linux Window decorations. */
+:root.linux {
+	padding: var(--window-shadow);
+	background-color: transparent;
+
+	& body {
+		border: 1px solid var(--window-border-color);
+		border-radius: var(--window-border-radius);
+		background-color: var(--color-background);
+		box-shadow: 0 2px 10px -2px #000a;
+		contain: layout;
+	}
 }
 
 .column {

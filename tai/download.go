@@ -1,11 +1,14 @@
 package main
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -152,12 +155,63 @@ func download(ctx context.Context, repo string, root string, asset Asset, progre
 	return nil
 }
 
+// unpack expands a downloaded archive into the installation. The archive format is taken
+// from the asset's source name rather than sniffed, so a mislabelled asset fails loudly
+// instead of being unpacked as something it isn't.
 func unpack(ctx context.Context, root string, archivePath string, asset Asset) error {
 	destination := filepath.Join(root, asset.Destination)
 	err := os.MkdirAll(destination, os.FileMode(0777))
 	if err != nil {
 		return fmt.Errorf("create destination directory: %w", err)
 	}
+
+	source := strings.ToLower(asset.Source)
+	switch {
+		case strings.HasSuffix(source, ".tar.gz"), strings.HasSuffix(source, ".tgz"):
+			return unpackTar(ctx, destination, archivePath)
+
+		default:
+			return unpackZip(ctx, destination, archivePath)
+	}
+}
+
+// resolveArchivePath joins an entry name onto the destination and rejects anything that
+// would escape it, which is how an archive smuggles files into the rest of the filesystem.
+func resolveArchivePath(destination string, name string) (string, error) {
+	path := filepath.Join(destination, name)
+	isWithinDestination := strings.HasPrefix(path, filepath.Clean(destination) + string(os.PathSeparator))
+	if !isWithinDestination {
+		return "", fmt.Errorf("illegal path in archive: %q", name)
+	}
+	return path, nil
+}
+
+// writeArchiveFile writes one entry's content. The mode comes from the archive: on Linux an
+// executable that arrives without its execute bit is unusable, and both the CLI installed
+// into the utilities directory and the compatibility runtime's binaries depend on it.
+func writeArchiveFile(path string, mode os.FileMode, content io.Reader) error {
+	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0777))
+	if err != nil {
+		return err
+	}
+	// Truncating an existing file would fail with ETXTBSY if it happened to be running,
+	// and would leave the old permissions in place.
+	err = os.Remove(path)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	output, err := os.OpenFile(path, os.O_WRONLY | os.O_CREATE | os.O_EXCL, mode.Perm())
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(output, content)
+	if closeErr := output.Close(); err == nil {
+		err = closeErr
+	}
+	return err
+}
+
+func unpackZip(ctx context.Context, destination string, archivePath string) error {
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return fmt.Errorf("open archive: %w", err)
@@ -171,11 +225,9 @@ func unpack(ctx context.Context, root string, archivePath string, asset Asset) e
 			return err
 		}
 
-		// Prevent zip-slips.
-		path := filepath.Join(destination, file.Name)
-		isWithinDestination := strings.HasPrefix(path, filepath.Clean(destination) + string(os.PathSeparator))
-		if !isWithinDestination {
-			return fmt.Errorf("illegal path in archive: %q", file.Name)
+		path, err := resolveArchivePath(destination, file.Name)
+		if err != nil {
+			return err
 		}
 
 		// Handle directories.
@@ -187,28 +239,113 @@ func unpack(ctx context.Context, root string, archivePath string, asset Asset) e
 			continue
 		}
 
-		// Open the destination file.
-		output, err := os.Create(path)
-		if err != nil {
-			return fmt.Errorf("create %s: %w", file.Name, err)
-		}
-
-		// Open the archived file.
 		archived, err := file.Open()
 		if err != nil {
-			output.Close()
 			return fmt.Errorf("read %s from archive: %w", file.Name, err)
 		}
-
-		// Copy the file content.
-		_, err = io.Copy(output, archived)
-		output.Close()
+		// A zip written on Windows carries no Unix permissions at all, so fall back to
+		// a readable, writable file rather than creating an unreadable one.
+		mode := file.Mode().Perm()
+		if mode == 0 {
+			mode = os.FileMode(0666)
+		}
+		err = writeArchiveFile(path, mode, archived)
 		archived.Close()
-
 		if err != nil {
 			return fmt.Errorf("write %s: %w", file.Name, err)
 		}
 	}
 
 	return nil
+}
+
+// unpackTar expands a gzipped tar. The compatibility runtime ships as one: it carries
+// symlinks and execute bits that a zip either can't represent or loses on the way through a
+// Windows packaging step, and it keeps the published archive byte-identical to upstream's.
+func unpackTar(ctx context.Context, destination string, archivePath string) error {
+	file, err := os.Open(archivePath)
+	if err != nil {
+		return fmt.Errorf("open archive: %w", err)
+	}
+	defer file.Close()
+	decompressed, err := gzip.NewReader(file)
+	if err != nil {
+		return fmt.Errorf("open archive: %w", err)
+	}
+	defer decompressed.Close()
+
+	reader := tar.NewReader(decompressed)
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		header, err := reader.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("read archive: %w", err)
+		}
+
+		path, err := resolveArchivePath(destination, header.Name)
+		if err != nil {
+			return err
+		}
+
+		switch header.Typeflag {
+			case tar.TypeDir:
+				err = os.MkdirAll(path, os.FileMode(0777))
+				if err != nil {
+					return fmt.Errorf("create directory %s: %w", header.Name, err)
+				}
+
+			case tar.TypeReg:
+				err = writeArchiveFile(path, os.FileMode(header.Mode), reader)
+				if err != nil {
+					return fmt.Errorf("write %s: %w", header.Name, err)
+				}
+
+			case tar.TypeSymlink:
+				err = writeArchiveLink(destination, path, header.Linkname)
+				if err != nil {
+					return fmt.Errorf("link %s: %w", header.Name, err)
+				}
+
+			case tar.TypeLink:
+				target, err := resolveArchivePath(destination, header.Linkname)
+				if err != nil {
+					return err
+				}
+				_ = os.Remove(path)
+				err = os.Link(target, path)
+				if err != nil {
+					return fmt.Errorf("link %s: %w", header.Name, err)
+				}
+		}
+	}
+
+	return nil
+}
+
+// writeArchiveLink creates a symlink, rejecting one that points outside the destination.
+// An absolute or upward-reaching target would let an archive overwrite files elsewhere on
+// the system the next time anything wrote through the link.
+func writeArchiveLink(destination string, path string, target string) error {
+	if filepath.IsAbs(target) {
+		return fmt.Errorf("illegal absolute link target: %q", target)
+	}
+	resolved := filepath.Join(filepath.Dir(path), target)
+	if !strings.HasPrefix(resolved, filepath.Clean(destination) + string(os.PathSeparator)) {
+		return fmt.Errorf("illegal link target: %q", target)
+	}
+	err := os.Remove(path)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	err = os.MkdirAll(filepath.Dir(path), os.FileMode(0777))
+	if err != nil {
+		return err
+	}
+	return os.Symlink(target, path)
 }

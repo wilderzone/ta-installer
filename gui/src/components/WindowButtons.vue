@@ -88,3 +88,13 @@ async function close(): Promise<void> {
 	}
 }
 </style>
+
+<style>
+:root.linux .window-title-bar {
+	border-radius: calc(var(--window-border-radius) - 1px) calc(var(--window-border-radius) - 1px) 0 0;
+
+	& .window-buttons .close {
+		border-radius: 0 calc(var(--window-border-radius) - 1px) 0 0;
+	}
+}
+</style>

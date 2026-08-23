@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 
 	"wilderzone.org/tai/internal/assets"
 )
@@ -215,8 +214,7 @@ func runningInsideUtilities(root string) bool {
 	if resolved, err := filepath.EvalSymlinks(utilities); err == nil {
 		utilities = resolved
 	}
-	// Compare case-insensitively: Windows paths aren't case-sensitive.
-	return strings.EqualFold(filepath.Dir(self), utilities)
+	return samePath(filepath.Dir(self), utilities)
 }
 
 // assetFilePaths returns the set of on-disk paths for every file in the given assets.

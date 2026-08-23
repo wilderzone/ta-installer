@@ -56,17 +56,34 @@ export function pathEndsWithTA(path: string): boolean {
 	return /[\\\/]Tribes Ascend[\\\/]?$/.test(path);
 }
 
+/**
+ * The path separator this platform uses.
+ * Read once at startup: it can't change while the app is running, and every path helper
+ * below is synchronous because the components that call them are.
+ */
+let separator = '/';
+export function usePathSeparator(value: string): void {
+	separator = value;
+}
+
 /** Normalise the given path such that the final segment is "Tribes Ascend". */
 export function normalisePath(path: string): string {
 	if (pathEndsWithTA(path)) return path;
-	else return `${path}\\Tribes Ascend`.replaceAll(/[\\\/]+/g, '\\');
+	return `${path}${separator}Tribes Ascend`.replaceAll(/[\\\/]+/g, separator);
 }
 
 /** Get the parent directory of the given path. */
 export function parentDirectory(path: string): string {
-	const segments = path.replace(/[\\\/]$/, '').split(/[\\\/]/);
+	const trimmed = path.replace(/[\\\/]$/, '');
+	const segments = trimmed.split(/[\\\/]/);
 	segments.pop();
-	return segments.join('\\');
+	const parent = segments.join(separator);
+	// A top-level path leaves nothing behind. Its parent is the filesystem root, which
+	// exists - returning an empty string would fail any existence checks that follow.
+	if (!parent) {
+		return separator === '/' ? '/' : trimmed;
+	}
+	return parent;
 }
 
 /**

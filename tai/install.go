@@ -11,6 +11,16 @@ import (
 
 // Handle the "install" command.
 func Install(ctx context.Context, logger *Logger, arguments arguments) error {
+	// Report anything about this machine that would stop the game running while the user
+	// can still act on it, rather than after several gigabytes have been downloaded.
+	preflightSuccessful := preflight(logger)
+	if !preflightSuccessful {
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+		if !proceed {
+			return userErrorf(nil, "Install cancelled.")
+		}
+	}
+
 	manifest, err := getManifest(ctx, logger, arguments.repo)
 	if err != nil {
 		return userErrorf(err, "Couldn't download the game files from %s. Check your internet connection and that the repository URL is correct.", arguments.repo)

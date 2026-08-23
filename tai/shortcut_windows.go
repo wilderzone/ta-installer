@@ -75,23 +75,28 @@ func getSpecialFolder(folder string) (string, error) {
 	return path, nil
 }
 
-// createShortcuts creates shortcuts to the game executable. The shortcuts are
-// placed in the game's install directory, the Start Menu, and on the user's Desktop,
-// and are preconfigured with the community server's host parameter.
+// createShortcuts creates shortcuts that launch the game. The shortcuts are placed in the
+// game's install directory, the Start Menu, and on the user's Desktop.
+//
+// They run the play utility rather than the game directly, so that a shortcut written by an
+// older installation keeps working if the game's launch mechanism is ever changed.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
-	target := filepath.Join(cwd, "TribesAscend.exe")
-	icon := fmt.Sprintf("%s,0", target)
-	logs := filepath.Join(root, LOGS_DIRECTORY, LOG_NAME)
+	icon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
+	launcher := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)
+
+	if !fileExists(launcher) {
+		return fmt.Errorf("create shortcuts: the play utility is missing")
+	}
 
 	sc := shortcut.Shortcut{
 		ShortcutPath:     "",
-		Target:           target,
+		Target:           launcher,
 		IconLocation:     icon,
-		Arguments:        fmt.Sprintf(SHORTCUT_ARGUMENTS, logs),
+		Arguments:        "",
 		Description:      SHORTCUT_DESCRIPTION,
 		Hotkey:           "",
-		WindowStyle:      "1",
+		WindowStyle:      "7", // Minimised, in case the launcher was built with a console.
 		WorkingDirectory: cwd,
 	}
 

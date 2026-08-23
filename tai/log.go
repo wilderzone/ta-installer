@@ -125,7 +125,18 @@ var (
 	REDOWNLOADING             = LogLine{Type: "REDOWNLOADING", Message: "Redownloading..."}
 	REPO_FOUND                = LogLine{Type: "REPO_FOUND", Message: "Repository found."}
 	REPO_NOT_FOUND            = LogLine{Type: "REPO_NOT_FOUND", Message: "Repository not found."}
-	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. You may need to re-run the installer with admin permissions to create shortcuts."}
+	RUNTIME_CHECK_FAILED      = LogLine{Type: "RUNTIME_CHECK_FAILED", Message: "The compatibility layer may not run on this system:"}
+	RUNTIME_CHECK_SKIPPED     = LogLine{Type: "RUNTIME_CHECK_SKIPPED", Message: "Couldn't check the compatibility layer:"}
+	RUNTIME_DAMAGED           = LogLine{Type: "RUNTIME_DAMAGED", Message: "The compatibility layer is damaged:"}
+	RUNTIME_DOWNLOADING       = LogLine{Type: "RUNTIME_DOWNLOADING", Message: "Downloading the compatibility layer..."}
+	RUNTIME_DRIVERS_HINT      = LogLine{Type: "RUNTIME_DRIVERS_HINT", Message: fmt.Sprintf("%s is a 32-bit program, so it needs 32-bit drivers for your graphics card. Install them with:", PRODUCT_NAME)}
+	RUNTIME_MISSING           = LogLine{Type: "RUNTIME_MISSING", Message: "The compatibility layer is missing. Run \"install\" or \"verify\" to restore it."}
+	RUNTIME_PREPARE_FAILED    = LogLine{Type: "RUNTIME_PREPARE_FAILED", Message: "Couldn't prepare the compatibility layer. It will be prepared the first time the game is started."}
+	RUNTIME_PREPARING         = LogLine{Type: "RUNTIME_PREPARING", Message: "Preparing the compatibility layer..."}
+	RUNTIME_READY             = LogLine{Type: "RUNTIME_READY", Message: "Compatibility layer ready."}
+	RUNTIME_REPAIRED          = LogLine{Type: "RUNTIME_REPAIRED", Message: "Replaced the compatibility layer."}
+	RUNTIME_VERIFIED          = LogLine{Type: "RUNTIME_VERIFIED", Message: "Compatibility layer verified."}
+	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. " + SHORTCUTS_FAILURE_HINT}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
 	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}
 	UNINSTALL_DEPENDENTS      = LogLine{Type: "UNINSTALL_DEPENDENTS", Message: "Uninstalling the selected assets will also remove these assets:"}
@@ -144,7 +155,7 @@ var (
 	UPDATE_SUCCESS            = LogLine{Type: "UPDATE_SUCCESS", Message: "Updated."}
 	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
 	UTILITIES_DAMAGED         = LogLine{Type: "UTILITIES_DAMAGED", Message: "Installation utilities are damaged:"}
-	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't setup the installation utilities package. Uninstalling the game via the Windows Settings menu or Control Panel may not be possible."}
+	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't setup the installation utilities package. " + UTILITIES_FAILURE_HINT}
 	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "These utilities are in use and will be replaced after this window is closed:"}
 	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
@@ -383,6 +394,18 @@ func (l *Logger) log(message LogLine, additional ...any) {
 	if l.spinner != nil {
 		l.spinner.draw()
 	}
+}
+
+// event writes a line as JSON for an interface to act on, alongside any readable lines that have
+// already been written.
+//
+// Only the value is sent, and only under -p, not -m where log already writes all lines as JSON.
+func (l *Logger) event(message LogLine, value ...any) {
+	if !l.progress || l.machine {
+		return
+	}
+	message.Message = strings.TrimSpace(fmt.Sprint(value...))
+	l.logProgress(message)
 }
 
 // logProgress writes a line describing a download in flight. Unlike the ordinary log

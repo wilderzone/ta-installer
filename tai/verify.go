@@ -52,9 +52,16 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 		}
 	}
 
-	// Also verify the installation utilities (tai-cli.exe and friends), whose checksums are
-	// fetched from the CDN, separately from the game manifest.
+	// Also verify the packages that live outside the game manifest, whose checksums are
+	// fetched from the CDN: the installation utilities, and the Linux compatibility layer.
 	verifyUtilities(ctx, logger, arguments)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	preflight(logger)
+
+	verifyRuntime(ctx, logger, arguments)
 	if err := ctx.Err(); err != nil {
 		return err
 	}
