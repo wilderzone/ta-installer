@@ -1,4 +1,4 @@
 *.exe
-/gui/src-tauri/binaries/
+/gui/src-tauri/binaries
 /tai/tai
 /utilities/dist
