@@ -89,14 +89,17 @@ export function homeScene(canvas?: HTMLCanvasElement): () => void {
 
 	// Slowly rotate the model clockwise.
 	base.scene.beforeRender = () => {
-		vehicleModel?.rotate(new Vector3(0, 1, 0), 0.0005, Space.WORLD);
+		const deltaTime = base.scene.deltaTime || 0;
+		const rotation = 0.00005 * deltaTime;
+		vehicleModel?.rotate(new Vector3(0, 1, 0), rotation, Space.WORLD);
 
 		// Animate the glow texture.
 		if (glbModel) {
+			const distance = 0.00003 * deltaTime;
 			// @ts-ignore
-			glowMaterial.diffuseTexture.vOffset -= 0.0002;
+			glowMaterial.diffuseTexture.vOffset -= distance;
 			// @ts-ignore
-			glowMaterial.diffuseTexture.vOffset -= 0.0002;
+			glowMaterial.diffuseTexture.vOffset -= distance;
 		}
 	};
 
