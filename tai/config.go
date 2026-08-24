@@ -1,6 +1,6 @@
 package main
 
-const DEFAULT_REPO = "https://cdn.wilderzone.live/ta"
+const DEFAULT_REPO = "https://cdn.wilderzone.live/ta/game"
 const GAME_BINARY_NAME = "TribesAscend.exe"
 const MANIFEST_NAME = "manifest.json"
 const PRODUCT_NAME = "Tribes: Ascend"
