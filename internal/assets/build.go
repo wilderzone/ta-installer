@@ -35,11 +35,16 @@ func CreateAsset(path string, name string) (Asset, error) {
 			if err != nil {
 				return err
 			}
+			info, err := entry.Info()
+			if err != nil {
+				return err
+			}
 			file := File{
 				Checksum: checksum,
 				File:     path,
 			}
 			asset.Files = append(asset.Files, file)
+			asset.UnpackedSize += uint64(info.Size())
 		}
 
 		return nil

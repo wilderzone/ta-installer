@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -56,11 +57,22 @@ func getManifest(ctx context.Context, logger *Logger, repo string) (Manifest, er
 
 // Handle the "asset" command.
 func GenerateAssetFile(logger *Logger, arguments arguments) error {
+	// Create the asset.
 	asset, err := assets.CreateAsset(arguments.path, arguments.name)
 	if err != nil {
 		return userErrorf(err, "Couldn't read the files in %s to build the asset.", arguments.path)
 	}
-	path := filepath.Join(arguments.path, arguments.name + ".json")
+
+	// Create the archive.
+	archive, size, err := compressAsset(arguments.path, arguments.name)
+	if err != nil {
+		return userErrorf(err, "Couldn't create the asset archive at %s.", archive)
+	}
+	asset.PackedSize = size
+
+	// Create the JSON file.
+	parent := filepath.Dir(arguments.path)
+	path := filepath.Join(parent, arguments.name + ".json")
 	file, err := os.Create(path)
 	if err != nil {
 		return userErrorf(err, "Couldn't create the asset file at %s.", path)
@@ -72,9 +84,45 @@ func GenerateAssetFile(logger *Logger, arguments arguments) error {
 	if err != nil {
 		return userErrorf(err, "Couldn't write the asset file at %s.", path)
 	}
-	message := fmt.Sprintf("Created asset containing %d %s: %s", len(asset.Files), logger.plural(len(asset.Files), "file", "files"), path)
+
+	message := fmt.Sprintf("Created asset containing %d %s:", len(asset.Files), logger.plural(len(asset.Files), "file", "files"))
+	message += fmt.Sprintf("\n  %s", path)
+	message += fmt.Sprintf("\n  %s", archive)
+	if size == 0 {
+		message += "\nThe packed size needs to be entered manually."
+	}
 	logger.log(ASSET_CREATED, message)
 	return nil
+}
+
+// compressAsset creates a zip file containing all files in the provided path.
+// The zip file is created in the parent directory of path.
+// Returns the full path and size of the zip file.
+func compressAsset(path string, name string) (string, uint64, error) {
+	parent := filepath.Dir(path)
+	destination := filepath.Join(parent, name + ".zip")
+	file, err := os.Create(destination)
+	if err != nil {
+		return destination, 0, err
+	}
+	defer file.Close()
+
+	directory := os.DirFS(path)
+	writer := zip.NewWriter(file)
+	err = writer.AddFS(directory)
+	if err != nil {
+		return destination, 0, err
+	}
+	writer.Close()
+
+	info, err := file.Stat()
+	if err == nil {
+		size := info.Size()
+		return destination, uint64(size), nil
+	}
+
+	// The file size is not critical, so don't return stat errors.
+	return destination, 0, nil
 }
 
 // Handle the "manifest" command.
