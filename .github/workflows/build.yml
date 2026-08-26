@@ -71,11 +71,13 @@ jobs:
         with:
           name: tai-utilities
           path: |
-            utilities/dist/Linux/Installer-linux-amd64.json
-            utilities/dist/Linux/Installer-linux-amd64.zip
-            utilities/dist/Windows/Installer-windows-amd64.json
-            utilities/dist/Windows/Installer-windows-amd64.zip
-          if-no-files-found: warn
+            utilities/dist/Installer-linux-amd64.json
+            utilities/dist/Installer-linux-amd64.zip
+            utilities/dist/Installer-windows-amd64.json
+            utilities/dist/Installer-windows-amd64.zip
+          # A build that produced no package is a failed build, not a warning: the
+          # packages are the only reason this job runs.
+          if-no-files-found: error
 
   gui:
     name: GUI (${{ matrix.os }})
