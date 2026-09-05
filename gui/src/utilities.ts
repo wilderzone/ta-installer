@@ -86,6 +86,39 @@ export function parentDirectory(path: string): string {
 	return parent;
 }
 
+/** Debounce calls for the provided async function. */
+export class AsyncDebounce<T> {
+	private readonly callback: (value: T) => Promise<void>;
+	private next: T | undefined = undefined;
+	private pending = false;
+
+	constructor(callback: (value: T) => Promise<void>) {
+		this.callback = callback;
+	}
+
+	/** Proceed to the next `callback` call. */
+	private async continue(): Promise<void> {
+		if (this.pending) return;
+
+		this.pending = true;
+		const value = this.next!;
+		await this.callback(value);
+		this.pending = false;
+		if (this.next !== value) {
+			void this.continue();
+		}
+	}
+
+	/**
+	 * Call `callback` with the provided value. If a `callback` is
+	 * already pending, this call will wait for it to complete.
+	 */
+	public call(value: T): void {
+		this.next = value;
+		void this.continue();
+	}
+}
+
 /**
  * A rolling estimate of how much longer a transfer has left to run.
  * The rate is measured across a window of recent samples rather than the whole transfer,
