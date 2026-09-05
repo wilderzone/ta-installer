@@ -1,7 +1,8 @@
 import { DEV } from './dev';
 
 export function cdn(path: string) {
-	return new URL(path, 'https://cdn.wilderzone.org/');
+	const base = DEV ? 'http://localhost:3000/' : 'https://cdn.wilderzone.org/';
+	return new URL(path, base);
 }
 
 export enum AppWindow {
@@ -30,7 +31,7 @@ export function usePlatform(separator: string): void {
 	isWindows = separator === '\\';
 }
 export const models = ['GravCycle', 'GravCycle', 'Shrike', 'Beowulf'];
-export const repository = DEV ? 'http://localhost:3000/ta/game' : 'https://cdn.wilderzone.org/ta/game';
+export const repository = cdn('ta/game').href;
 export const assetInclusions: Record<string, Array<string>> = {
 	vanilla: ['core','Air Arena','Arx Novena','Bella Omega','Blueshift','Canyon Crusade Revival','Crossfire','Dangerous Crossing','Drydock','Fraytown','Hellfire','Hinterland','Ice Coaster','Katabatic','Lavarena','Perdition','Permafrost','Raindance','Stonehenge','Tartarus','Temple Ruins','Terminus','Undercroft','Walledin','Whiteout'],
 	modded: [],
