@@ -76,7 +76,7 @@ export class Model {
 	}
 
 	public get directory(): URL {
-		return cdn(`tar/streaming/models/${this.internalName}/`);
+		return cdn(`ta/game/installer/models/${this.internalName}/`);
 	}
 
 	public get file(): string {
@@ -84,7 +84,7 @@ export class Model {
 	}
 
 	public get model(): URL {
-		return cdn(`tar/streaming/models/${this.internalName}/${this.file}`);
+		return cdn(`ta/game/installer/models/${this.internalName}/${this.file}`);
 	}
 
 	public static fromJSON(data: any): Model {
