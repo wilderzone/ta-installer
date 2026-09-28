@@ -12,6 +12,45 @@ export default defineConfig({
 		logo: '/assets/logo.png',
 
 		sidebar: [
+			{
+				text: 'Overview',
+				link: '/',
+				items: [
+					{ text: 'Glossary', link: '/#glossary' }
+				]
+			},
+			{
+				text: 'CLI',
+				base: '/cli',
+				link: '/',
+				items: [
+					{ text: 'Subcommands', link: '/subcommands' },
+					{ text: 'Options', link: '/options' },
+					{ text: 'Output', link: '/output' },
+					{ text: 'Dependency Resolution', link: '/dependency-resolution' }
+				]
+			},
+			{
+				text: 'GUI',
+				base: '/gui',
+				link: '/',
+				items: [
+					{ text: 'Game Type', link: '/game-type' },
+					{ text: 'Location', link: '/location' },
+					{ text: 'Action', link: '/action' }
+				]
+			},
+			{
+				text: 'Development',
+				base: '/development',
+				link: '/',
+				items: [
+					{ text: 'Project Structure', link: '/project-structure' },
+					{ text: 'Running on Linux', link: '/running-on-linux' },
+					{ text: 'Installation Utilities', link: '/installation-utilities' },
+					{ text: 'Building', link: '/building' }
+				]
+			}
 		],
 
 		socialLinks: [
