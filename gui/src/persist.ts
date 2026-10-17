@@ -7,11 +7,13 @@ const directory = 'Installer';
 
 interface TAIGUIData {
 	selectedVariant: string;
+	shortcuts: boolean;
 }
 
 export async function saveData(): Promise<void> {
 	const data: TAIGUIData = {
-		selectedVariant: store.variant
+		selectedVariant: store.variant,
+		shortcuts: store.createShortcuts
 	};
 	try {
 		// TAI creates this directory when it downloads the installation utilities, which an
@@ -32,7 +34,8 @@ export async function loadData(): Promise<TAIGUIData | undefined> {
 		const data = JSON.parse(text);
 		if (!data) return undefined;
 		const safe: TAIGUIData = {
-			selectedVariant: parseVariant(data.selectedVariant)
+			selectedVariant: parseVariant(data.selectedVariant),
+			shortcuts: Boolean(data.shortcuts)
 		};
 		return safe;
 	} catch (error) {

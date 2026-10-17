@@ -98,7 +98,7 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 		err := createUninstallShortcut(arguments.path)
 		logger.detail("create uninstall shortcut", err)
 		// Add the uninstall utility to the Registry so the game can be uninstalled through Windows.
-		err = addUninstallerToRegistry(arguments.path)
+		err = addUninstallerToRegistry(arguments.path, true)
 		logger.detail("add uninstaller to registry", err)
 		if err != nil {
 			logger.log(UTILITIES_FAILURE)
@@ -156,7 +156,7 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 
 	// Recalculate the size of the installation.
 	if utilitiesErr == nil {
-		err := addUninstallerToRegistry(arguments.path)
+		err := addUninstallerToRegistry(arguments.path, true)
 		logger.detail("add uninstaller to registry", err)
 	}
 

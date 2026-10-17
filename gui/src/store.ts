@@ -219,6 +219,7 @@ const useStore = defineStore('application', () => {
 			if (state === DirectoryState.Installed || state === DirectoryState.NeedsUpdate) {
 				const data = await loadData();
 				store.pathVariant = data?.selectedVariant ?? '';
+				store.createShortcuts = data?.shortcuts ?? true;
 				manifest.local = await TAI.getLocalManifest(workingPath);
 				for (const asset of manifest.local?.assets ?? []) {
 					selectedCustomAssets.value.add(asset.name);
