@@ -13,5 +13,5 @@ This executable can be bundled with your application. See the [GUI package](http
 :::
 
 :::info
-A [graphical version of TAI](/gui) is also provided in case you are not familiar with the command-line.
+A [graphical version of TAI](/gui/index) is also provided in case you are not familiar with the command-line.
 :::
