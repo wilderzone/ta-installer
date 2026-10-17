@@ -63,7 +63,14 @@ async function openAssetSelector(): Promise<void> {
 		>Edit</button>
 		<p v-if="loading.value.value" class="grey">Checking...</p>
 		<p v-else-if="store.repositoryFound" class="green">Game files available.</p>
-		<p v-else-if="!store.repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
+		<p v-else-if="!store.repositoryFound" class="red">
+			Game files could not be found. Please check your internet connection.
+			<button
+				class="retry-button"
+				:disabled="loading.value.value"
+				@click="store.refreshRepository()"
+			>Retry</button>
+		</p>
 	</fieldset>
 </template>
 
@@ -90,6 +97,12 @@ async function openAssetSelector(): Promise<void> {
 
 	& > p {
 		grid-area: info;
+	}
+
+	& .retry-button {
+		min-width: unset;
+		min-height: unset;
+		color: var(--color-text);
 	}
 }
 </style>

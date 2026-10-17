@@ -300,6 +300,7 @@ const useStore = defineStore('application', () => {
 		progressMax,
 		progressValue,
 		refreshDirectory,
+		refreshRepository,
 		repositoryFound,
 		requiredCustomAssets,
 		run,
