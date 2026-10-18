@@ -42,6 +42,7 @@ import { store } from '../store';
 <style scoped>
 .steps {
 	width: 100%;
+	min-width: 0;
 
 	& ol {
 		display: flex;
@@ -58,7 +59,7 @@ import { store } from '../store';
 	align-items: center;
 	gap: var(--gap-m);
 	width: 100%;
-	min-width: 20ch;
+	min-width: 0;
 	padding: var(--gap-s);
 	text-transform: capitalize;
 	border-radius: var(--border-radius);
