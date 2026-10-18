@@ -4,7 +4,7 @@ import { computed, inject, Ref } from 'vue';
 const props = defineProps<{
 	disabled?: boolean | string;
 	image?: string;
-	label: string;
+	label?: string;
 	sublabel?: string;
 	value: string;
 }>();
@@ -38,10 +38,10 @@ function change(event: Event, value: string): void {
 		:title="disabledMessage"
 	>
 		<img v-if="image" :src="image" height="48" alt="" draggable="false">
-		<span class="label">
-			{{ label }}
-			<span v-if="sublabel" class="sublabel">{{ sublabel }}</span>
-		</span>
+		<div class="text">
+			<span class="label"><slot name="label">{{ label }}</slot></span>
+			<span class="sublabel"><slot name="sublabel">{{ sublabel }}</slot></span>
+		</div>
 		<input
 			type="radio"
 			:id="`${hash}-${value}`"
@@ -104,16 +104,16 @@ function change(event: Event, value: string): void {
 		filter: saturate(0.85) brightness(1.2);
 	}
 
-	& .label {
+	& .text {
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-	}
 
-	& .sublabel {
-		color: var(--color-text-dim);
-		font-size: 0.8rem;
+		& .sublabel {
+			color: var(--color-text-dim);
+			font-size: 0.8rem;
+		}
 	}
 
 	& input {
