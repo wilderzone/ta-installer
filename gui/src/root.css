@@ -35,6 +35,7 @@
 	color: inherit;
 	font-size: inherit;
 	user-select: none;
+	-webkit-user-select: none;
 }
 
 html {
