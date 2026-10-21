@@ -52,8 +52,8 @@ export function formatDuration(seconds: number): string {
 }
 
 /** Check if the final segment of the given path is "Tribes Ascend". */
-export function pathEndsWithTA(path: string): boolean {
-	return /[\\\/]Tribes Ascend[\\\/]?$/.test(path);
+export function pathIsBranded(path: string): boolean {
+	return /[\\\/]Tribes Ascend[\\\/]?$/i.test(path);
 }
 
 /**
@@ -66,9 +66,9 @@ export function usePathSeparator(value: string): void {
 	separator = value;
 }
 
-/** Normalise the given path such that the final segment is "Tribes Ascend". */
-export function normalisePath(path: string): string {
-	if (pathEndsWithTA(path)) return path;
+/** Brand the given path such that the final segment is "Tribes Ascend". */
+export function brandPath(path: string): string {
+	if (pathIsBranded(path)) return path;
 	return `${path}${separator}Tribes Ascend`.replaceAll(/[\\\/]+/g, separator);
 }
 

@@ -1,5 +1,4 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { exists } from '@tauri-apps/plugin-fs';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
@@ -7,7 +6,7 @@ import { defaultInstallPath, assetInclusions, models, repository, AppWindow } fr
 import { BundleSize, Manifest } from './manifest';
 import { loadData, saveData } from './persist';
 import { Action, DirectoryState, TAI } from './tai';
-import { deduplicate, delay, Estimator, formatDuration, normalisePath, parentDirectory, pathEndsWithTA, Semaphore } from './utilities';
+import { deduplicate, delay, Estimator, formatDuration, brandPath, Semaphore } from './utilities';
 
 const useStore = defineStore('application', () => {
 	const isMainWindow = getCurrentWindow().label === AppWindow.Main;
@@ -192,33 +191,23 @@ const useStore = defineStore('application', () => {
 				return;
 			}
 
-			// Check that the chosen directory and its parent exist.
-			const parent = parentDirectory(path.value);
-			const pathExists = await exists(path.value);
-			const parentExists = await exists(parent);
-			if (!(pathExists || pathEndsWithTA(path.value)) || !parentExists) {
-				pathState.value = DirectoryState.Invalid;
-				lock.remove();
-				return;
-			}
+			// Check the chosen path with TAI.
+			const chosenPath = path.value;
+			let state = await TAI.checkPath(chosenPath);
+			let workingPath = chosenPath;
 
-			// Check the normalised path with TAI.
-			const normalisedPath = normalisePath(path.value);
-			let state = await TAI.checkPath(normalisedPath);
-			let workingPath = normalisedPath;
-	
-			// If the normalised path returns valid but not installed,
-			// check the actual chosen path for an installation instead.
+			// If the chosen path returns valid but not installed, use the branded path instead.
 			if (state === DirectoryState.Valid) {
-				state = await TAI.checkPath(path.value);
-				workingPath = path.value;
+				const brandedPath = brandPath(chosenPath);
+				state = await TAI.checkPath(brandedPath);
+				workingPath = brandedPath;
 			}
 
 			// If an installation exists, check the type and read the manifest.
-			selectedCustomAssets.value.clear();
 			if (state === DirectoryState.Installed || state === DirectoryState.NeedsUpdate) {
 				await loadData();
 				manifest.local = await TAI.getLocalManifest(workingPath);
+				selectedCustomAssets.value.clear();
 				for (const asset of manifest.local?.assets ?? []) {
 					selectedCustomAssets.value.add(asset.name);
 				}
@@ -226,6 +215,7 @@ const useStore = defineStore('application', () => {
 				store.pathVariant = '';
 			}
 
+			store.path = workingPath;
 			store.pathState = state;
 			lock.remove();
 		});
