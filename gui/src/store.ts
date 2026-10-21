@@ -183,12 +183,12 @@ const useStore = defineStore('application', () => {
 		}
 
 		nextTick(async () => {
-			loading.add();
+			const lock = loading.add();
 
 			// Reject empty paths.
 			if (!path.value) {
 				pathState.value = DirectoryState.Invalid;
-				loading.remove();
+				lock.remove();
 				return;
 			}
 
@@ -198,7 +198,7 @@ const useStore = defineStore('application', () => {
 			const parentExists = await exists(parent);
 			if (!(pathExists || pathEndsWithTA(path.value)) || !parentExists) {
 				pathState.value = DirectoryState.Invalid;
-				loading.remove();
+				lock.remove();
 				return;
 			}
 
@@ -229,7 +229,7 @@ const useStore = defineStore('application', () => {
 			}
 
 			store.pathState = state;
-			loading.remove();
+			lock.remove();
 		});
 	}
 
@@ -237,14 +237,14 @@ const useStore = defineStore('application', () => {
 	function refreshRepository(): void {
 		nextTick(async () => {
 			await loading.resolved();
-			loading.add();
+			const lock = loading.add();
 			const found = await TAI.checkRepo(repository);
 			manifest.remote = await TAI.getRemoteManifest(repository);
 			await delay(500);
 			repositoryFound.value = found;
 			requiredCustomAssets.value = new Set(TAI.determineRequiredAssets(manifest.remote?.assets ?? []).map(asset => asset.name));
 			calculateBundleSizes();
-			loading.remove();
+			lock.remove();
 		});
 	}
 
