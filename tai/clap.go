@@ -172,27 +172,68 @@ func getArguments() (arguments, error) {
 	return args, nil
 }
 
-// Validate that `path` is an absolute path for the current OS, and normalize it.
-func validatePath(path string) (string, error) {
-	if !filepath.IsAbs(path) {
-			return "", fmt.Errorf("The provided path %q must be absolute.", path)
+// evaluateSymlinks returns the path name after the evaluation of any symbolic links. Trailing nonexistent directories are included in the returned path.
+func evaluateSymlinks(path string) (string, error) {
+	// Use `strings.Split()` and `strings.Join()` instead of filepath operations, to maintain control of the raw path transformation.
+	separator := string(filepath.Separator)
+	cleanPath := filepath.Clean(path)
+	segments := strings.Split(cleanPath, separator)
+	canonicalPath := segments[0]
+	for index, segment := range segments[1:] {
+		testPath := canonicalPath + separator + segment
+		evaluatedPath, errEval := filepath.EvalSymlinks(testPath)
+
+		if errEval == nil {
+			canonicalPath = evaluatedPath
+			continue
+		}
+
+		if errors.Is(errEval, os.ErrNotExist) {
+			_, errLstat := os.Lstat(testPath)
+			// The segment doesn't exist at all.
+			if errors.Is(errLstat, os.ErrNotExist) {
+				remainder := strings.Join(segments[index + 1:], separator)
+				return canonicalPath + separator + remainder, nil
+			}
+			// The segment is a broken symlink.
+			return "", fmt.Errorf("evaluate symlinks: %s: broken symlink", testPath)
+		} else {
+			return "", fmt.Errorf("evaluate symlinks: %w", errEval)
+		}
 	}
-	return filepath.Clean(path), nil
+	return filepath.Clean(canonicalPath), nil
+}
+
+// Validate that `path` is a valid path for the current OS, and normalize it.
+func validatePath(path string) (string, error) {
+	if len(path) == 0 {
+		return "", fmt.Errorf("The provided path %q is invalid.", path)
+	}
+	cleanPath := filepath.Clean(path)
+	absolutePath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		return "", fmt.Errorf("The provided path %q is invalid.", path)
+	}
+	canonicalPath, err := evaluateSymlinks(absolutePath)
+	if err != nil {
+		return "", fmt.Errorf("The provided path %q is invalid.", path)
+	}
+	return canonicalPath, nil
 }
 
 // Validate a command that accepts either an installation path or a repo URL.
 func validatePathOrRepo(arguments *arguments) error {
-	path, pathErr := validatePath(arguments.path)
-	if pathErr == nil {
+	path, errPath := validatePath(arguments.path)
+	if errPath == nil {
 		arguments.path = path
 		return nil
 	}
-	_, repoErr := url.ParseRequestURI(arguments.repo)
-	if repoErr == nil {
+	_, errRepo := url.ParseRequestURI(arguments.repo)
+	if errRepo == nil {
 		return nil
 	}
 	if len(arguments.path) != 0 {
-		return pathErr
+		return errPath
 	} else if len(arguments.repo) != 0 {
 		return fmt.Errorf("The provided repo URL %q is not valid.", arguments.repo)
 	} else {
