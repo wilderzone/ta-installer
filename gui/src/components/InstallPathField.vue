@@ -84,6 +84,7 @@ async function browse(): Promise<void> {
 				<span v-if="store.variant === 'vanilla'">A new vanilla installation will be created here.</span>
 				<span v-else-if="store.variant === 'modded'">A new modded installation will be created here.</span>
 				<span v-else-if="store.variant === 'custom'">A new custom installation will be created here.</span>
+				<span v-else>A new installation will be created here.</span>
 			</template>
 
 			<template v-if="store.pathState === DirectoryState.NeedsUpdate">
