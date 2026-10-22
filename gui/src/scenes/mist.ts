@@ -4,7 +4,7 @@ import type { Scene } from '@babylonjs/core';
 export function createMist(scene: Scene) {
 	// Setup environment.
 	const fountain = MeshBuilder.CreateBox('mistFountain', { size: 0.01 }, scene);
-	fountain.visibility = 0;
+	fountain.isVisible = false;
 
 	// Create a particle system.
 	let particleSystem: ParticleSystem | GPUParticleSystem | undefined = undefined;
@@ -23,7 +23,7 @@ export function createMist(scene: Scene) {
 		};
 
 		if (GPUParticleSystem.IsSupported) {
-			particleSystem = new GPUParticleSystem('particles', { capacity: 50000 }, scene);
+			particleSystem = new GPUParticleSystem('particles', { capacity: 200 }, scene);
 			particleSystem.activeParticleCount = 100;
 			particleSystem.manualEmitCount = particleSystem.activeParticleCount;
 			particleSystem.minEmitBox = emitBox.from;
