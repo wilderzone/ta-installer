@@ -31,6 +31,11 @@ async function browse(): Promise<void> {
 		store.refreshDirectory();
 	}
 }
+
+function change(event: Event): void {
+	if (!(event.target instanceof HTMLInputElement)) return;
+	store.path = event.target.value;
+}
 </script>
 
 <template>
@@ -50,7 +55,8 @@ async function browse(): Promise<void> {
 			type="text"
 			class="install-path-input"
 			:disabled="loading.value.value"
-			v-model="store.path"
+			:value="store.path"
+			@change="change($event)"
 		>
 		<button
 			type="button"
