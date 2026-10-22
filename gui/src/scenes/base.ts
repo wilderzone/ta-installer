@@ -107,7 +107,7 @@ export class BaseScene {
 		// Create the rendering pipeline.
 		// At least one other effect needs to be enabled for anti-aliasing to actually get applied.
 		this.pipeline = new DefaultRenderingPipeline('default', false, this.scene, [this.camera]);
-		this.pipeline.samples = 8;
+		this.pipeline.samples = 4;
 		this.pipeline.bloomEnabled = true;
 		this.pipeline.bloomScale = 0.5;
 		this.pipeline.bloomWeight = 0.4;
