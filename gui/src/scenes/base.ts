@@ -95,6 +95,7 @@ export class BaseScene {
 		this.layer = layer;
 		this.scene = new Scene(this.engine);
 		this.scene.clearColor = new Color4(0, 0, 0, 0);
+		this.scene.skipPointerMovePicking = true;
 
 		// Camera.
 		this.camera = new ArcRotateCamera('Camera', 0, 0, 10, new Vector3(0, 0, 0), this.scene);
@@ -134,7 +135,6 @@ export class BaseScene {
 		this.shadows = new ShadowGenerator(1024, light2);
 		this.shadows.darkness = 0.00;
 		this.shadows.filter = ShadowGenerator.FILTER_POISSONSAMPLING;
-		this.shadows.mapSize = 4096;
 
 		// Glow.
 		this.glow = new GlowLayer('glow', this.scene);

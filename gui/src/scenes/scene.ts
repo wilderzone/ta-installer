@@ -42,8 +42,12 @@ export function homeScene(canvas?: HTMLCanvasElement): () => void {
 			vehicleModel.scaling = new Vector3(scale, scale, scale);
 		}
 
-		glbModel.meshes[1].receiveShadows = true;
-		base.shadows.getShadowMap()?.renderList?.push(glbModel.meshes[1]);
+		const shadowRenderList = base.shadows.getShadowMap()?.renderList;
+		for (const mesh of glbModel.meshes) {
+			mesh.receiveShadows = true;
+			mesh.doNotSyncBoundingInfo = true;
+			shadowRenderList?.push(mesh);
+		}
 
 		vehicleMaterial = getMaterial(glbModel, /MAT_VEH_GravCycle/);
 		if (vehicleMaterial instanceof PBRMaterial) {
