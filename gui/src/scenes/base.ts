@@ -60,6 +60,10 @@ class GlobalEngine {
 	}
 
 	static {
+		// Cap the framerate.
+		GlobalEngine.engine.background.maxFPS = 60;
+		GlobalEngine.engine.foreground.maxFPS = 60;
+
 		// Start the render loops.
 		GlobalEngine.engine['background'].runRenderLoop(() => {
 			for (const { layer, scene } of GlobalEngine.views) {
