@@ -109,7 +109,7 @@ export class BaseScene {
 		this.pipeline = new DefaultRenderingPipeline('default', false, this.scene, [this.camera]);
 		this.pipeline.samples = 8;
 		this.pipeline.bloomEnabled = true;
-		this.pipeline.bloomScale = 2;
+		this.pipeline.bloomScale = 0.5;
 		this.pipeline.bloomWeight = 0.4;
 
 		// Fog.
