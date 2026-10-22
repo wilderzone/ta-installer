@@ -30,8 +30,13 @@ onBeforeUnmount(() => stopScene?.());
 canvas {
 	position: fixed;
 	inset: 0;
+	width: 100vw;
+	height: 100vh;
+	border-radius: var(--window-border-radius);
+}
+
+:root.linux canvas {
 	width: calc(100vw - var(--window-shadow) * 2);
 	height: calc(100vh - var(--window-shadow) * 2);
-	border-radius: var(--window-border-radius);
 }
 </style>
