@@ -123,13 +123,15 @@ export class BaseScene {
 		const light = new HemisphericLight('light', new Vector3(0, 1, 0), this.scene);
 		light.intensity = 0.25;
 		const light2 = new DirectionalLight('directionalLight', new Vector3(0, -10, -1), this.scene);
-		light2.position = new Vector3(0, 2, 5);
+		light2.position = new Vector3(0, 2, 0);
 		light2.intensity = 15;
 		light2.autoUpdateExtends = false;
-		light2.orthoLeft = -2;
-		light2.orthoRight = 12;
-		light2.orthoTop = 12;
-		light2.orthoBottom = -2;
+		light2.orthoLeft = -1;
+		light2.orthoRight = 1;
+		light2.orthoTop = 1;
+		light2.orthoBottom = -1;
+		light2.shadowMinZ = 1;
+		light2.shadowMaxZ = 4;
 		this.lights.push(light);
 		this.lights.push(light2);
 
