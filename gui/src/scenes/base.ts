@@ -143,7 +143,7 @@ export class BaseScene {
 		// Glow.
 		this.glow = new GlowLayer('glow', this.scene);
 		this.glow.intensity = 2.0;
-		this.glow.blurKernelSize = 64;
+		this.glow.blurKernelSize = 32;
 
 		// Optimizer.
 		this.optimizer = new Optimizer(this.engine, this.scene, this.pipeline);
