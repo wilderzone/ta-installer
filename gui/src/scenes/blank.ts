@@ -1,7 +1,7 @@
 import { BaseScene } from './base';
 import { createMist } from './mist';
 
-export function blankScene(canvas?: HTMLCanvasElement): () => void {
+export function blankScene(canvas: HTMLCanvasElement): () => void {
 	const base = new BaseScene(canvas);
 
 	// Add mist to the scene.

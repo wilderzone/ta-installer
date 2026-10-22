@@ -1,89 +1,12 @@
-import { ArcRotateCamera, Color3, Color4, CubeTexture, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImageProcessingConfiguration, ImportMeshAsync, Light, Matrix, Scene, ShadowGenerator, Vector2, Vector3 } from '@babylonjs/core';
-import type { AbstractEngine, EngineView, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
+import { ArcRotateCamera, Color3, Color4, CubeTexture, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImageProcessingConfiguration, ImportMeshAsync, Light, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
+import type { AbstractEngine, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
 import { Optimizer } from './optimizer';
-
-/**
- * Whilst one engine can render multiple scenes at the same time,\
- * each scene size/resolution needs to be handled by a different engine\
- * so that the size of each engine's rendering canvas remains consistent.
- * 
- * Because of this, {@link GlobalEngine} has multiple layers - each to contain a different general scene size.
- * 
- * See {@link https://doc.babylonjs.com/features/featuresDeepDive/scene/multiCanvas#performance | Using Multiple Canvases: Performance} for more information.
- */
-type SceneLayer = 'background' | 'foreground';
-
-interface View {
-	canvas: HTMLCanvasElement;
-	layer: SceneLayer;
-	scene: BaseScene;
-	view: EngineView;
-}
-
-class GlobalEngine {
-	private static readonly canvas = document.createElement('canvas');
-	public static readonly engine: Record<SceneLayer, Engine> = {
-		background: new Engine(GlobalEngine.canvas),
-		foreground: new Engine(GlobalEngine.canvas)
-	};
-	private static views = new Array<View>();
-
-	/**
-	 * Add a scene to the global rendering engine.
-	 * 
-	 * @param scene The scene to add.
-	 * @param canvas The associated canvas.
-	 * @param layer _(Optional, default: `'background'`)_ The layer on which to render this scene. This determines which engine will be used.
-	 */
-	public static addScene(scene: BaseScene, canvas: HTMLCanvasElement, layer: SceneLayer = 'background'): void {
-		if (GlobalEngine.views.find(view => view.scene === scene)) return;
-		const engine = GlobalEngine.engine[layer];
-		const view: View = {
-			canvas,
-			layer,
-			scene,
-			view: engine.registerView(canvas, scene.camera, true)
-		};
-		GlobalEngine.views.push(view);
-	}
-
-	/**
-	 * Remove a scene from the global rendering engine.
-	 * 
-	 * @param scene The scene to remove.
-	 */
-	public static removeScene(scene: BaseScene): void {
-		const index = GlobalEngine.views.findIndex(view => view.scene === scene);
-		const view = GlobalEngine.views[index];
-		GlobalEngine.engine[view.layer].unRegisterView(view.canvas);
-		if (index >= 0) GlobalEngine.views.splice(index, 1);
-	}
-
-	static {
-		// Cap the framerate.
-		GlobalEngine.engine.background.maxFPS = 60;
-		GlobalEngine.engine.foreground.maxFPS = 60;
-
-		// Start the render loops.
-		GlobalEngine.engine['background'].runRenderLoop(() => {
-			for (const { layer, scene } of GlobalEngine.views) {
-				if (layer === 'background') scene.render();
-			}
-		});
-		GlobalEngine.engine['foreground'].runRenderLoop(() => {
-			for (const { layer, scene } of GlobalEngine.views) {
-				if (layer === 'foreground') scene.render();
-			}
-		});
-	}
-}
 
 export class BaseScene {
 	public camera: ArcRotateCamera;
-	public canvas: HTMLCanvasElement | null;
+	public canvas: HTMLCanvasElement;
 	public engine: Engine;
 	public glow: GlowLayer;
-	public layer: SceneLayer;
 	public lights = new Array<Light>();
 	public optimizer: Optimizer;
 	public pipeline: DefaultRenderingPipeline;
@@ -91,14 +14,13 @@ export class BaseScene {
 	public scene: Scene;
 	public shadows: ShadowGenerator;
 
-	constructor(canvas?: HTMLCanvasElement, layer: SceneLayer = 'background') {
-		this.engine = GlobalEngine.engine[layer];
-
-		// Get the canvas element.
-		this.canvas = canvas || document.querySelector('canvas');
+	constructor(canvas: HTMLCanvasElement) {
+		// Create the engine.
+		this.canvas = canvas;
+		this.engine = new Engine(canvas);
+		this.engine.maxFPS = 60;
 
 		// Create a new scene.
-		this.layer = layer;
 		this.scene = new Scene(this.engine);
 		this.scene.clearColor = new Color4(0, 0, 0, 0);
 		this.scene.skipPointerMovePicking = true;
@@ -228,8 +150,7 @@ export class BaseScene {
 
 	/** Start the render loop. */
 	public start(): void {
-		if (!this.canvas) return;
-		GlobalEngine.addScene(this, this.canvas, this.layer);
+		this.engine.runRenderLoop(() => this.scene.render());
 		this.resizeObserver?.remove();
 		this.resizeObserver = this.engine.onResizeObservable.add(this.onResize.bind(this));
 		this.optimizer.start();
@@ -237,7 +158,7 @@ export class BaseScene {
 
 	/** Stop the render loop. */
 	public stop(): void {
-		GlobalEngine.removeScene(this);
+		this.engine.stopRenderLoop();
 		this.resizeObserver?.remove();
 	}
 }

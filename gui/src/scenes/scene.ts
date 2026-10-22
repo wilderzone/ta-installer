@@ -8,7 +8,7 @@ import { getMaterial, getNode } from './gltf';
 import { items, Model } from './item';
 import { createMist } from './mist';
 
-export function homeScene(canvas?: HTMLCanvasElement): () => void {
+export function homeScene(canvas: HTMLCanvasElement): () => void {
 	const base = new BaseScene(canvas);
 	base.camera.setTarget(new Vector3(0, -0.05, 0));
 	base.camera.setPosition(new Vector3(0, 0.35, -1.6));
