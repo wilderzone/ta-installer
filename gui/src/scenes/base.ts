@@ -95,37 +95,6 @@ export class BaseScene {
 		}
 	}
 
-	/** Convert screen coordinates to world coordinates. */
-	public screenToWorld(vector: Vector2, depth = 0.99935): Vector3 {
-		const viewMatrix = this.scene.getViewMatrix();
-		const projectionMatrix = this.scene.getProjectionMatrix();
-		if (!viewMatrix || !projectionMatrix) {
-			return new Vector3();
-		}
-		return Vector3.Unproject(
-			new Vector3(vector.x, vector.y, depth),
-			this.engine.getRenderWidth(),
-			this.engine.getRenderHeight(),
-			Matrix.Identity(),
-			viewMatrix,
-			projectionMatrix
-		);
-	}
-
-	/** Convert world coordinates to screen coordinates. */
-	public worldToScreen(vector: Vector3): Vector2 {
-		const world = Vector3.Project(
-			vector,
-			Matrix.Identity(),
-			this.scene.getTransformMatrix(),
-			this.camera.viewport.toGlobal(
-				this.engine.getRenderWidth(),
-				this.engine.getRenderHeight()
-			)
-		);
-		return new Vector2(world.x, world.y);
-	}
-
 	/** Load a GLB/GLTF model into the scene. */
 	public loadModel(path: string, file: string): Promise<ISceneLoaderAsyncResult> {
 		return ImportMeshAsync(file, this.scene, { rootUrl: path });
