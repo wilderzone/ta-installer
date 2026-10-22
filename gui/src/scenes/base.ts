@@ -1,5 +1,6 @@
 import { ArcRotateCamera, Color3, Color4, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImportMeshAsync, Light, Matrix, Scene, ShadowGenerator, Vector2, Vector3 } from '@babylonjs/core';
 import type { AbstractEngine, EngineView, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
+import { Optimizer } from './optimizer';
 
 /**
  * Whilst one engine can render multiple scenes at the same time,\
@@ -80,6 +81,7 @@ export class BaseScene {
 	public glow: GlowLayer;
 	public layer: SceneLayer;
 	public lights = new Array<Light>();
+	public optimizer: Optimizer;
 	public pipeline: DefaultRenderingPipeline;
 	public resizeObserver?: Observer<AbstractEngine>;
 	public scene: Scene;
@@ -140,6 +142,9 @@ export class BaseScene {
 		this.glow = new GlowLayer('glow', this.scene);
 		this.glow.intensity = 2.0;
 		this.glow.blurKernelSize = 64;
+
+		// Optimizer.
+		this.optimizer = new Optimizer(this.engine, this.scene, this.pipeline);
 	}
 
 	/** Handle the canvas being resized. */
@@ -213,6 +218,7 @@ export class BaseScene {
 		GlobalEngine.addScene(this, this.canvas, this.layer);
 		this.resizeObserver?.remove();
 		this.resizeObserver = this.engine.onResizeObservable.add(this.onResize.bind(this));
+		this.optimizer.start();
 	}
 
 	/** Stop the render loop. */
