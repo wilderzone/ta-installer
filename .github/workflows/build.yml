@@ -148,7 +148,6 @@ jobs:
         with:
           name: tai-gui-${{ matrix.os }}
           path: |
-            gui/src-tauri/target/release/bundle/**
             gui/src-tauri/target/release/tribes-ascend-installer
             gui/src-tauri/target/release/tribes-ascend-installer.exe
           if-no-files-found: warn
