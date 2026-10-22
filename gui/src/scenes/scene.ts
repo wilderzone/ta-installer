@@ -49,13 +49,10 @@ export function homeScene(canvas?: HTMLCanvasElement): () => void {
 			shadowRenderList?.push(mesh);
 		}
 
-		vehicleMaterial = getMaterial(glbModel, /MAT_VEH_GravCycle/);
+		vehicleMaterial = getMaterial(glbModel, /(?:MAT_VEH_GravCycle|MAT_Shrike|MAT_Beowulf)/);
 		if (vehicleMaterial instanceof PBRMaterial) {
 			vehicleMaterial.albedoColor = new Color3(1, 1, 1);
-			vehicleMaterial.alphaMode = 7;
 			vehicleMaterial.maxSimultaneousLights = 16;
-			vehicleMaterial.needDepthPrePass = true;
-			vehicleMaterial.transparencyMode = 3;
 			vehicleMaterial.iridescence.isEnabled = true;
 			vehicleMaterial.iridescence.intensity = 0.25;
 			vehicleMaterial.iridescence.indexOfRefraction = 1.6;

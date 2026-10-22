@@ -126,9 +126,9 @@ export class BaseScene {
 		// Lights.
 		const light = new HemisphericLight('light', new Vector3(0, 1, 0), this.scene);
 		light.intensity = 0.25;
-		const light2 = new DirectionalLight('directionalLight', new Vector3(0, -10, -1), this.scene);
-		light2.position = new Vector3(0, 2, 0);
-		light2.intensity = 15;
+		const light2 = new DirectionalLight('directionalLight', new Vector3(1, -3, -0.5), this.scene);
+		light2.position = new Vector3(-0.6, 2, 0);
+		light2.intensity = 12;
 		light2.autoUpdateExtends = false;
 		light2.orthoLeft = -1;
 		light2.orthoRight = 1;
@@ -140,9 +140,11 @@ export class BaseScene {
 		this.lights.push(light2);
 
 		// Enable shadows.
-		this.shadows = new ShadowGenerator(1024, light2);
-		this.shadows.darkness = 0.00;
-		this.shadows.filter = ShadowGenerator.FILTER_POISSONSAMPLING;
+		this.shadows = new ShadowGenerator(2048, light2);
+		this.shadows.bias = 0.0005;
+		this.shadows.darkness = 0.3;
+		this.shadows.filter = ShadowGenerator.FILTER_PCF;
+		this.shadows.normalBias = 0.002;
 
 		// Glow.
 		this.glow = new GlowLayer('glow', this.scene);
