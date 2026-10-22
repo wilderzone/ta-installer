@@ -52,7 +52,11 @@ export function homeScene(canvas?: HTMLCanvasElement): () => void {
 		vehicleMaterial = getMaterial(glbModel, /(?:MAT_VEH_GravCycle|MAT_Shrike|MAT_Beowulf)/);
 		if (vehicleMaterial instanceof PBRMaterial) {
 			vehicleMaterial.albedoColor = new Color3(1, 1, 1);
+			vehicleMaterial.invertNormalMapY = true;
 			vehicleMaterial.maxSimultaneousLights = 16;
+			vehicleMaterial.clearCoat.isEnabled = true;
+			vehicleMaterial.clearCoat.intensity = 0.3;
+			vehicleMaterial.clearCoat.roughness = 0.1;
 			vehicleMaterial.iridescence.isEnabled = true;
 			vehicleMaterial.iridescence.intensity = 0.25;
 			vehicleMaterial.iridescence.indexOfRefraction = 1.6;

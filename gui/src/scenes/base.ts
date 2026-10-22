@@ -1,4 +1,4 @@
-import { ArcRotateCamera, Color3, Color4, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImportMeshAsync, Light, Matrix, Scene, ShadowGenerator, Vector2, Vector3 } from '@babylonjs/core';
+import { ArcRotateCamera, Color3, Color4, CubeTexture, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImageProcessingConfiguration, ImportMeshAsync, Light, Matrix, Scene, ShadowGenerator, Vector2, Vector3 } from '@babylonjs/core';
 import type { AbstractEngine, EngineView, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
 import { Optimizer } from './optimizer';
 
@@ -111,6 +111,9 @@ export class BaseScene {
 		// Create the rendering pipeline.
 		// At least one other effect needs to be enabled for anti-aliasing to actually get applied.
 		this.pipeline = new DefaultRenderingPipeline('default', false, this.scene, [this.camera]);
+		this.pipeline.imageProcessing.exposure = 1.2;
+		this.pipeline.imageProcessing.toneMappingEnabled = true;
+		this.pipeline.imageProcessing.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
 		this.pipeline.samples = 4;
 		this.pipeline.bloomEnabled = true;
 		this.pipeline.bloomScale = 0.5;
@@ -148,8 +151,11 @@ export class BaseScene {
 
 		// Glow.
 		this.glow = new GlowLayer('glow', this.scene);
-		this.glow.intensity = 2.0;
+		this.glow.intensity = 1.5;
 		this.glow.blurKernelSize = 32;
+
+		this.scene.environmentTexture = CubeTexture.CreateFromPrefilteredData('/Studio_Softbox_2Umbrellas_cube_specular.env', this.scene);
+		this.scene.environmentIntensity = 0.3;
 
 		// Optimizer.
 		this.optimizer = new Optimizer(this.engine, this.scene, this.pipeline);
