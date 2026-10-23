@@ -1,6 +1,5 @@
 import { ArcRotateCamera, Color3, Color4, CubeTexture, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImageProcessingConfiguration, ImportMeshAsync, Light, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
 import type { AbstractEngine, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
-import { Optimizer } from './optimizer';
 
 export class BaseScene {
 	public camera: ArcRotateCamera;
@@ -8,7 +7,6 @@ export class BaseScene {
 	public engine: Engine;
 	public glow: GlowLayer;
 	public lights = new Array<Light>();
-	public optimizer: Optimizer;
 	public pipeline: DefaultRenderingPipeline;
 	public resizeObserver?: Observer<AbstractEngine>;
 	public scene: Scene;
@@ -78,9 +76,6 @@ export class BaseScene {
 
 		this.scene.environmentTexture = CubeTexture.CreateFromPrefilteredData('/Studio_Softbox_2Umbrellas_cube_specular.env', this.scene);
 		this.scene.environmentIntensity = 0.3;
-
-		// Optimizer.
-		this.optimizer = new Optimizer(this.engine, this.scene, this.pipeline);
 	}
 
 	/** Handle the canvas being resized. */
@@ -122,7 +117,6 @@ export class BaseScene {
 		this.engine.runRenderLoop(() => this.scene.render());
 		this.resizeObserver?.remove();
 		this.resizeObserver = this.engine.onResizeObservable.add(this.onResize.bind(this));
-		this.optimizer.start();
 	}
 
 	/** Stop the render loop. */
