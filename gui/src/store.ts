@@ -1,11 +1,12 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { message as messageDialog } from '@tauri-apps/plugin-dialog';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { defaultInstallPath, assetInclusions, models, repository, AppWindow } from './config';
 import { BundleSize, Manifest } from './manifest';
 import { loadData, saveData } from './persist';
-import { Action, DirectoryState, TAI } from './tai';
+import { Action, DirectoryState, TAI, verbs } from './tai';
 import { deduplicate, delay, Estimator, formatDuration, brandPath, Semaphore } from './utilities';
 
 const useStore = defineStore('application', () => {
@@ -150,6 +151,14 @@ const useStore = defineStore('application', () => {
 			progressIndeterminate.value = false;
 			progressMax.value = progressMax.value || 1;
 			progressValue.value = progressMax.value;
+		}
+		if (!cancelling.value) {
+			const verb = verbs[action.value];
+			let message = `${verb} complete.`;
+			if (action.value === 'install') {
+				message += '\nYou can now close the installer.';
+			}
+			void messageDialog(message, { title: 'Tribes: Ascend Installer', kind: 'info' });
 		}
 		refreshDirectory();
 		loading.remove();

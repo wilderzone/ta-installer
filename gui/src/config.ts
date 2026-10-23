@@ -10,8 +10,6 @@ export enum AppWindow {
 	AssetSelect = 'assetSelect'
 }
 
-export const customInstructions = 'https://github.com/wilderzone/ta-installer#cli';
-
 /**
  * Where the game is installed by default.
  * The value is platform-specific, so it comes from the Rust backend during startup rather than
