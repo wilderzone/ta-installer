@@ -1,3 +1,5 @@
+import type { UnlistenFn } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { ArcRotateCamera, Color3, Color4, CubeTexture, DefaultRenderingPipeline, DirectionalLight, Engine, GlowLayer, HemisphericLight, ImageProcessingConfiguration, ImportMeshAsync, Light, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
 import type { AbstractEngine, ISceneLoaderAsyncResult, Observer } from '@babylonjs/core';
 
@@ -5,18 +7,20 @@ export class BaseScene {
 	public camera: ArcRotateCamera;
 	public canvas: HTMLCanvasElement;
 	public engine: Engine;
+	public focusObserver?: UnlistenFn;
 	public glow: GlowLayer;
 	public lights = new Array<Light>();
 	public pipeline: DefaultRenderingPipeline;
 	public resizeObserver?: Observer<AbstractEngine>;
 	public scene: Scene;
 	public shadows: ShadowGenerator;
+	public visibilityObserver?: UnlistenFn;
 
 	constructor(canvas: HTMLCanvasElement) {
 		// Create the engine.
 		this.canvas = canvas;
 		this.engine = new Engine(canvas);
-		this.engine.maxFPS = 60;
+		this.setMaxFramerate('focused');
 
 		// Create a new scene.
 		this.scene = new Scene(this.engine);
@@ -112,11 +116,35 @@ export class BaseScene {
 		this.scene.render();
 	}
 
+	/** Set the max framerate of the engine based on the window's current focus state. */
+	public setMaxFramerate(state: 'focused' | 'unfocused' | 'minimized'): void {
+		switch (state) {
+			case 'focused':
+				this.engine.maxFPS = 60;
+				break;
+			case 'unfocused':
+				this.engine.maxFPS = 30;
+				break;
+			case 'minimized':
+				this.engine.maxFPS = 0;
+				break;
+			default:
+				this.engine.maxFPS = 60;
+				break;
+		}
+	}
+
 	/** Start the render loop. */
-	public start(): void {
-		this.engine.runRenderLoop(() => this.scene.render());
+	public async start(): Promise<void> {
+		const appWindow = getCurrentWindow();
+		this.focusObserver?.();
 		this.resizeObserver?.remove();
+		this.visibilityObserver?.();
+
+		this.engine.runRenderLoop(() => this.scene.render());
 		this.resizeObserver = this.engine.onResizeObservable.add(this.onResize.bind(this));
+		this.focusObserver = await appWindow.onFocusChanged(({ payload: focused }) => this.setMaxFramerate(focused ? 'focused' : 'unfocused'));
+		this.visibilityObserver = await appWindow.onResized(async () => this.setMaxFramerate(await appWindow.isMinimized() ? 'minimized' : 'focused'));
 	}
 
 	/** Stop the render loop. */
