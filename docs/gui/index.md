@@ -12,3 +12,7 @@ You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the 
 <p align="center">
   <img width="1262" height="902" alt="TAI GUI example" src="/assets/gui-example-dark-game-type.png" />
 </p>
+
+:::info
+A [command line version of TAI](/cli/index) is also provided in case you need more control over the installation process.
+:::
