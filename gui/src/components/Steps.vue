@@ -10,9 +10,12 @@ import { store } from '../store';
 				id="tab-step-1"
 				aria-controls="panel-step-1"
 				:aria-selected="store.step === 1"
+				tabindex="0"
 				class="step"
 				:class="{ current: store.step === 1, complete: store.step > 1, error: store.step1Error }"
 				@click="store.step = 1"
+				@keypress.enter="store.step = 1"
+				@keypress.space="store.step = 1"
 			>
 				<span class="number">1</span>
 				<span class="check">✓</span>
@@ -24,9 +27,12 @@ import { store } from '../store';
 				id="tab-step-2"
 				aria-controls="panel-step-2"
 				:aria-selected="store.step === 2"
+				tabindex="0"
 				class="step"
 				:class="{ current: store.step === 2, complete: store.step > 2, error: store.step2Error }"
 				@click="store.step = 2"
+				@keypress.enter="store.step = 2"
+				@keypress.space="store.step = 2"
 			>
 				<span class="number">2</span>
 				<span class="check">✓</span>
@@ -38,9 +44,12 @@ import { store } from '../store';
 				id="tab-step-3"
 				aria-controls="panel-step-3"
 				:aria-selected="store.step === 3"
+				tabindex="0"
 				class="step"
 				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step3Error }"
 				@click="store.step = 3"
+				@keypress.enter="store.step = 3"
+				@keypress.space="store.step = 3"
 			>
 				<span class="number">3</span>
 				<span class="check">✓</span>
