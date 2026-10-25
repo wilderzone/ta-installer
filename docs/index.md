@@ -1,4 +1,9 @@
-<img src="/assets/banner.png" alt="" style="border-radius: 8px;">
+---
+title: 'Tribes: Ascend Installer'
+description: 'A CLI and GUI utility for managing Tribes: Ascend installations.'
+---
+
+<img src="/assets/banner.png" alt="">
 
 # Overview
 
