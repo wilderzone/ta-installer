@@ -1,3 +1,7 @@
+---
+order: 3
+---
+
 # Installation Utilities
 
 Alongside the game, TAI installs a small set of helper executables into the `Installer` directory.

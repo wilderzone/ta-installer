@@ -1,3 +1,7 @@
+---
+order: 2
+---
+
 # Running on Linux
 
 Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a compatibility layer alongside the game files. TAI manages all of it automatically, including validating the compatibility layer when you run `verify`.

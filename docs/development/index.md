@@ -1,3 +1,7 @@
+---
+order: 3
+---
+
 # Development
 
 TAI is open-source and contributions are welcome! Please create an issue or pull-request in the [TAI GitHub repository](https://github.com/wilderzone/ta-installer), or get in touch via the [TA Community Hub Discord server](https://discord.gg/dd8JgzJ).

@@ -1,3 +1,7 @@
+---
+order: 1
+---
+
 # Subcommands
 
 The subcommand provided to TAI CLI determines the action to perform. Subcommands must always be passed as the first argument to TAI CLI. The subcommand is then followed by [options](/cli/options) and [flags](/cli/options#flags).

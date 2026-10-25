@@ -1,3 +1,7 @@
+---
+order: 3
+---
+
 # Output
 
 By default, TAI will print human-readable output to the console. For example:

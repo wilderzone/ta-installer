@@ -1,3 +1,8 @@
+---
+title: 'GUI'
+order: 2
+---
+
 # <img src="/assets/gui.svg" style="display: inline;height: 1.5em;margin: 0;"> TAI GUI
 
 This is the graphical version of TAI, providing a simple, guided installation experience.

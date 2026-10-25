@@ -1,3 +1,7 @@
+---
+order: 4
+---
+
 # Dependency Resolution
 
 Some assets don't function until other assets are present. An asset file declares this in

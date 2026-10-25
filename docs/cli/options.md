@@ -1,3 +1,7 @@
+---
+order: 2
+---
+
 # Options
 
 Options can be used to gain fine-grained control over the behaviour of TAI CLI. Options start with `--` (double hyphen), and typically take an argument in the form of `--option="argument"`. Whether an option is required or not depends on the provided [subcommand](/cli/subcommands).

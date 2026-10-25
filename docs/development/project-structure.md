@@ -1,3 +1,7 @@
+---
+order: 1
+---
+
 # Project Structure
 
 TAI is built from a [single Git repository](https://github.com/wilderzone/ta-installer), with subdirectories for the CLI, GUI, shared Go libraries, installation utilities, and documentation.

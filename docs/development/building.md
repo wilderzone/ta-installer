@@ -1,3 +1,7 @@
+---
+order: 4
+---
+
 # Building
 
 The GUI embeds the CLI, and the embedded binary is gitignored. A fresh repository clone can't compile the Rust crate until the CLI has been built:

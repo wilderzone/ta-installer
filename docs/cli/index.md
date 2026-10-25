@@ -1,3 +1,8 @@
+---
+title: 'CLI'
+order: 1
+---
+
 # <img src="/assets/cli.svg" style="display: inline;height: 1.5em;margin: 0;"> TAI CLI
 
 TAI CLI is provided as a means to install custom variants of TA, and for use in applications that require programmatic control of the TA installation process, such as launchers.  
