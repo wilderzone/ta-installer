@@ -68,6 +68,7 @@ jobs:
         run: cd utilities && bash ./build.sh
 
       - uses: actions/upload-artifact@v7
+        if: github.ref == 'refs/heads/main'
         with:
           name: tai-utilities
           path: |
@@ -155,6 +156,7 @@ jobs:
         run: mv gui/src-tauri/target/release/tribes-ascend-installer.exe gui/src-tauri/target/release/ta-installer-windows.exe
 
       - uses: actions/upload-artifact@v7
+        if: github.ref == 'refs/heads/main'
         with:
           name: tai-gui-${{ matrix.os }}
           path: |
