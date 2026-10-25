@@ -16,8 +16,8 @@ import VariantSelector from './VariantSelector.vue';
 		@submit.prevent
 	>
 		<Steps v-grid:steps />
-		<ol class="panels" :style="{ '--step': store.step }">
-			<li
+		<div class="panels" :style="{ '--step': store.step }">
+			<div
 				role="tabpanel"
 				id="panel-step-1"
 				aria-labelledby="tab-step-1"
@@ -25,8 +25,8 @@ import VariantSelector from './VariantSelector.vue';
 				:inert="store.step !== 1"
 			>
 				<VariantSelector />
-			</li>
-			<li
+			</div>
+			<div
 				role="tabpanel"
 				id="panel-step-2"
 				aria-labelledby="tab-step-2"
@@ -34,8 +34,8 @@ import VariantSelector from './VariantSelector.vue';
 				:inert="store.step !== 2"
 			>
 				<InstallPathField />
-			</li>
-			<li
+			</div>
+			<div
 				role="tabpanel"
 				id="panel-step-3"
 				aria-labelledby="tab-step-3"
@@ -52,8 +52,8 @@ import VariantSelector from './VariantSelector.vue';
 					/>
 					<Log />
 				</div>
-			</li>
-		</ol>
+			</div>
+		</div>
 		<StepNavigation v-grid:navigation />
 	</form>
 </template>
@@ -83,9 +83,6 @@ import VariantSelector from './VariantSelector.vue';
 	height: 100%;
 	min-width: 0;
 	min-height: 0;
-	margin: 0;
-	padding: 0;
-	list-style: none;
 	overflow-x: clip;
 
 	.panel {
