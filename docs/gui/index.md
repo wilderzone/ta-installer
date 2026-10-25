@@ -1,6 +1,6 @@
 ---
 title: 'GUI'
-order: 2
+order: 3
 ---
 
 # <img src="/assets/gui.svg" style="display: inline;height: 1.5em;margin: 0;"> TAI GUI

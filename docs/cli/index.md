@@ -1,6 +1,6 @@
 ---
 title: 'CLI'
-order: 1
+order: 2
 ---
 
 # <img src="/assets/cli.svg" style="display: inline;height: 1.5em;margin: 0;"> TAI CLI
