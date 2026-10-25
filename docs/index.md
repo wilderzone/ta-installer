@@ -11,7 +11,8 @@ Tribes: Ascend Installer is a [CLI](https://en.wikipedia.org/wiki/Command-line_i
 
 These docs describe how to use TAI, how it works, and how to contribute to its development.
 
-
-## Download
-
 [Download Tribes: Ascend Installer](https://wilderzone.org/games/tribes-ascend)
+
+<p align="center">
+  <img src="/assets/gui-example-dark-game-type.png" alt="TAI GUI example" />
+</p>
