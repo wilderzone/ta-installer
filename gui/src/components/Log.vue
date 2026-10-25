@@ -10,7 +10,7 @@ const placeholder: LogLineData = {
 
 <template>
 	<section name="Log" class="log">
-		<output aria-label="Progress log">
+		<output role="log" aria-label="Progress log">
 			<LogLine v-if="!TAI.log.value.length" v-bind="placeholder" />
 			<LogLine v-for="line of TAI.log.value" v-bind="line" />
 		</output>
