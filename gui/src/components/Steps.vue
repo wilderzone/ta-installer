@@ -22,8 +22,8 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 				class="step"
 				:class="{ current: store.step === 1, complete: store.step > 1, error: store.step1Error }"
 				@click="store.step = 1"
-				@keypress.enter="store.step = 1"
-				@keypress.space="store.step = 1"
+				@keydown.enter="store.step = 1"
+				@keydown.space="store.step = 1"
 			>
 				<span class="number" aria-hidden="true">1</span>
 				<span class="check" aria-hidden="true">✓</span>
@@ -40,8 +40,8 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 				class="step"
 				:class="{ current: store.step === 2, complete: store.step > 2, error: store.step2Error }"
 				@click="store.step = 2"
-				@keypress.enter="store.step = 2"
-				@keypress.space="store.step = 2"
+				@keydown.enter="store.step = 2"
+				@keydown.space="store.step = 2"
 			>
 				<span class="number" aria-hidden="true">2</span>
 				<span class="check" aria-hidden="true">✓</span>
@@ -58,8 +58,8 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 				class="step"
 				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step3Error }"
 				@click="store.step = 3"
-				@keypress.enter="store.step = 3"
-				@keypress.space="store.step = 3"
+				@keydown.enter="store.step = 3"
+				@keydown.space="store.step = 3"
 			>
 				<span class="number" aria-hidden="true">3</span>
 				<span class="check" aria-hidden="true">✓</span>
