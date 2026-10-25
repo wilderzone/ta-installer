@@ -9,7 +9,7 @@ const placeholder: LogLineData = {
 </script>
 
 <template>
-	<section name="Log" class="log">
+	<section class="log">
 		<output role="log" aria-label="Progress log">
 			<LogLine v-if="!TAI.log.value.length" v-bind="placeholder" />
 			<LogLine v-for="line of TAI.log.value" v-bind="line" />

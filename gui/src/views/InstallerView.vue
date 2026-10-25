@@ -14,7 +14,7 @@ import WindowButtons from '../components/WindowButtons.vue';
 	<Scene scene="home" />
 	<main>
 		<Logo v-grid:logo />
-		<Card v-grid:steps name="Installation configuration">
+		<Card v-grid:steps>
 			<Configurator />
 		</Card>
 	</main>
