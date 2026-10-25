@@ -12,25 +12,6 @@ Tribes: Ascend Installer is a [CLI](https://en.wikipedia.org/wiki/Command-line_i
 These docs describe how to use TAI, how it works, and how to contribute to its development.
 
 
-## Table of Contents
-
-- [Glossary](#glossary)
-- [Command-Line Interface](/cli)
-  - [Subcommands](/cli/subcommands)
-  - [Options](/cli/options)
-  - [Output](/cli/output)
-  - [Dependency Resolution](/cli/dependency-resolution)
-- [Graphical User Interface](/gui)
-  - [Game Type](/gui/game-type)
-  - [Location](/gui/location)
-  - [Action](/gui/action)
-- [Development](/development)
-  - [Project Structure](/development/project-structure)
-  - [Running on Linux](/development/running-on-linux)
-  - [Installation Utilities](/development/installation-utilities)
-  - [Building](/development/building)
-
-
 ## Glossary
 
 | Term           | Definition                                 |
