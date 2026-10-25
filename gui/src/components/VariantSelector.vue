@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { ScrollBarStyle } from '@tauri-apps/api/window';
+import { ref } from 'vue';
 import { AppWindow } from '../config.ts';
 import { loading, store } from '../store.ts';
-import { byteCountSI } from '../utilities.ts';
+import { byteCountSI, useFocusRecovery } from '../utilities.ts';
 import Icon from './Icon.vue';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
+
+const fieldset = ref<HTMLElement>();
+const retryButton = ref<HTMLButtonElement>();
+
+// Retrying hides the Retry button, and loading disables the radio buttons.
+useFocusRecovery(fieldset, loading.value, () => [
+	retryButton.value,
+	fieldset.value?.querySelector<HTMLElement>('input:checked'),
+]);
 
 async function openAssetSelector(): Promise<void> {
 	const existing = await WebviewWindow.getByLabel(AppWindow.AssetSelect);
@@ -31,7 +41,7 @@ async function openAssetSelector(): Promise<void> {
 </script>
 
 <template>
-	<fieldset class="borderless variant-selector">
+	<fieldset ref="fieldset" class="borderless variant-selector">
 		<RadioRow
 			:disabled="loading.value.value"
 			name="variant"
@@ -133,6 +143,7 @@ async function openAssetSelector(): Promise<void> {
 			<template v-else>
 				Game files could not be found. Please check your internet connection.
 				<button
+					ref="retryButton"
 					class="retry-button"
 					:disabled="loading.value.value"
 					@click="store.refreshRepository()"
