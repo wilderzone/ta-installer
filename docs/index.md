@@ -33,7 +33,7 @@ These docs describe how to use TAI, how it works, and how to contribute to its d
 
 ## Glossary
 
-| Term           | Meaning                                    |
+| Term           | Definition                                 |
 | :------------- | :----------------------------------------- |
 | Asset          | A downloadable collection of files, grouped by common functionality. Assets usually appear in the form of compressed archives. For example, all game files related to the Katabatic map are grouped into a single `Katabatic.zip` asset. |
 | Manifest       | The machine-readable description of an installable entity (eg, the game). Manifests can reference one or more **assets**. |
