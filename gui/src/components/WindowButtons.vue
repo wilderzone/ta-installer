@@ -29,9 +29,9 @@ async function close(): Promise<void> {
 			<button title="Information" @click="info()"><img src="../assets/info.svg" alt=""></button>
 		</div>
 		<div class="window-buttons">
-			<button class="minimize" @click="minimize()">—</button>
-			<button class="maximize" @click="maximize()" disabled>▢</button>
-			<button class="close" @click="close()">✕</button>
+			<button class="minimize" title="Minimize" @click="minimize()">—</button>
+			<button class="maximize" title="Maximize" @click="maximize()" disabled>▢</button>
+			<button class="close" title="Close" @click="close()">✕</button>
 		</div>
 	</div>
 </template>
