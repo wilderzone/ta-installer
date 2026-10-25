@@ -10,7 +10,7 @@ You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the 
 :::
 
 <p align="center">
-  <img width="1262" height="902" alt="TAI GUI example" src="/assets/gui-example-dark-game-type.png" />
+  <img src="/assets/gui-example-dark-game-type.png" alt="TAI GUI example" />
 </p>
 
 :::info
