@@ -44,11 +44,19 @@ async function openAssetSelector(): Promise<void> {
 				value="vanilla"
 			>
 				<template v-slot:sublabel>
-					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`">
+					<span
+						class="variant-info"
+						:title="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`"
+						:aria-label="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`"
+					>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.vanilla.packed) }}
 					</span>
-					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`">
+					<span
+						class="variant-info"
+						:title="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`"
+						:aria-label="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`"
+					>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.vanilla.unpacked) }}
 					</span>
@@ -60,11 +68,19 @@ async function openAssetSelector(): Promise<void> {
 				value="modded"
 			>
 				<template v-slot:sublabel>
-					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`">
+					<span
+						class="variant-info"
+						:title="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`"
+						:aria-label="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`"
+					>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.modded.packed) }}
 					</span>
-					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`">
+					<span
+						class="variant-info"
+						:title="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`"
+						:aria-label="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`"
+					>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.modded.unpacked) }}
 					</span>
@@ -76,11 +92,19 @@ async function openAssetSelector(): Promise<void> {
 				value="custom"
 			>
 				<template v-slot:sublabel>
-					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`">
+					<span
+						class="variant-info"
+						:title="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`"
+						:aria-label="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`"
+					>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.custom.packed) }}
 					</span>
-					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`">
+					<span
+						class="variant-info"
+						:title="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`"
+						:aria-label="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`"
+					>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.custom.unpacked) }}
 					</span>
@@ -89,6 +113,7 @@ async function openAssetSelector(): Promise<void> {
 		</RadioRow>
 		<button
 			title="Edit the custom install configuration"
+			aria-label="Edit the custom install configuration"
 			:class="{ hidden: store.variant !== 'custom' }"
 			:inert="store.variant !== 'custom'"
 			@click="openAssetSelector()"

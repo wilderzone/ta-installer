@@ -54,6 +54,7 @@ function change(event: Event): void {
 		<input
 			type="text"
 			class="install-path-input"
+			aria-label="Installation location"
 			:disabled="loading.value.value"
 			:value="store.path"
 			@change="change($event)"
@@ -61,6 +62,7 @@ function change(event: Event): void {
 		<button
 			type="button"
 			class="primary install-path-button"
+			aria-label="Browse your computer for an installation location"
 			:disabled="loading.value.value"
 			@click="browse()"
 		>Browse</button>

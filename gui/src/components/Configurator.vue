@@ -9,7 +9,12 @@ import VariantSelector from './VariantSelector.vue';
 </script>
 
 <template>
-	<form class="configurator" action="" @submit.prevent>
+	<form
+		class="configurator"
+		aria-label="Installation configuration"
+		action=""
+		@submit.prevent
+	>
 		<Steps v-grid:steps />
 		<ol class="panels" :style="{ '--step': store.step }">
 			<li

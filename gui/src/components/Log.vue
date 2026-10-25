@@ -10,13 +10,14 @@ const placeholder: LogLineData = {
 
 <template>
 	<section name="Log" class="log">
-		<output>
+		<output aria-label="Progress log">
 			<LogLine v-if="!TAI.log.value.length" v-bind="placeholder" />
 			<LogLine v-for="line of TAI.log.value" v-bind="line" />
 		</output>
 		<button
 			class="clear"
-			title="Clear the log output"
+			title="Clear the progress log"
+			aria-label="Clear the progress log"
 			@click="TAI.clearLog()"
 		>✕</button>
 	</section>

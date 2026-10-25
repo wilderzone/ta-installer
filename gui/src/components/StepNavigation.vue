@@ -6,12 +6,14 @@ import { loading, store } from '../store';
 	<section class="step-navigation">
 		<button
 			title="Previous step"
+			aria-label="Previous step"
 			:disabled="store.step <= 1"
 			@click="store.back()"
 		>⋘</button>
 		<button
 			v-if="store.step < 3"
 			title="Next step"
+			aria-label="Next step"
 			:disabled="store.step >= 3"
 			@click="store.next()"
 		>⋙</button>
