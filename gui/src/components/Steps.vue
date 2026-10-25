@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { store } from '../store';
+
+function stepLabel(step: number, name: string, complete: boolean, error: boolean): string {
+	let label = `Step ${step}: ${name}`;
+	if (error) label += ', error';
+	else if (complete) label += ', complete';
+	return label;
+}
 </script>
 
 <template>
@@ -10,6 +17,7 @@ import { store } from '../store';
 				id="tab-step-1"
 				aria-controls="panel-step-1"
 				:aria-selected="store.step === 1"
+				:aria-label="stepLabel(1, 'Game Type', store.step > 1, store.step1Error)"
 				tabindex="0"
 				class="step"
 				:class="{ current: store.step === 1, complete: store.step > 1, error: store.step1Error }"
@@ -17,16 +25,17 @@ import { store } from '../store';
 				@keypress.enter="store.step = 1"
 				@keypress.space="store.step = 1"
 			>
-				<span class="number">1</span>
-				<span class="check">✓</span>
-				<span class="cross">!</span>
-				<span class="name">Game Type</span>
+				<span class="number" aria-hidden="true">1</span>
+				<span class="check" aria-hidden="true">✓</span>
+				<span class="cross" aria-hidden="true">!</span>
+				<span class="name" aria-hidden="true">Game Type</span>
 			</li>
 			<li
 				role="tab"
 				id="tab-step-2"
 				aria-controls="panel-step-2"
 				:aria-selected="store.step === 2"
+				:aria-label="stepLabel(2, 'Location', store.step > 2, store.step2Error)"
 				tabindex="0"
 				class="step"
 				:class="{ current: store.step === 2, complete: store.step > 2, error: store.step2Error }"
@@ -34,16 +43,17 @@ import { store } from '../store';
 				@keypress.enter="store.step = 2"
 				@keypress.space="store.step = 2"
 			>
-				<span class="number">2</span>
-				<span class="check">✓</span>
-				<span class="cross">!</span>
-				<span class="name">Location</span>
+				<span class="number" aria-hidden="true">2</span>
+				<span class="check" aria-hidden="true">✓</span>
+				<span class="cross" aria-hidden="true">!</span>
+				<span class="name" aria-hidden="true">Location</span>
 			</li>
 			<li
 				role="tab"
 				id="tab-step-3"
 				aria-controls="panel-step-3"
 				:aria-selected="store.step === 3"
+				:aria-label="stepLabel(3, store.action, store.step > 3, store.step3Error)"
 				tabindex="0"
 				class="step"
 				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step3Error }"
@@ -51,10 +61,10 @@ import { store } from '../store';
 				@keypress.enter="store.step = 3"
 				@keypress.space="store.step = 3"
 			>
-				<span class="number">3</span>
-				<span class="check">✓</span>
-				<span class="cross">!</span>
-				<span class="name">{{ store.action }}</span>
+				<span class="number" aria-hidden="true">3</span>
+				<span class="check" aria-hidden="true">✓</span>
+				<span class="cross" aria-hidden="true">!</span>
+				<span class="name" aria-hidden="true">{{ store.action }}</span>
 			</li>
 		</ol>
 	</section>
