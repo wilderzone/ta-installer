@@ -44,6 +44,7 @@ import VariantSelector from './VariantSelector.vue';
 			>
 				<div class="output">
 					<ProgressBar
+						:aria-label="`${store.action} progress`"
 						:detail="store.progressDetail"
 						:indeterminate="store.progressIndeterminate"
 						:max="store.progressMax"
