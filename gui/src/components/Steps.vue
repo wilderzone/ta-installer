@@ -7,6 +7,14 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 	else if (complete) label += ', complete';
 	return label;
 }
+
+/** Select a step and move focus to its tab, wrapping around at either end. */
+function focusStep(step: number): void {
+	if (step < 1) step = 3;
+	if (step > 3) step = 1;
+	store.step = step;
+	document.getElementById(`tab-step-${step}`)?.focus();
+}
 </script>
 
 <template>
@@ -18,12 +26,16 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 				aria-controls="panel-step-1"
 				:aria-selected="store.step === 1"
 				:aria-label="stepLabel(1, 'Game Type', store.step > 1, store.step1Error)"
-				tabindex="0"
+				:tabindex="store.step === 1 ? 0 : -1"
 				class="step"
 				:class="{ current: store.step === 1, complete: store.step > 1, error: store.step1Error }"
 				@click="store.step = 1"
 				@keydown.enter="store.step = 1"
 				@keydown.space="store.step = 1"
+				@keydown.left.prevent="focusStep(store.step - 1)"
+				@keydown.right.prevent="focusStep(store.step + 1)"
+				@keydown.home.prevent="focusStep(1)"
+				@keydown.end.prevent="focusStep(3)"
 			>
 				<span class="number" aria-hidden="true">1</span>
 				<span class="check" aria-hidden="true">✓</span>
@@ -36,12 +48,16 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 				aria-controls="panel-step-2"
 				:aria-selected="store.step === 2"
 				:aria-label="stepLabel(2, 'Location', store.step > 2, store.step2Error)"
-				tabindex="0"
+				:tabindex="store.step === 2 ? 0 : -1"
 				class="step"
 				:class="{ current: store.step === 2, complete: store.step > 2, error: store.step2Error }"
 				@click="store.step = 2"
 				@keydown.enter="store.step = 2"
 				@keydown.space="store.step = 2"
+				@keydown.left.prevent="focusStep(store.step - 1)"
+				@keydown.right.prevent="focusStep(store.step + 1)"
+				@keydown.home.prevent="focusStep(1)"
+				@keydown.end.prevent="focusStep(3)"
 			>
 				<span class="number" aria-hidden="true">2</span>
 				<span class="check" aria-hidden="true">✓</span>
@@ -54,12 +70,16 @@ function stepLabel(step: number, name: string, complete: boolean, error: boolean
 				aria-controls="panel-step-3"
 				:aria-selected="store.step === 3"
 				:aria-label="stepLabel(3, store.action, store.step > 3, store.step3Error)"
-				tabindex="0"
+				:tabindex="store.step === 3 ? 0 : -1"
 				class="step"
 				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step3Error }"
 				@click="store.step = 3"
 				@keydown.enter="store.step = 3"
 				@keydown.space="store.step = 3"
+				@keydown.left.prevent="focusStep(store.step - 1)"
+				@keydown.right.prevent="focusStep(store.step + 1)"
+				@keydown.home.prevent="focusStep(1)"
+				@keydown.end.prevent="focusStep(3)"
 			>
 				<span class="number" aria-hidden="true">3</span>
 				<span class="check" aria-hidden="true">✓</span>
