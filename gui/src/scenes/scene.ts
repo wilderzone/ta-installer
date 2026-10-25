@@ -8,7 +8,7 @@ import { getMaterial, getNode } from './gltf';
 import { items, Model } from './item';
 import { createMist } from './mist';
 
-export function homeScene(canvas?: HTMLCanvasElement): () => void {
+export function homeScene(canvas: HTMLCanvasElement): () => void {
 	const base = new BaseScene(canvas);
 	base.camera.setTarget(new Vector3(0, -0.05, 0));
 	base.camera.setPosition(new Vector3(0, 0.35, -1.6));
@@ -42,16 +42,21 @@ export function homeScene(canvas?: HTMLCanvasElement): () => void {
 			vehicleModel.scaling = new Vector3(scale, scale, scale);
 		}
 
-		glbModel.meshes[1].receiveShadows = true;
-		base.shadows.getShadowMap()?.renderList?.push(glbModel.meshes[1]);
+		const shadowRenderList = base.shadows.getShadowMap()?.renderList;
+		for (const mesh of glbModel.meshes) {
+			mesh.receiveShadows = true;
+			mesh.doNotSyncBoundingInfo = true;
+			shadowRenderList?.push(mesh);
+		}
 
-		vehicleMaterial = getMaterial(glbModel, /MAT_VEH_GravCycle/);
+		vehicleMaterial = getMaterial(glbModel, /(?:MAT_VEH_GravCycle|MAT_Shrike|MAT_Beowulf)/);
 		if (vehicleMaterial instanceof PBRMaterial) {
 			vehicleMaterial.albedoColor = new Color3(1, 1, 1);
-			vehicleMaterial.alphaMode = 7;
+			vehicleMaterial.invertNormalMapY = true;
 			vehicleMaterial.maxSimultaneousLights = 16;
-			vehicleMaterial.needDepthPrePass = true;
-			vehicleMaterial.transparencyMode = 3;
+			vehicleMaterial.clearCoat.isEnabled = true;
+			vehicleMaterial.clearCoat.intensity = 0.3;
+			vehicleMaterial.clearCoat.roughness = 0.1;
 			vehicleMaterial.iridescence.isEnabled = true;
 			vehicleMaterial.iridescence.intensity = 0.25;
 			vehicleMaterial.iridescence.indexOfRefraction = 1.6;

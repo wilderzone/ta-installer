@@ -19,7 +19,6 @@ func readManifest(logger *Logger, root string) (Manifest, error) {
 	logger.log(READING_LOCAL_MANIFEST, source)
 	file, err := os.OpenFile(source, os.O_RDONLY, os.FileMode(0777))
 	if err != nil {
-		// %w keeps fs.ErrNotExist detectable by callers via errors.Is.
 		return manifest, fmt.Errorf("open manifest %s: %w", source, err)
 	}
 	defer file.Close()

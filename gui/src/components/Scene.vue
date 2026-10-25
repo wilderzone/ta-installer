@@ -32,5 +32,11 @@ canvas {
 	inset: 0;
 	width: 100vw;
 	height: 100vh;
+	border-radius: var(--window-border-radius);
+}
+
+:root.linux canvas {
+	width: calc(100vw - var(--window-shadow) * 2);
+	height: calc(100vh - var(--window-shadow) * 2);
 }
 </style>

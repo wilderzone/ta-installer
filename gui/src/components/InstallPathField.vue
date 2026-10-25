@@ -31,6 +31,11 @@ async function browse(): Promise<void> {
 		store.refreshDirectory();
 	}
 }
+
+function change(event: Event): void {
+	if (!(event.target instanceof HTMLInputElement)) return;
+	store.path = event.target.value;
+}
 </script>
 
 <template>
@@ -50,7 +55,8 @@ async function browse(): Promise<void> {
 			type="text"
 			class="install-path-input"
 			:disabled="loading.value.value"
-			v-model="store.path"
+			:value="store.path"
+			@change="change($event)"
 		>
 		<button
 			type="button"
@@ -84,6 +90,7 @@ async function browse(): Promise<void> {
 				<span v-if="store.variant === 'vanilla'">A new vanilla installation will be created here.</span>
 				<span v-else-if="store.variant === 'modded'">A new modded installation will be created here.</span>
 				<span v-else-if="store.variant === 'custom'">A new custom installation will be created here.</span>
+				<span v-else>A new installation will be created here.</span>
 			</template>
 
 			<template v-if="store.pathState === DirectoryState.NeedsUpdate">

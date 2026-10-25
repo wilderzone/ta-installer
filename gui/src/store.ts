@@ -1,13 +1,13 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { exists } from '@tauri-apps/plugin-fs';
+import { message as messageDialog } from '@tauri-apps/plugin-dialog';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { defaultInstallPath, assetInclusions, models, repository, AppWindow } from './config';
 import { BundleSize, Manifest } from './manifest';
 import { loadData, saveData } from './persist';
-import { Action, DirectoryState, TAI } from './tai';
-import { deduplicate, delay, Estimator, formatDuration, normalisePath, parentDirectory, pathEndsWithTA, Semaphore } from './utilities';
+import { Action, DirectoryState, TAI, verbs } from './tai';
+import { deduplicate, delay, Estimator, formatDuration, brandPath, Semaphore } from './utilities';
 
 const useStore = defineStore('application', () => {
 	const isMainWindow = getCurrentWindow().label === AppWindow.Main;
@@ -152,6 +152,14 @@ const useStore = defineStore('application', () => {
 			progressMax.value = progressMax.value || 1;
 			progressValue.value = progressMax.value;
 		}
+		if (!cancelling.value) {
+			const verb = verbs[action.value];
+			let message = `${verb} complete.`;
+			if (action.value === 'install') {
+				message += '\nYou can now close the installer.';
+			}
+			void messageDialog(message, { title: 'Tribes: Ascend Installer', kind: 'info' });
+		}
 		refreshDirectory();
 		loading.remove();
 	}
@@ -183,43 +191,32 @@ const useStore = defineStore('application', () => {
 		}
 
 		nextTick(async () => {
-			loading.add();
+			const lock = loading.add();
 
 			// Reject empty paths.
 			if (!path.value) {
 				pathState.value = DirectoryState.Invalid;
-				loading.remove();
+				lock.remove();
 				return;
 			}
 
-			// Check that the chosen directory and its parent exist.
-			const parent = parentDirectory(path.value);
-			const pathExists = await exists(path.value);
-			const parentExists = await exists(parent);
-			if (!(pathExists || pathEndsWithTA(path.value)) || !parentExists) {
-				pathState.value = DirectoryState.Invalid;
-				loading.remove();
-				return;
-			}
+			// Check the chosen path with TAI.
+			const chosenPath = path.value;
+			let state = await TAI.checkPath(chosenPath);
+			let workingPath = chosenPath;
 
-			// Check the normalised path with TAI.
-			const normalisedPath = normalisePath(path.value);
-			let state = await TAI.checkPath(normalisedPath);
-			let workingPath = normalisedPath;
-	
-			// If the normalised path returns valid but not installed,
-			// check the actual chosen path for an installation instead.
+			// If the chosen path returns valid but not installed, use the branded path instead.
 			if (state === DirectoryState.Valid) {
-				state = await TAI.checkPath(path.value);
-				workingPath = path.value;
+				const brandedPath = brandPath(chosenPath);
+				state = await TAI.checkPath(brandedPath);
+				workingPath = brandedPath;
 			}
 
 			// If an installation exists, check the type and read the manifest.
-			selectedCustomAssets.value.clear();
 			if (state === DirectoryState.Installed || state === DirectoryState.NeedsUpdate) {
-				const data = await loadData();
-				store.pathVariant = data?.selectedVariant ?? '';
+				await loadData();
 				manifest.local = await TAI.getLocalManifest(workingPath);
+				selectedCustomAssets.value.clear();
 				for (const asset of manifest.local?.assets ?? []) {
 					selectedCustomAssets.value.add(asset.name);
 				}
@@ -227,8 +224,9 @@ const useStore = defineStore('application', () => {
 				store.pathVariant = '';
 			}
 
+			store.path = workingPath;
 			store.pathState = state;
-			loading.remove();
+			lock.remove();
 		});
 	}
 
@@ -236,14 +234,14 @@ const useStore = defineStore('application', () => {
 	function refreshRepository(): void {
 		nextTick(async () => {
 			await loading.resolved();
-			loading.add();
+			const lock = loading.add();
 			const found = await TAI.checkRepo(repository);
 			manifest.remote = await TAI.getRemoteManifest(repository);
 			await delay(500);
 			repositoryFound.value = found;
 			requiredCustomAssets.value = new Set(TAI.determineRequiredAssets(manifest.remote?.assets ?? []).map(asset => asset.name));
 			calculateBundleSizes();
-			loading.remove();
+			lock.remove();
 		});
 	}
 
@@ -299,6 +297,7 @@ const useStore = defineStore('application', () => {
 		progressMax,
 		progressValue,
 		refreshDirectory,
+		refreshRepository,
 		repositoryFound,
 		requiredCustomAssets,
 		run,

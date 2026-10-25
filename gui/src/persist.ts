@@ -7,11 +7,14 @@ const directory = 'Installer';
 
 interface TAIGUIData {
 	selectedVariant: string;
+	shortcuts: boolean;
 }
 
+/** Save the current application state: `store` → persistent storage. */
 export async function saveData(): Promise<void> {
 	const data: TAIGUIData = {
-		selectedVariant: store.variant
+		selectedVariant: store.variant,
+		shortcuts: store.createShortcuts
 	};
 	try {
 		// TAI creates this directory when it downloads the installation utilities, which an
@@ -25,20 +28,22 @@ export async function saveData(): Promise<void> {
 	}
 }
 
-export async function loadData(): Promise<TAIGUIData | undefined> {
+/** Load the application state: persistent storage → `store`. */
+export async function loadData(): Promise<void> {
 	try {
 		const path = await join(store.path, directory, filename);
 		const text = await readTextFile(path);
 		const data = JSON.parse(text);
-		if (!data) return undefined;
+		if (!data) return;
 		const safe: TAIGUIData = {
-			selectedVariant: parseVariant(data.selectedVariant)
+			selectedVariant: parseVariant(data.selectedVariant),
+			shortcuts: typeof data.shortcuts === 'boolean' ? data.shortcuts : true
 		};
-		return safe;
+		store.pathVariant = safe.selectedVariant;
+		store.createShortcuts = safe.shortcuts;
 	} catch (error) {
 		// This data file is non-essential, so we can dispose of any errors.
 		console.error(error);
-		return undefined;
 	}
 }
 
@@ -47,6 +52,6 @@ function parseVariant(variant: string | undefined): string {
 		case 'vanilla': return 'vanilla';
 		case 'modded': return 'modded';
 		case 'custom': return 'custom';
-		default: return 'custom';
+		default: return '';
 	}
 }

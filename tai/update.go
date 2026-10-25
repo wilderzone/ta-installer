@@ -80,7 +80,7 @@ func Update(ctx context.Context, logger *Logger, arguments arguments) error {
 		logger.log(UPDATE_PARTIAL)
 	} else {
 		// Update the uninstaller's Registry entry.
-		err := addUninstallerToRegistry(arguments.path)
+		err := addUninstallerToRegistry(arguments.path, true)
 		logger.detail("add uninstaller to registry", err)
 		logger.log(UPDATE_SUCCESS)
 	}

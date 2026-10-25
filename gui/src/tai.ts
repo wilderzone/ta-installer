@@ -4,6 +4,15 @@ import { Asset, BundleSize, Manifest } from './manifest';
 
 export type Action = 'check' | 'check-repo' | 'install' | 'verify' | 'update' | 'uninstall';
 
+export const verbs: Record<Action, string> = {
+	'check':      'Check',
+	'check-repo': 'Check',
+	'install':    'Installation',
+	'verify':     'Verification',
+	'update':     'Update',
+	'uninstall':  'Uninstall'
+};
+
 export enum DirectoryState {
 	Installed,
 	Invalid,

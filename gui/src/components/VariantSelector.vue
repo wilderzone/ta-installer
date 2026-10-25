@@ -4,6 +4,7 @@ import type { ScrollBarStyle } from '@tauri-apps/api/window';
 import { AppWindow } from '../config.ts';
 import { loading, store } from '../store.ts';
 import { byteCountSI } from '../utilities.ts';
+import Icon from './Icon.vue';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
 
@@ -40,21 +41,51 @@ async function openAssetSelector(): Promise<void> {
 			<RadioOption
 				image="124.png"
 				label="Vanilla"
-				:sublabel="`(${byteCountSI(store.bundleSize.vanilla.packed)})`"
 				value="vanilla"
-			/>
+			>
+				<template v-slot:sublabel>
+					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`">
+						<Icon icon="download" />
+						{{ byteCountSI(store.bundleSize.vanilla.packed) }}
+					</span>
+					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`">
+						<Icon icon="hard-drive" />
+						{{ byteCountSI(store.bundleSize.vanilla.unpacked) }}
+					</span>
+				</template>
+			</RadioOption>
 			<RadioOption
 				image="129.png"
 				label="Modded"
-				:sublabel="`(${byteCountSI(store.bundleSize.modded.packed)})`"
 				value="modded"
-			/>
+			>
+				<template v-slot:sublabel>
+					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`">
+						<Icon icon="download" />
+						{{ byteCountSI(store.bundleSize.modded.packed) }}
+					</span>
+					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`">
+						<Icon icon="hard-drive" />
+						{{ byteCountSI(store.bundleSize.modded.unpacked) }}
+					</span>
+				</template>
+			</RadioOption>
 			<RadioOption
 				image="118.png"
 				label="Custom"
-				:sublabel="`(${byteCountSI(store.bundleSize.custom.packed)})`"
 				value="custom"
-			/>
+			>
+				<template v-slot:sublabel>
+					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`">
+						<Icon icon="download" />
+						{{ byteCountSI(store.bundleSize.custom.packed) }}
+					</span>
+					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`">
+						<Icon icon="hard-drive" />
+						{{ byteCountSI(store.bundleSize.custom.unpacked) }}
+					</span>
+				</template>
+			</RadioOption>
 		</RadioRow>
 		<button
 			:class="{ hidden: store.variant !== 'custom' }"
@@ -63,7 +94,14 @@ async function openAssetSelector(): Promise<void> {
 		>Edit</button>
 		<p v-if="loading.value.value" class="grey">Checking...</p>
 		<p v-else-if="store.repositoryFound" class="green">Game files available.</p>
-		<p v-else-if="!store.repositoryFound" class="red">Game files could not be found. Please check your internet connection.</p>
+		<p v-else-if="!store.repositoryFound" class="red">
+			Game files could not be found. Please check your internet connection.
+			<button
+				class="retry-button"
+				:disabled="loading.value.value"
+				@click="store.refreshRepository()"
+			>Retry</button>
+		</p>
 	</fieldset>
 </template>
 
@@ -90,6 +128,16 @@ async function openAssetSelector(): Promise<void> {
 
 	& > p {
 		grid-area: info;
+	}
+
+	& .variant-info:first-of-type {
+		margin-inline-end: 2.5ch;
+	}
+
+	& .retry-button {
+		min-width: unset;
+		min-height: unset;
+		color: var(--color-text);
 	}
 }
 </style>

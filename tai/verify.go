@@ -30,6 +30,7 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	refreshInstallDate := len(damaged) != 0
 
 	if len(damaged) != 0 {
 		message := logger.plural(len(damaged), "asset is damaged and needs", "assets are damaged and need") + " to be redownloaded. "
@@ -45,9 +46,7 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 			if len(failed) != 0 {
 				return userErrorf(nil, "Some assets couldn't be re-downloaded. Run `verify` again to retry.")
 			} else {
-				// Update the uninstaller's Registry entry.
-				err := addUninstallerToRegistry(arguments.path)
-				logger.detail("add uninstaller to registry", err)
+				refreshInstallDate = true
 			}
 		}
 	}
@@ -57,6 +56,17 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	verifyUtilities(ctx, logger, arguments)
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+
+	// Create shortcuts and update the uninstaller's Registry entry.
+	err = createUninstallShortcut(arguments.path)
+	logger.detail("create uninstall shortcut", err)
+	err = addUninstallerToRegistry(arguments.path, refreshInstallDate)
+	logger.detail("add uninstaller to registry", err)
+	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
+	if err != nil && arguments.shortcuts {
+		logger.log(SHORTCUTS_FAILURE)
+		logger.detail("create shortcuts", err)
 	}
 
 	preflight(logger)

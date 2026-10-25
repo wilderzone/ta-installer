@@ -4,7 +4,7 @@ package main
 // application announces itself with a desktop entry instead, which createShortcuts
 // already writes. Both of these are no-ops so the commands can call them unconditionally.
 
-func addUninstallerToRegistry(root string) error {
+func addUninstallerToRegistry(root string, refreshInstallDate bool) error {
 	return nil
 }
 

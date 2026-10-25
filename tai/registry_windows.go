@@ -11,7 +11,7 @@ import (
 // This allows the game to be uninstalled by Windows (eg, via the Control Panel).
 // This function should be called whenever the game is updated/modified to keep the "InstallDate" accurate.
 // See: https://learn.microsoft.com/en-gb/windows/win32/msi/uninstall-registry-key
-func addUninstallerToRegistry(root string) error {
+func addUninstallerToRegistry(root string, refreshInstallDate bool) error {
 	rootKey := registry.CURRENT_USER
 
 	key, _, err := registry.CreateKey(rootKey, UNINSTALLER_REGISTRY_PATH, registry.ALL_ACCESS)
@@ -53,10 +53,12 @@ func addUninstallerToRegistry(root string) error {
 
 	// The install date should be updated whenever the game installation
 	// is updated/modified, not just when initially installed.
-	date := time.Now().Format("20060102")
-	err = key.SetStringValue("InstallDate", date)
-	if err != nil {
-		return err
+	if refreshInstallDate {
+		date := time.Now().Format("20060102")
+		err = key.SetStringValue("InstallDate", date)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = key.SetStringValue("InstallLocation", root)

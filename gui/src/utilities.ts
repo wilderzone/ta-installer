@@ -52,8 +52,8 @@ export function formatDuration(seconds: number): string {
 }
 
 /** Check if the final segment of the given path is "Tribes Ascend". */
-export function pathEndsWithTA(path: string): boolean {
-	return /[\\\/]Tribes Ascend[\\\/]?$/.test(path);
+export function pathIsBranded(path: string): boolean {
+	return /[\\\/]Tribes Ascend[\\\/]?$/i.test(path);
 }
 
 /**
@@ -66,9 +66,9 @@ export function usePathSeparator(value: string): void {
 	separator = value;
 }
 
-/** Normalise the given path such that the final segment is "Tribes Ascend". */
-export function normalisePath(path: string): string {
-	if (pathEndsWithTA(path)) return path;
+/** Brand the given path such that the final segment is "Tribes Ascend". */
+export function brandPath(path: string): string {
+	if (pathIsBranded(path)) return path;
 	return `${path}${separator}Tribes Ascend`.replaceAll(/[\\\/]+/g, separator);
 }
 
@@ -173,6 +173,29 @@ export class Estimator {
 	}
 }
 
+/** A single resource lock. */
+class Lock {
+	#locked = true;
+	/** The semaphore associated with this lock. */
+	public readonly semaphore: Semaphore;
+
+	constructor(semaphore: Semaphore) {
+		this.semaphore = semaphore;
+	}
+
+	/** The current state of this lock. */
+	public get locked(): boolean {
+		return this.#locked;
+	}
+
+	/** Remove this lock from its associated semaphore. */
+	public remove(): void {
+		if (!this.#locked) return;
+		this.semaphore.remove();
+		this.#locked = false;
+	}
+}
+
 /** A reactive semaphore for tracking a group of resource locks. */
 export class Semaphore {
 	#state = ref(0);
@@ -181,8 +204,9 @@ export class Semaphore {
 	public readonly value = computed(() => this.#state.value > 0);
 
 	/** Add a lock to the semaphore. */
-	public add(): void {
+	public add(): Lock {
 		this.#state.value++;
+		return new Lock(this);
 	}
 
 	/** Remove a lock from the semaphore. */
@@ -210,7 +234,7 @@ export class Semaphore {
 
 	/** Create a lock that waits for a given promise to resolve before automatically unlocking. */
 	public wait(promise: Promise<any>): void {
-		this.add();
-		promise.finally(() => this.remove());
+		const lock = this.add();
+		promise.finally(() => lock.remove());
 	}
 }

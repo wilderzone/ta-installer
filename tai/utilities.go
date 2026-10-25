@@ -116,7 +116,7 @@ func repairUtilities(ctx context.Context, logger *Logger, root string, damaged [
 
 	if len(repaired) != 0 {
 		logger.log(UTILITIES_REPAIRED, strings.Join(repaired, ", "))
-		err := addUninstallerToRegistry(root)
+		err := addUninstallerToRegistry(root, true)
 		logger.detail("add uninstaller to registry", err)
 	}
 
