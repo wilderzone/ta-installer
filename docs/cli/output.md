@@ -12,7 +12,7 @@ Reading local manifest from: G:\tribes\manifest.json
 ```
 While a slow step is running, an animated spinner is shown on the last line, so it's clear that TAI is still working during long pauses. It is only drawn when the output is an interactive terminal; when the output is piped or redirected, or when `-m` or `-s` is passed, it is omitted.
 
-Passing the `-m` [flag](./options#flags) will instruct TAI to output machine-readable JSON instead of human-readable messages. For example:
+Passing the `-m` [flag](/cli/options#flags) will instruct TAI to output machine-readable JSON instead of human-readable messages. For example:
 ```sh{1}
 > tai-cli.exe verify -m --path="G:/tribes"
 
@@ -102,7 +102,7 @@ Passing the `-m` [flag](./options#flags) will instruct TAI to output machine-rea
 
 ### Interrupting a Run
 
-Pressing `Ctrl+C` stops a running [subcommand](./subcommands) at its next safe point, rather than killing it mid-write. TAI reports what was interrupted and which subcommand to run to pick up where it left off, and exits with a non-zero status. Pressing `Ctrl+C` a second time ends the process immediately.
+Pressing `Ctrl+C` stops a running [subcommand](/cli/subcommands) at its next safe point, rather than killing it mid-write. TAI reports what was interrupted and which subcommand to run to pick up where it left off, and exits with a non-zero status. Pressing `Ctrl+C` a second time ends the process immediately.
 
 A parent process that has no console of its own (for example, TAI GUI) can't send an interrupt signal on Windows, so it asks the same way by writing the line `cancel` to TAI's standard input. This is only listened for when standard input is a pipe (not a terminal), so that it can't accidentally swallow the answers to confirmation prompts.
 

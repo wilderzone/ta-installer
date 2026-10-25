@@ -14,5 +14,5 @@ You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the 
 </p>
 
 :::info
-A [command line version of TAI](/cli/index) is also provided in case you need more control over the installation process.
+A [command line version of TAI](/cli) is also provided in case you need more control over the installation process.
 :::

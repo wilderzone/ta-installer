@@ -1,6 +1,6 @@
 # Subcommands
 
-The subcommand provided to TAI CLI determines the action to perform. Subcommands must always be passed as the first argument to TAI CLI. The subcommand is then followed by [options](./options) and [flags](./options#flags).
+The subcommand provided to TAI CLI determines the action to perform. Subcommands must always be passed as the first argument to TAI CLI. The subcommand is then followed by [options](/cli/options) and [flags](/cli/options#flags).
 
 | Subcommand         | Description                                                                                                                                                          | Example                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
@@ -19,4 +19,4 @@ Notes:
 - _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.org) by default._  
 - _Subcommands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._  
 - _`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Arx Novena"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._  
-- _Assets can depend on other assets. TAI manages these relationships automatically: `install` also installs whatever the selected assets require, and `uninstall` also removes assets that are no longer required. See [Dependency Resolution](./dependency-resolution) for more information._
+- _Assets can depend on other assets. TAI manages these relationships automatically: `install` also installs whatever the selected assets require, and `uninstall` also removes assets that are no longer required. See [Dependency Resolution](/cli/dependency-resolution) for more information._

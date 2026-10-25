@@ -12,7 +12,7 @@ its `dependencies` array, which holds the exact names of the assets it requires:
 }
 ```
 
-The CLI's `manifest` [subcommand](./subcommands) validates these relationships when a repository is built, so a
+The CLI's `manifest` [subcommand](/cli/subcommands) validates these relationships when a repository is built, so a
 misspelled name or a circular dependency is caught before the manifest is published.
 
 TAI resolves the graph automatically:

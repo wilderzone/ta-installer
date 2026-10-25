@@ -1,6 +1,6 @@
 # Options
 
-Options can be used to gain fine-grained control over the behaviour of TAI CLI. Options start with `--` (double hyphen), and typically take an argument in the form of `--option="argument"`. Whether an option is required or not depends on the provided [subcommand](./subcommands).
+Options can be used to gain fine-grained control over the behaviour of TAI CLI. Options start with `--` (double hyphen), and typically take an argument in the form of `--option="argument"`. Whether an option is required or not depends on the provided [subcommand](/cli/subcommands).
 
 | Option             | Argument                                            | Description                                                                                                     |
 | :----------------- | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
@@ -17,10 +17,10 @@ Options can be used to gain fine-grained control over the behaviour of TAI CLI. 
 
 Flags can be used for course control of TAI CLI. Flags start with `-` (single hyphen), and take no arguments. All flags are optional.
 
-| Flag               | Description                                                                                                     |
-| :----------------- | :-------------------------------------------------------------------------------------------------------------- |
-| `-m`               | Output machine-readable JSON instead of plain-text messages.                                                    |
-| `-p`               | Report the progress of a download as JSON lines on stdout. See [Download progress](#download-progress).         |
-| `-s`               | Run silently.                                                                                                   |
-| `-v`               | Enable verbose logging of otherwise-hidden errors (such as failed best-effort steps) to stderr, for debugging.  |
-| `-y`               | Automatically approve confirmation prompts.                                                                     |
+| Flag               | Description                                                                                                        |
+| :----------------- | :----------------------------------------------------------------------------------------------------------------- |
+| `-m`               | Output machine-readable JSON instead of plain-text messages.                                                       |
+| `-p`               | Report the progress of a download as JSON lines on stdout. See [Download progress](/cli/output#download-progress). |
+| `-s`               | Run silently.                                                                                                      |
+| `-v`               | Enable verbose logging of otherwise-hidden errors (such as failed best-effort steps) to stderr, for debugging.     |
+| `-y`               | Automatically approve confirmation prompts.                                                                        |
