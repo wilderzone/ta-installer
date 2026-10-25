@@ -10,6 +10,8 @@ export enum AppWindow {
 	AssetSelect = 'assetSelect'
 }
 
+export const infoUrl = 'https://wilderzone.org/docs/ta-installer';
+
 /**
  * Where the game is installed by default.
  * The value is platform-specific, so it comes from the Rust backend during startup rather than

@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { infoUrl } from '../config';
 
 const currentWindow = getCurrentWindow();
+
+async function info(): Promise<void> {
+	await openUrl(infoUrl);
+}
 
 async function minimize(): Promise<void> {
 	await currentWindow.minimize();
@@ -19,6 +25,9 @@ async function close(): Promise<void> {
 <template>
 	<div class="window-title-bar">
 		<div class="window-drag-region" data-tauri-drag-region></div>
+		<div class="window-info">
+			<button title="Information" @click="info()"><img src="../assets/info.svg" alt=""></button>
+		</div>
 		<div class="window-buttons">
 			<button class="minimize" @click="minimize()">—</button>
 			<button class="maximize" @click="maximize()" disabled>▢</button>
@@ -31,12 +40,13 @@ async function close(): Promise<void> {
 .window-title-bar {
 	--color-text: #fff;
 	--color-text-dim: #4d4d4d;
+	--window-button-height: 30px;
 	position: fixed;
 	top: 0;
 	right: 0;
 	left: 0;
 	display: flex;
-	justify-content: end;
+	justify-content: space-between;
 	height: 70px;
 	color: var(--color-text);
 	font-family: system-ui, sans-serif;
@@ -47,6 +57,32 @@ async function close(): Promise<void> {
 	app-region: drag;
 	position: absolute;
 	inset: 0;
+}
+
+.window-info {
+	display: flex;
+	align-items: center;
+	height: var(--window-button-height);
+	padding: 3px;
+
+	& button {
+		--size: 3ch;
+		display: grid;
+		place-items: center;
+		width: var(--size);
+		min-width: var(--size);
+		height: var(--size);
+		min-height: var(--size);
+		padding: 0;
+		background: transparent;
+		border-radius: 50%;
+		opacity: 0.25;
+		transition: 0.05s ease opacity;
+
+		&:is(:focus-visible, :hover) {
+			opacity: 0.8;
+		}
+	}
 }
 
 .window-buttons {
@@ -61,7 +97,7 @@ async function close(): Promise<void> {
 		display: grid;
 		place-items: center;
 		width: 45px;
-		height: 30px;
+		height: var(--window-button-height);
 		color: var(--color-text);
 		transition: 0.15s ease background-color;
 	}
