@@ -55,6 +55,8 @@ function change(event: Event): void {
 			type="text"
 			class="install-path-input"
 			aria-label="Installation location"
+			aria-describedby="install-path-info"
+			:aria-invalid="store.step2Error"
 			:disabled="loading.value.value"
 			:value="store.path"
 			@change="change($event)"
@@ -77,7 +79,7 @@ function change(event: Event): void {
 			<span>{{ shortcutLabel }}</span>
 		</label>
 
-		<p class="install-path-info">
+		<p id="install-path-info" role="status" class="install-path-info">
 			<span v-if="noPath" class="red">No location specified.</span>
 			<span v-else-if="store.pathState === DirectoryState.Installed || store.pathState === DirectoryState.NeedsUpdate" class="green">
 				<template v-if="store.pathVariant === 'vanilla'">Vanilla installation found.</template>

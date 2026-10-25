@@ -111,6 +111,7 @@ async function openAssetSelector(): Promise<void> {
 				</template>
 			</RadioOption>
 		</RadioRow>
+
 		<button
 			title="Edit the custom install configuration"
 			aria-label="Edit the custom install configuration"
@@ -118,15 +119,25 @@ async function openAssetSelector(): Promise<void> {
 			:inert="store.variant !== 'custom'"
 			@click="openAssetSelector()"
 		>Edit</button>
-		<p v-if="loading.value.value" class="grey">Checking...</p>
-		<p v-else-if="store.repositoryFound" class="green">Game files available.</p>
-		<p v-else-if="!store.repositoryFound" class="red">
-			Game files could not be found. Please check your internet connection.
-			<button
-				class="retry-button"
-				:disabled="loading.value.value"
-				@click="store.refreshRepository()"
-			>Retry</button>
+
+		<p
+			role="status"
+			:class="{
+				grey: loading.value.value,
+				green: !loading.value.value && store.repositoryFound,
+				red: !loading.value.value && !store.repositoryFound,
+			}"
+		>
+			<template v-if="loading.value.value">Checking...</template>
+			<template v-else-if="store.repositoryFound">Game files available.</template>
+			<template v-else>
+				Game files could not be found. Please check your internet connection.
+				<button
+					class="retry-button"
+					:disabled="loading.value.value"
+					@click="store.refreshRepository()"
+				>Retry</button>
+			</template>
 		</p>
 	</fieldset>
 </template>
