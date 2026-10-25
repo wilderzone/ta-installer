@@ -13,18 +13,27 @@ import VariantSelector from './VariantSelector.vue';
 		<Steps v-grid:steps />
 		<ol class="panels" :style="{ '--step': store.step }">
 			<li
+				role="tabpanel"
+				id="panel-step-1"
+				aria-labelledby="tab-step-1"
 				class="panel"
 				:inert="store.step !== 1"
 			>
 				<VariantSelector />
 			</li>
 			<li
+				role="tabpanel"
+				id="panel-step-2"
+				aria-labelledby="tab-step-2"
 				class="panel"
 				:inert="store.step !== 2"
 			>
 				<InstallPathField />
 			</li>
 			<li
+				role="tabpanel"
+				id="panel-step-3"
+				aria-labelledby="tab-step-3"
 				class="panel"
 				:inert="store.step !== 3"
 			>

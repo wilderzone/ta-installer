@@ -4,8 +4,12 @@ import { store } from '../store';
 
 <template>
 	<section class="steps">
-		<ol>
+		<ol role="tablist" aria-label="Installation configuration steps">
 			<li
+				role="tab"
+				id="tab-step-1"
+				aria-controls="panel-step-1"
+				:aria-selected="store.step === 1"
 				class="step"
 				:class="{ current: store.step === 1, complete: store.step > 1, error: store.step1Error }"
 				@click="store.step = 1"
@@ -16,6 +20,10 @@ import { store } from '../store';
 				<span class="name">Game Type</span>
 			</li>
 			<li
+				role="tab"
+				id="tab-step-2"
+				aria-controls="panel-step-2"
+				:aria-selected="store.step === 2"
 				class="step"
 				:class="{ current: store.step === 2, complete: store.step > 2, error: store.step2Error }"
 				@click="store.step = 2"
@@ -26,6 +34,10 @@ import { store } from '../store';
 				<span class="name">Location</span>
 			</li>
 			<li
+				role="tab"
+				id="tab-step-3"
+				aria-controls="panel-step-3"
+				:aria-selected="store.step === 3"
 				class="step"
 				:class="{ current: store.step === 3, complete: store.step > 3, error: store.step3Error }"
 				@click="store.step = 3"
