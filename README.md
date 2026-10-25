@@ -2,7 +2,7 @@
 A [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface) utility for managing Tribes: Ascend installations.
 
 > [!TIP]
-> For detailed instructions on how to use TAI, and how it works, please see the [documentation website](https://wilderzone.org/docs/tai).
+> For detailed instructions on how to use TAI, and how it works, please see the [documentation website](https://wilderzone.org/docs/ta-installer).
 
 ## GUI
 
