@@ -121,6 +121,7 @@ function change(event: Event, value: string): void {
 		inset: 0;
 		margin: 0;
 		opacity: 0;
+		pointer-events: none;
 	}
 
 	&:has(input:disabled) {
