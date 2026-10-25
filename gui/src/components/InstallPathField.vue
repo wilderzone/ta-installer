@@ -164,6 +164,10 @@ function change(event: Event): void {
 
 	& input[type="checkbox"] {
 		margin: 0;
+
+		&:focus-visible {
+			outline: var(--focus-outline);
+		}
 	}
 }
 </style>

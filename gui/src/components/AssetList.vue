@@ -113,5 +113,9 @@ function toggle(event: InputEvent, asset: Asset): void {
 	& label {
 		width: 100%;
 	}
+
+	& input[type="checkbox"]:focus-visible {
+		outline: var(--focus-outline);
+	}
 }
 </style>

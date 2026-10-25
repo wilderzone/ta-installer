@@ -81,6 +81,7 @@ async function close(): Promise<void> {
 
 		&:is(:focus-visible, :hover) {
 			opacity: 0.8;
+			outline: unset;
 		}
 	}
 }

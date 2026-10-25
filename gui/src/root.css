@@ -18,6 +18,7 @@
 	--font-size: 14px;
 	--border-radius: 5px;
 	--fieldset-inline-padding: 0.75rem;
+	--focus-outline: 2px ridge #dde;
 	--gap-xs: 6px;
 	--gap-s: 12px;
 	--gap-m: 24px;
@@ -154,10 +155,18 @@ button {
 		padding: 0.4em 0;
 		text-transform: capitalize;
 		background: var(--color-primary);
+
+		&:focus-visible {
+			outline-offset: 1px;
+		}
 	}
 
 	&:where([type="submit"], .primary):not(:disabled) {
 		color: var(--color-text-on-primary);
+	}
+
+	&:focus-visible {
+		outline: var(--focus-outline);
 	}
 
 	&:where(:focus-visible, :hover) {

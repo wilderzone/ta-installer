@@ -85,6 +85,10 @@ import { store } from '../store';
 	text-transform: capitalize;
 	border-radius: var(--border-radius);
 
+	&:focus-visible {
+		outline: var(--focus-outline);
+	}
+
 	&:where(:focus-visible, :hover) {
 		background: var(--color-card);
 	}
