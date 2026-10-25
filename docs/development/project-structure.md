@@ -1,6 +1,6 @@
 # Project Structure
 
-TAI is built from a single Git repository, with subdirectories for the CLI, GUI, shared Go libraries, installation utilities, and documentation.
+TAI is built from a [single Git repository](https://github.com/wilderzone/ta-installer), with subdirectories for the CLI, GUI, shared Go libraries, installation utilities, and documentation.
 
 | Component              | Directory    | Languages    | Description                  |
 | :--------------------- | :----------- | :----------- | :--------------------------- |
