@@ -88,8 +88,9 @@ async function openAssetSelector(): Promise<void> {
 			</RadioOption>
 		</RadioRow>
 		<button
-			:class="{ hidden: store.variant !== 'custom' }"
 			title="Edit the custom install configuration"
+			:class="{ hidden: store.variant !== 'custom' }"
+			:inert="store.variant !== 'custom'"
 			@click="openAssetSelector()"
 		>Edit</button>
 		<p v-if="loading.value.value" class="grey">Checking...</p>
