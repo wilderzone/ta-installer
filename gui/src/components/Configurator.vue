@@ -11,22 +11,22 @@ import VariantSelector from './VariantSelector.vue';
 <template>
 	<form class="configurator" action="" @submit.prevent>
 		<Steps v-grid:steps />
-		<ol class="panels">
+		<ol class="panels" :style="{ '--step': store.step }">
 			<li
 				class="panel"
-				:class="{ current: store.step === 1 }"
+				:inert="store.step !== 1"
 			>
 				<VariantSelector />
 			</li>
 			<li
 				class="panel"
-				:class="{ current: store.step === 2 }"
+				:inert="store.step !== 2"
 			>
 				<InstallPathField />
 			</li>
 			<li
 				class="panel"
-				:class="{ current: store.step === 3 }"
+				:inert="store.step !== 3"
 			>
 				<div class="output">
 					<ProgressBar
@@ -56,32 +56,44 @@ import VariantSelector from './VariantSelector.vue';
 }
 
 .panels {
+	--panel-gap: calc(var(--gap-m) * 2);
 	grid-area: panels;
-	display: flex;
-	justify-content: center;
 	align-self: flex-start;
-	gap: calc(var(--gap-m) * 2);
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 100%;
+	grid-template-rows: 100%;
+	gap: var(--panel-gap);
 	width: 100%;
 	height: 100%;
+	min-width: 0;
 	min-height: 0;
 	margin: 0;
 	padding: 0;
 	list-style: none;
+	overflow-x: clip;
 
 	.panel {
-		display: none;
+		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--gap-m);
 		width: 100%;
 		height: 100%;
+		min-height: 0;
+		transform: translateX(calc((1 - var(--step)) * (100% + var(--panel-gap))));
+		transition: 0.3s ease transform, 0.4s ease opacity;
 
 		&:where(:focus-visible, :hover) {
 			border-color: var(--color-border);
 		}
 
-		&.current {
-			display: flex;
+		&[inert] {
+			opacity: 0;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: 0.4s ease opacity;
 		}
 	}
 }
