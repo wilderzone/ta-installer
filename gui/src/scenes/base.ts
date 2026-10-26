@@ -79,6 +79,7 @@ export class BaseScene {
 		this.glow.intensity = 1.5;
 		this.glow.blurKernelSize = 32;
 
+		// Environment.
 		this.scene.environmentTexture = CubeTexture.CreateFromPrefilteredData('/Studio_Softbox_2Umbrellas_cube_specular.env', this.scene);
 		this.scene.environmentIntensity = 0.3;
 	}
