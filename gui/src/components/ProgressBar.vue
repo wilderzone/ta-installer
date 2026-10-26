@@ -81,6 +81,10 @@ watch(valuePercentage, (value, previous) => {
 		animation: progress 0.4s linear infinite;
 		transition: 0.1s ease filter, var(--bar-transition);
 
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+
 		&.glow {
 			filter: blur(5px) brightness(1.5) opacity(0.35);
 			mix-blend-mode: plus-lighter;
