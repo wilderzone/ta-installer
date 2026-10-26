@@ -197,6 +197,7 @@ input[type="text"] {
 	width: 100%;
 
 	&:where(:focus, :focus-visible) {
+		border-color: var(--color-primary);
 		outline: unset;
 	}
 }
