@@ -60,7 +60,6 @@ Passing the `-m` [flag](/cli/options#flags) will instruct TAI to output machine-
 - `PREREQUISITES_REQUIRED`
 - `PROGRESS`
 - `PROMPT_PROCEED`
-- `PROMPT_REMOVE_DEPENDENTS`
 - `PROMPT_UNINSTALL_ANYWAY`
 - `READING_LOCAL_MANIFEST`
 - `READING_MANIFEST_FAILED`
