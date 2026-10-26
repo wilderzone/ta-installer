@@ -1,3 +1,5 @@
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { infoUrl } from './config';
 import { DEV } from './dev';
 
 export function handleShortcuts(): void {
@@ -7,6 +9,12 @@ export function handleShortcuts(): void {
 
 	window.addEventListener('keydown', event => {
 		const { ctrlKey: ctrl, key } = event;
+
+		if (key === 'F1') {
+			event.preventDefault();
+			void openUrl(infoUrl);
+			return;
+		}
 
 		if (key === 'F3') {
 			event.preventDefault();
