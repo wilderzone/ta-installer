@@ -26,13 +26,33 @@ async function close(): Promise<void> {
 	<div class="window-title-bar">
 		<div class="window-drag-region" data-tauri-drag-region></div>
 		<div class="window-info">
-			<button title="Information" @click="info()"><img src="../assets/info.svg" alt=""></button>
+			<button
+				title="Information"
+				aria-label="View information about this application"
+				@click="info()"
+			><img src="../assets/info.svg" alt=""></button>
 		</div>
-		<div class="window-buttons">
-			<button class="minimize" @click="minimize()">—</button>
-			<button class="maximize" @click="maximize()" disabled>▢</button>
-			<button class="close" @click="close()">✕</button>
-		</div>
+		<section class="window-buttons" aria-label="Application window controls">
+			<button
+				class="minimize"
+				title="Minimize"
+				aria-label="Minimize"
+				@click="minimize()"
+			>—</button>
+			<button
+				class="maximize"
+				title="Maximize"
+				aria-label="Maximize"
+				disabled
+				@click="maximize()"
+			>▢</button>
+			<button
+				class="close"
+				title="Close"
+				aria-label="Close"
+				@click="close()"
+			>✕</button>
+		</section>
 	</div>
 </template>
 
@@ -81,6 +101,7 @@ async function close(): Promise<void> {
 
 		&:is(:focus-visible, :hover) {
 			opacity: 0.8;
+			outline: unset;
 		}
 	}
 }

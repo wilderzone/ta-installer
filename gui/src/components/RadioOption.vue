@@ -41,6 +41,7 @@ function change(event: Event, value: string): void {
 		<div class="text">
 			<span class="label"><slot name="label">{{ label }}</slot></span>
 			<span class="sublabel"><slot name="sublabel">{{ sublabel }}</slot></span>
+			<span v-if="disabledMessage" class="visually-hidden">{{ disabledMessage }}</span>
 		</div>
 		<input
 			type="radio"

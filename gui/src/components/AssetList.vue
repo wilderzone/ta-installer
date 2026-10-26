@@ -17,7 +17,15 @@ const categories = computed(() => {
 });
 
 function assetID(asset: Asset): string {
-	return `asset-${asset.name.replaceAll(/\s/g, '_')}`;
+	return `asset-selector-asset-${asset.name.replaceAll(/\s/g, '_')}`;
+}
+
+function categoryID(category: string): string {
+	return `asset-selector-category-${category.replaceAll(/\s/g, '_')}`;
+}
+
+function labelID(asset: Asset): string {
+	return `asset-selector-label-${asset.name.replaceAll(/\s/g, '_')}`;
 }
 
 function toggle(event: InputEvent, asset: Asset): void {
@@ -37,11 +45,19 @@ function toggle(event: InputEvent, asset: Asset): void {
 </script>
 
 <template>
-	<ul class="asset-list">
-		<li v-for="assets, category of categories" class="category">
-			<p>{{ category }}</p>
-			<ul>
-				<li v-for="asset of assets" class="asset">
+	<ul class="asset-list" aria-label="Installable assets">
+		<li
+			v-for="assets, category of categories"
+			class="category"
+			:aria-labelledby="categoryID(category)"
+		>
+			<p :id="categoryID(category)">{{ category }}</p>
+			<ul :aria-label="`Installable ${category} assets`">
+				<li
+					v-for="asset of assets"
+					class="asset"
+					:aria-labelledby="labelID(asset)"
+				>
 					<input
 						type="checkbox"
 						:name="assetID(asset)"
@@ -50,7 +66,7 @@ function toggle(event: InputEvent, asset: Asset): void {
 						:disabled="store.requiredCustomAssets.has(asset.name)"
 						@input="toggle($event, asset)"
 					>
-					<label :for="assetID(asset)">{{ asset.name }}</label>
+					<label :id="labelID(asset)" :for="assetID(asset)">{{ asset.name }}</label>
 				</li>
 			</ul>
 		</li>
@@ -112,6 +128,10 @@ function toggle(event: InputEvent, asset: Asset): void {
 
 	& label {
 		width: 100%;
+	}
+
+	& input[type="checkbox"]:focus-visible {
+		outline: var(--focus-outline);
 	}
 }
 </style>

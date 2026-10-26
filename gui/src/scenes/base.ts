@@ -20,6 +20,7 @@ export class BaseScene {
 		// Create the engine.
 		this.canvas = canvas;
 		this.engine = new Engine(canvas);
+		this.engine.canvasTabIndex = -1;
 		this.setMaxFramerate('focused');
 
 		// Create a new scene.

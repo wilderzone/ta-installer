@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
+	ariaLabel?: string;
 	value: number;
 	max: number
 	detail?: string;
@@ -13,6 +14,12 @@ const props = defineProps<{
 const ease = ref(false);
 const complete = computed(() => props.value >= props.max && props.value);
 const valuePercentage = computed(() => props.max ? props.value / props.max * 100 : 0);
+const valueText = computed(() => {
+	if (props.indeterminate) return undefined;
+	if (props.label) return props.label;
+	const percentage = `${(valuePercentage.value || 0).toFixed(0)}%`;
+	return props.detail ? `${percentage}, ${props.detail}` : percentage;
+});
 
 // The bar should ease when moving forwards, but snap when moving backwards (ie, resetting).
 watch(valuePercentage, (value, previous) => {
@@ -22,8 +29,13 @@ watch(valuePercentage, (value, previous) => {
 
 <template>
 	<div class="progress-bar" :class="{ complete, disabled, ease, indeterminate }">
-		<progress :max :value="value">{{ value.toFixed(0) }}%</progress>
-		<div class="track">
+		<progress
+			:aria-label
+			:aria-valuetext="valueText"
+			:max
+			:value="indeterminate ? undefined : value"
+		>{{ value.toFixed(0) }}%</progress>
+		<div class="track" aria-hidden="true">
 			<div class="bar" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
 			<div class="bar glow" :style="{ width: indeterminate ? '100%' : `${valuePercentage}%` }"></div>
 			<div v-if="label" class="percentage">{{ label }}</div>
@@ -68,6 +80,10 @@ watch(valuePercentage, (value, previous) => {
 		filter: grayscale(0);
 		animation: progress 0.4s linear infinite;
 		transition: 0.1s ease filter, var(--bar-transition);
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
 
 		&.glow {
 			filter: blur(5px) brightness(1.5) opacity(0.35);

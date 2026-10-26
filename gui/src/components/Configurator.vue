@@ -9,27 +9,45 @@ import VariantSelector from './VariantSelector.vue';
 </script>
 
 <template>
-	<form class="configurator" action="" @submit.prevent>
+	<form
+		class="configurator"
+		aria-label="Installation configuration"
+		action=""
+		@submit.prevent="store.run()"
+	>
+		<!-- Enter in a field submits the form through its first submit button. This one is
+		     disabled, so those presses do nothing, and only the run button can submit. -->
+		<button type="submit" disabled hidden></button>
 		<Steps v-grid:steps />
-		<ol class="panels" :style="{ '--step': store.step }">
-			<li
+		<div class="panels" :style="{ '--step': store.step }">
+			<div
+				role="tabpanel"
+				id="panel-step-1"
+				aria-labelledby="tab-step-1"
 				class="panel"
 				:inert="store.step !== 1"
 			>
 				<VariantSelector />
-			</li>
-			<li
+			</div>
+			<div
+				role="tabpanel"
+				id="panel-step-2"
+				aria-labelledby="tab-step-2"
 				class="panel"
 				:inert="store.step !== 2"
 			>
 				<InstallPathField />
-			</li>
-			<li
+			</div>
+			<div
+				role="tabpanel"
+				id="panel-step-3"
+				aria-labelledby="tab-step-3"
 				class="panel"
 				:inert="store.step !== 3"
 			>
 				<div class="output">
 					<ProgressBar
+						:aria-label="`${store.action} progress`"
 						:detail="store.progressDetail"
 						:indeterminate="store.progressIndeterminate"
 						:max="store.progressMax"
@@ -37,8 +55,8 @@ import VariantSelector from './VariantSelector.vue';
 					/>
 					<Log />
 				</div>
-			</li>
-		</ol>
+			</div>
+		</div>
 		<StepNavigation v-grid:navigation />
 	</form>
 </template>
@@ -68,9 +86,6 @@ import VariantSelector from './VariantSelector.vue';
 	height: 100%;
 	min-width: 0;
 	min-height: 0;
-	margin: 0;
-	padding: 0;
-	list-style: none;
 	overflow-x: clip;
 
 	.panel {
