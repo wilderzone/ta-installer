@@ -8,7 +8,7 @@ Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a comp
 
 A few things differ from Windows by necessity:
 
-- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
+- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing, and the game's entry offers the [installation utilities](/development/installation-utilities#on-linux) as right-click actions.
 - The default install path is under your home directory.
 - DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
 - The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".

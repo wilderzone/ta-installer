@@ -10,9 +10,34 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | :---------- | :------ | :---- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `tai-cli`   | ✓       | ✓     | A local copy of TAI CLI.                                                                                                          |
 | `play`      | ✓       | ✓     | Launches the game. All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
-| `uninstall` | ✓       |       | Allows the game to be uninstalled via the Control Panel or the Settings menu. On Linux this action is handled by desktop entries. |
-| `update`    | ✓       |       | Allows the game to be updated via a simple double-click. On Linux this action is handled by desktop entries.                      |
-| `verify`    | ✓       |       | Allows the game files to be verified via a simple double-click. On Linux this action is handled by desktop entries.               |
+| `uninstall` | ✓       | ✓     | Uninstalls the game. On Windows it's run from the Control Panel or the Settings menu; on Linux, from the applications menu or the game's right-click actions. |
+| `update`    | ✓       | ✓     | Updates the game. On Windows, double-click it; on Linux, use the game's right-click actions or the entry in the installation folder. |
+| `verify`    | ✓       | ✓     | Verifies the game's files, and repairs any that are damaged. It's run the same way as `update`.                                   |
+
+## Dialogs
+
+`uninstall`, `update`, and `verify` each run one TAI CLI [subcommand](/cli/subcommands) against the installation they live in, and show their progress and result in native dialogs instead of a terminal window. They're built from a shared Go module in `/utilities`, and use [zenity](https://github.com/ncruces/zenity) for the dialogs.
+
+- **Progress:** A progress dialog follows the CLI's [machine-readable output](/cli/output), showing each step and the progress of any download. Pressing **Cancel** asks the CLI to stop at its next safe point (see [Interrupting a Run](/cli/output#interrupting-a-run)), and the result explains how to pick up where it left off.
+- **Result:** Once the CLI finishes, a dialog reports how it went: a success, a success with warnings (eg, the shortcuts couldn't be created), a partial result, or an error. **Show Details** opens the run's full log, including the CLI's verbose output.
+- **Logs:** `update` and `verify` log to `Logs/update.txt` and `Logs/verify.txt` inside the installation, replacing the log on each run. `uninstall` logs to `tai-uninstall.txt` in the temp directory instead, since it removes the installation.
+- **Questions:** The CLI is always run with `-y`, so it never prompts. Anything worth asking is asked by the utility, before the CLI starts.
+- **Silent mode:** Passing `-s` runs a utility without any dialogs or questions. Windows uses this for a quiet uninstall.
+- **Exit code:** A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined. The CLI exits cleanly from some of these, so its own exit code isn't enough to go on.
+
+### Uninstalling
+
+`uninstall` runs the CLI's `check` subcommand first, so its confirmation can say exactly what will happen: the installation folder, and everything in it, will be permanently deleted. If the installation's manifest can't be read, the question also warns that there's no telling which of the files belong to the game. Cancel is the default answer.
+
+The CLI removes everything except the utilities directory it runs from. `uninstall` then removes that directory, and the installation folder around it - but only after a complete run, and only when nothing else is left in the folder. Anything the CLI couldn't remove is left where it is, along with the folder.
+
+### On Linux
+
+The game's desktop entry offers each utility as an action: right-click the game in the applications menu or the dock for **Verify Files**, **Check for Updates**, and **Uninstall**. The installation folder also holds a desktop entry for each utility, and the "Uninstall Tribes: Ascend" entry in the applications menu stands in for Add/Remove Programs.
+
+The dialogs need one of `zenity`, `qarma`, or `matedialog` to be installed, which most desktops include. Without one, a utility reopens itself in a terminal, where it shows the CLI's output and the CLI asks its own questions.
+
+## Building
 
 Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
 ```sh
@@ -38,7 +63,7 @@ Their checksums are **not** compiled into `tai-cli.exe` - that would be circular
 tai-cli.exe asset --path=<installer build dir> --name=Installer
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so `tai-cli` and `play` keep their execute bits.
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the executables keep their execute bits.
 
 Build `play.exe` for Windows, configured so starting the game doesn't flash up a console window:
 
@@ -46,7 +71,14 @@ Build `play.exe` for Windows, configured so starting the game doesn't flash up a
 GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
 ```
 
+Build `uninstall.exe`, `update.exe`, and `verify.exe` the same way, from the `/utilities` module, so that no console window opens alongside their dialogs:
+
+```sh
+cd utilities
+GOOS=windows go build -ldflags="-H=windowsgui" -o verify.exe ./verify
+```
+
 The `play` utility writes to `Logs/launcher.txt` inside the installation, replacing it on each launch. The log includes output from the compatibility layer as well.
-The other three utilities print their output to the console window they were launched from.
+The other three utilities keep the logs described in [Dialogs](#dialogs).
 
 </details>

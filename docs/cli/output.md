@@ -137,11 +137,11 @@ An interface driving TAI has no spinner to read, so passing the `-p` flag instru
 ```
 > tai-cli.exe install -p --path="G:/tribes"
 ...
-{"size":2782785536,"message":"","type":"DOWNLOAD_STARTED"}
-{"bytes":15728640,"size":2782785536,"rate":6553600,"message":"","type":"DOWNLOAD_PROGRESS"}
-{"bytes":32505856,"size":2782785536,"rate":6684672,"message":"","type":"DOWNLOAD_PROGRESS"}
+{"size":2782785536,"message":"0% of 2.8 GB","type":"DOWNLOAD_STARTED"}
+{"bytes":15728640,"size":2782785536,"rate":6553600,"message":"0% of 2.8 GB - 7 minutes left","type":"DOWNLOAD_PROGRESS"}
+{"bytes":32505856,"size":2782785536,"rate":6684672,"message":"1% of 2.8 GB - 7 minutes left","type":"DOWNLOAD_PROGRESS"}
 ...
-{"bytes":2782785536,"size":2782785536,"message":"","type":"DOWNLOAD_COMPLETE"}
+{"bytes":2782785536,"size":2782785536,"message":"100% of 2.8 GB","type":"DOWNLOAD_COMPLETE"}
 ```
 
-`bytes` is what has arrived so far, `size` what is expected in total, and `rate` a smoothed average of the bytes per second. These lines are always JSON, with or without `-m`. A manifest that doesn't record the size of every asset it is downloading can't be measured, and reports nothing rather than an inaccurate total.
+`bytes` is what has arrived so far, `size` what is expected in total, and `rate` a smoothed average of the bytes per second. `message` describes the same progress in words, as the spinner would, for an interface that shows it as text. These lines are always JSON, with or without `-m`. A manifest that doesn't record the size of every asset it is downloading can't be measured, and reports nothing rather than an inaccurate total.
