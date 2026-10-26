@@ -264,7 +264,7 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | Utility     | Windows | Linux | Purpose                                                                                                                           |
 | :---------- | :------ | :---- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `tai-cli`   | ✓       | ✓     | A local copy of TAI CLI.                                                                                                          |
-| `play`      | ✓       | ✓     | Launches the game. All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
+| `play`      | ✓       | ✓     | Launches the game, after checking for updates (see below). All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
 | `uninstall` | ✓       | ✓     | Uninstalls the game. On Windows it's run from the Control Panel or the Settings menu; on Linux, from the applications menu or the game's right-click actions. |
 | `update`    | ✓       | ✓     | Updates the game. On Windows, double-click it; on Linux, use the game's right-click actions or the entry in the installation folder. |
 | `verify`    | ✓       | ✓     | Verifies the game's files, and repairs any that are damaged. It's run the same way as `update`.                                   |
@@ -276,6 +276,8 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 - `uninstall` only removes the installation folder after a complete run, and only when nothing but the utilities directory is left in it.
 - Passing `-s` runs a utility without any dialogs or questions. A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined.
 - On Linux, the dialogs need `zenity`, `qarma`, or `matedialog`. Without one, a utility reopens itself in a terminal, where the CLI asks its own questions.
+
+Before it starts the game, `play` checks for an update (which can be skipped), and asks whether to install one if it's found. **Update** installs it like `update` does, then starts the game, offering **Play Anyway** if the update doesn't complete; **Play Now** starts the game straight away. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game simply starts, and the reason is written to `Logs/launcher.txt`. `play -prepare` never checks.
 
 Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
 ```sh
@@ -303,17 +305,12 @@ tai-cli.exe asset --path=<installer build dir> --name=Installer
 
 Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the executables keep their execute bits.
 
-Build `play.exe` for Windows, configured so starting the game doesn't flash up a console window:
-
-```sh
-GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
-```
-
-Build `uninstall.exe`, `update.exe`, and `verify.exe` the same way, from the `/utilities` module, so that no console window opens alongside their dialogs:
+Build `play.exe`, `uninstall.exe`, `update.exe`, and `verify.exe` for Windows as GUI programs, so that starting the game, or showing a utility's dialogs, doesn't open a console window as well. They're all built from the `/utilities` module:
 
 ```sh
 cd utilities
-GOOS=windows go build -ldflags="-H=windowsgui" -o verify.exe ./verify
+GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./play
+GOOS=windows go build -ldflags="-H=windowsgui" -o verify.exe ./verify   # And likewise for uninstall and update.
 ```
 
 The `play` utility writes to `Logs/launcher.txt` inside the installation, replacing it on each launch. The log includes output from the compatibility layer as well.
