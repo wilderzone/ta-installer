@@ -21,6 +21,7 @@ useFocusRecovery(navigation, [() => store.step, () => store.running, loading.val
 	<section ref="navigation" class="step-navigation">
 		<button
 			ref="previousButton"
+			type="button"
 			title="Previous step"
 			aria-label="Previous step"
 			:disabled="store.step <= 1"
@@ -29,6 +30,7 @@ useFocusRecovery(navigation, [() => store.step, () => store.running, loading.val
 		<button
 			v-if="store.step < 3"
 			ref="nextButton"
+			type="button"
 			title="Next step"
 			aria-label="Next step"
 			:disabled="store.step >= 3"
@@ -38,14 +40,15 @@ useFocusRecovery(navigation, [() => store.step, () => store.running, loading.val
 			<button
 				v-if="store.running"
 				ref="cancelButton"
+				type="button"
 				class="cancel"
 				@click="store.cancel()"
 			>Cancel</button>
 			<button
 				ref="runButton"
+				type="submit"
 				class="primary"
 				:disabled="loading.value.value || store.step1Error || store.step2Error"
-				@click="store.run()"
 			>{{ store.action }}</button>
 		</template>
 	</section>

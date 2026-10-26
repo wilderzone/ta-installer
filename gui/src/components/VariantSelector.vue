@@ -123,6 +123,7 @@ async function openAssetSelector(): Promise<void> {
 		</RadioRow>
 
 		<button
+			type="button"
 			title="Edit the custom install configuration"
 			aria-label="Edit the custom install configuration"
 			:class="{ hidden: store.variant !== 'custom' }"
@@ -144,6 +145,7 @@ async function openAssetSelector(): Promise<void> {
 				Game files could not be found. Please check your internet connection.
 				<button
 					ref="retryButton"
+					type="button"
 					class="retry-button"
 					:disabled="loading.value.value"
 					@click="store.refreshRepository()"

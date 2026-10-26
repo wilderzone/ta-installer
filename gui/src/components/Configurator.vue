@@ -13,8 +13,11 @@ import VariantSelector from './VariantSelector.vue';
 		class="configurator"
 		aria-label="Installation configuration"
 		action=""
-		@submit.prevent
+		@submit.prevent="store.run()"
 	>
+		<!-- Enter in a field submits the form through its first submit button. This one is
+		     disabled, so those presses do nothing, and only the run button can submit. -->
+		<button type="submit" disabled hidden></button>
 		<Steps v-grid:steps />
 		<div class="panels" :style="{ '--step': store.step }">
 			<div

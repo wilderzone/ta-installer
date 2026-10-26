@@ -15,6 +15,7 @@ const placeholder: LogLineData = {
 			<LogLine v-for="line of TAI.log.value" v-bind="line" />
 		</output>
 		<button
+			type="button"
 			class="clear"
 			title="Clear the progress log"
 			aria-label="Clear the progress log"
