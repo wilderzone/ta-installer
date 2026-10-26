@@ -57,16 +57,16 @@ async function openAssetSelector(): Promise<void> {
 					<span
 						class="variant-info"
 						:title="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`"
-						:aria-label="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`"
 					>
+						<span class="visually-hidden">Download size:</span>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.vanilla.packed) }}
 					</span>
 					<span
 						class="variant-info"
 						:title="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`"
-						:aria-label="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`"
 					>
+						<span class="visually-hidden">Installed size:</span>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.vanilla.unpacked) }}
 					</span>
@@ -81,16 +81,16 @@ async function openAssetSelector(): Promise<void> {
 					<span
 						class="variant-info"
 						:title="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`"
-						:aria-label="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`"
 					>
+						<span class="visually-hidden">Download size:</span>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.modded.packed) }}
 					</span>
 					<span
 						class="variant-info"
 						:title="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`"
-						:aria-label="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`"
 					>
+						<span class="visually-hidden">Installed size:</span>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.modded.unpacked) }}
 					</span>
@@ -105,16 +105,16 @@ async function openAssetSelector(): Promise<void> {
 					<span
 						class="variant-info"
 						:title="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`"
-						:aria-label="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`"
 					>
+						<span class="visually-hidden">Download size:</span>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.custom.packed) }}
 					</span>
 					<span
 						class="variant-info"
 						:title="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`"
-						:aria-label="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`"
 					>
+						<span class="visually-hidden">Installed size:</span>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.custom.unpacked) }}
 					</span>
