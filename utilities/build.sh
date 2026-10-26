@@ -19,22 +19,13 @@ build() {
 	cd "$SCRIPT_CWD/../tai" && go build -o "$OUT/tai-cli$EXTENSION" .
 	chmod +x "$OUT/tai-cli$EXTENSION"
 
-	echo "- play"
-	if [[ $PLATFORM == "Linux" ]]; then
-		cd "$SCRIPT_CWD/play"   && go build -o "$OUT/play$EXTENSION" .
-	fi
-	if [[ $PLATFORM == "Windows" ]]; then
-		cd "$SCRIPT_CWD/play"   && go build -ldflags="-H=windowsgui" -o "$OUT/play$EXTENSION" .
-	fi
-	chmod +x "$OUT/play$EXTENSION"
-
-	# Build the utilities that show dialogs. On Windows they're built as GUI programs, so a
-	# console window doesn't open alongside the dialogs.
+	# Build the other utilities. On Windows they're built as GUI programs: they show dialogs
+	# (or, for play, start the game), so a console window would only get in the way.
 	local LDFLAGS=""
 	if [[ $PLATFORM == "Windows" ]]; then
 		LDFLAGS="-H=windowsgui"
 	fi
-	for UTILITY in uninstall update verify; do
+	for UTILITY in play uninstall update verify; do
 		echo "- $UTILITY"
 		cd "$SCRIPT_CWD" && go build -ldflags="$LDFLAGS" -o "$OUT/$UTILITY$EXTENSION" "./$UTILITY"
 		chmod +x "$OUT/$UTILITY$EXTENSION"

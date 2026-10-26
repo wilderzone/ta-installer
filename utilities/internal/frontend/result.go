@@ -155,3 +155,29 @@ func (r result) show(utility Utility, logPath string) {
 		_ = openFile(logPath)
 	}
 }
+
+// ask displays the result as a question, and reports whether the user chose `yes` over `no`.
+// It offers to open the run's log as well, and asks again once the log has been opened.
+func (r result) ask(utility Utility, logPath string, yes string, no string) bool {
+	icon := zenity.InfoIcon
+	switch r.kind {
+		case "error":
+			icon = zenity.ErrorIcon
+
+		case "warning":
+			icon = zenity.WarningIcon
+	}
+	options := []zenity.Option{zenity.Title(utility.Title), zenity.Icon(icon), zenity.OKLabel(yes), zenity.CancelLabel(no)}
+	if logPath != "" {
+		options = append(options, zenity.ExtraButton(DETAILS_BUTTON))
+	}
+
+	for {
+		err := zenity.Question(r.text, options...)
+		if errors.Is(err, zenity.ErrExtraButton) {
+			_ = openFile(logPath)
+			continue
+		}
+		return err == nil
+	}
+}

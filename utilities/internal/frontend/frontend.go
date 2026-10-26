@@ -74,7 +74,7 @@ func Run(utility Utility) int {
 		return fail(utility, dialogs && !silent, err.Error())
 	}
 
-	found, err := locate()
+	found, err := Locate()
 	if err != nil {
 		message := fmt.Sprintf("Couldn't find the %s installation that this utility belongs to.\n\n%s", PRODUCT_NAME, err.Error())
 		return fail(utility, dialogs && !silent, message)
@@ -119,9 +119,9 @@ func fail(utility Utility, dialog bool, message string) int {
 	return 1
 }
 
-// locate finds the installation this executable was installed into, confirmed by the manifest
+// Locate finds the installation this executable was installed into, confirmed by the manifest
 // at its root, and the CLI that sits beside this executable.
-func locate() (Installation, error) {
+func Locate() (Installation, error) {
 	executable, err := os.Executable()
 	if err != nil {
 		return Installation{}, err

@@ -19,36 +19,83 @@ const CANCEL_COMMAND = "cancel"
 const MAX_LINE_LENGTH = 1024 * 1024
 
 // runWithDialogs runs the CLI behind a progress dialog, then reports how it went.
-//
-// The CLI is never left to prompt: it is passed `-y`, and anything worth asking is asked
-// before it starts. Its standard input is then only ever used to cancel it, so a cancellation
-// can't be mistaken for the answer to a prompt, or swallow one.
 func runWithDialogs(found Installation, utility Utility) int {
 	if utility.Confirm != nil && !utility.Confirm(found) {
 		return 1
 	}
 
+	report := RunWithProgress(found, utility)
+	if report.Complete() && utility.Complete != nil {
+		utility.Complete(found)
+	}
+	report.Show()
+	return report.outcome.exitCode(report.err)
+}
+
+// Report is how a run of the CLI went.
+type Report struct {
+	utility Utility
+	outcome outcome
+	err     error
+	// The run's log, or empty if there isn't one.
+	log     string
+}
+
+// Complete reports whether the run did all of its work.
+func (r Report) Complete() bool {
+	return r.outcome.complete(r.err)
+}
+
+// Warned reports whether the run reported anything the user should know about, even if it
+// completed.
+func (r Report) Warned() bool {
+	return len(r.outcome.warnings) != 0
+}
+
+// Show tells the user how the run went.
+func (r Report) Show() {
+	r.outcome.describe(r.utility, r.err).show(r.utility, r.log)
+}
+
+// Ask tells the user how the run went, and asks them to choose between `yes` and `no`. It
+// reports whether they chose `yes`.
+func (r Report) Ask(yes string, no string) bool {
+	return r.outcome.describe(r.utility, r.err).ask(r.utility, r.log, yes, no)
+}
+
+// RunWithProgress runs the CLI behind a progress dialog, and returns how it went without
+// telling the user, so the caller can decide how to.
+//
+// The CLI is never left to prompt: it is passed `-y`, and anything worth asking is asked
+// before it starts. Its standard input is then only ever used to cancel it, so a cancellation
+// can't be mistaken for the answer to a prompt, or swallow one.
+func RunWithProgress(found Installation, utility Utility) Report {
+	report := Report{utility: utility}
+
 	// Open the dialog before starting anything, so a dialog that can't be shown never leaves
 	// the CLI working where the user can't see it.
 	dialog, err := zenity.Progress(zenity.Title(utility.Title), zenity.MaxValue(PROGRESS_SCALE))
 	if err != nil {
-		return 1
+		report.err = err
+		return report
 	}
 	view := progress{text: utility.Running}
 	_ = dialog.Text(view.text)
 
 	log := openLog(found, utility)
+	report.log = log.path
 	// `-v` adds the details that the CLI otherwise hides, which is exactly what the log is for.
 	run, err := startCLI(found, []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}, log)
 	if err != nil {
 		_ = dialog.Close()
 		log.write(err.Error())
 		log.close()
-		result{kind: "error", text: utility.Failure + "\n\n" + err.Error()}.show(utility, log.path)
-		return 1
+		report.err = err
+		report.outcome.fail(utility.Failure + "\n\n" + err.Error())
+		return report
 	}
 
-	outcome := outcome{}
+	outcome := &report.outcome
 	cancelled := false
 	var stopping zenity.ProgressDialog
 	closed := dialog.Done()
@@ -77,7 +124,7 @@ func runWithDialogs(found Installation, utility Utility) int {
 		}
 	}
 
-	err = run.wait(&outcome, utility, log)
+	report.err = run.wait(outcome, utility, log)
 	if !cancelled {
 		_ = dialog.Close()
 	}
@@ -85,12 +132,7 @@ func runWithDialogs(found Installation, utility Utility) int {
 		_ = stopping.Close()
 	}
 	log.close()
-
-	if outcome.complete(err) && utility.Complete != nil {
-		utility.Complete(found)
-	}
-	outcome.describe(utility, err).show(utility, log.path)
-	return outcome.exitCode(err)
+	return report
 }
 
 // runSilently runs the CLI without showing anything at all. The run is still logged, and
