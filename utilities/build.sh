@@ -28,19 +28,17 @@ build() {
 	fi
 	chmod +x "$OUT/play$EXTENSION"
 
-	## Build Windows-specific utilities.
+	# Build the utilities that show dialogs. On Windows they're built as GUI programs, so a
+	# console window doesn't open alongside the dialogs.
+	local LDFLAGS=""
 	if [[ $PLATFORM == "Windows" ]]; then
-		# Built as GUI programs: they show dialogs, so a console window would only get in the way.
-		echo "- uninstall"
-		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/uninstall$EXTENSION" ./uninstall
-		chmod +x "$OUT/uninstall$EXTENSION"
-		echo "- update"
-		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/update$EXTENSION" ./update
-		chmod +x "$OUT/update$EXTENSION"
-		echo "- verify"
-		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/verify$EXTENSION" ./verify
-		chmod +x "$OUT/verify$EXTENSION"
+		LDFLAGS="-H=windowsgui"
 	fi
+	for UTILITY in uninstall update verify; do
+		echo "- $UTILITY"
+		cd "$SCRIPT_CWD" && go build -ldflags="$LDFLAGS" -o "$OUT/$UTILITY$EXTENSION" "./$UTILITY"
+		chmod +x "$OUT/$UTILITY$EXTENSION"
+	done
 
 	# Copy the icon files.
 	cp "$SCRIPT_CWD/icon.png" "$OUT/icon.png"

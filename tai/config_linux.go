@@ -2,8 +2,13 @@ package main
 
 const CLI_NAME = "tai-cli"
 const PLAY_NAME = "play"
+const UNINSTALL_NAME = "uninstall"
+const UPDATE_NAME = "update"
+const VERIFY_NAME = "verify"
 const SHORTCUT_NAME = "tribes-ascend.desktop"
 const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
+const UPDATE_SHORTCUT_NAME = "tribes-ascend-update.desktop"
+const VERIFY_SHORTCUT_NAME = "tribes-ascend-verify.desktop"
 
 // The hint shown when shortcuts couldn't be created. Everything TAI writes on Linux is
 // under the user's own home, so a failure is about that directory, not about permissions.
@@ -17,8 +22,8 @@ const UTILITIES_CHECKSUMS_SOURCE = "/installer/Installer-linux-amd64.json"
 // from UTILITIES_CHECKSUMS_SOURCE. The file names are still needed so TAI can tell whether
 // the utilities are already installed.
 //
-// Linux only needs the CLI itself. The Windows package also carries uninstall/update/verify
-// executables; desktop entries do that job here, and they point straight at the CLI.
+// These are the same utilities as on Windows, plus the icons that desktop entries can't read
+// out of an executable. The desktop entries run the utilities.
 var INSTALLATION_UTILITIES = Asset{
 	Name:        "Installation Utilities",
 	Type:        "prerequisite",
@@ -27,6 +32,9 @@ var INSTALLATION_UTILITIES = Asset{
 	Files: []File{
 		{File: CLI_NAME},
 		{File: PLAY_NAME},
+		{File: UNINSTALL_NAME},
+		{File: UPDATE_NAME},
+		{File: VERIFY_NAME},
 		{File: ICON_FILE},
 		{File: UNINSTALL_ICON_FILE},
 	},

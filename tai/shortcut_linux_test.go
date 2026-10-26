@@ -156,3 +156,106 @@ func TestInstallIconWithoutOneReportsNoName(t *testing.T) {
 		t.Errorf("got %q, want an empty name", icon2)
 	}
 }
+
+// installUtilities creates empty stand-ins for the given installation utilities.
+func installUtilities(t *testing.T, root string, names ...string) {
+	t.Helper()
+	directory := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY)
+	if err := os.MkdirAll(directory, os.FileMode(0755)); err != nil {
+		t.Fatalf("create utilities directory: %v", err)
+	}
+	for _, name := range names {
+		if err := os.WriteFile(filepath.Join(directory, name), []byte{}, os.FileMode(0755)); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
+	}
+}
+
+// readEntry writes the entry and returns what was written.
+func readEntry(t *testing.T, entry desktopEntry) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "entry.desktop")
+	if err := writeDesktopEntry(path, entry); err != nil {
+		t.Fatalf("write desktop entry: %v", err)
+	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read desktop entry: %v", err)
+	}
+	return string(content)
+}
+
+func TestGameEntryOffersTheInstalledUtilities(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "Tribes Ascend")
+	// An installation whose utilities predate update: it must not be offered.
+	installUtilities(t, root, PLAY_NAME, VERIFY_NAME, UNINSTALL_NAME)
+
+	entry := readEntry(t, gameEntry(root, ICON_NAME))
+	if !strings.Contains(entry, "Actions=verify;uninstall;\n") {
+		t.Errorf("got:\n%s\nwant actions for the installed utilities only", entry)
+	}
+	verify := quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, VERIFY_NAME))
+	want := "\n[Desktop Action verify]\nName=Verify Files\nExec=" + escapeDesktopValue(verify) + "\n"
+	if !strings.Contains(entry, want) {
+		t.Errorf("got:\n%s\nwant a group for the verify action of:\n%s", entry, want)
+	}
+	if strings.Contains(entry, "[Desktop Action update]") {
+		t.Error("got an action for a utility that isn't installed")
+	}
+	// The actions' groups have to come after the main one, or they'd swallow its keys.
+	if strings.Index(entry, "StartupWMClass=") > strings.Index(entry, "[Desktop Action") {
+		t.Errorf("got:\n%s\nwant every key of the main group before the actions", entry)
+	}
+}
+
+func TestOnlyTheGameEntryClaimsTheGameWindow(t *testing.T) {
+	root := t.TempDir()
+	if entry := readEntry(t, gameEntry(root, ICON_NAME)); !strings.Contains(entry, "StartupWMClass=" + GAME_BINARY_NAME + "\n") {
+		t.Errorf("got:\n%s\nwant the game entry tied to the game's window", entry)
+	}
+	// A utility's window is a dialog, so an entry waiting for the game's window would leave
+	// the desktop showing it as loading until it gave up.
+	utility := utilityEntry(root, VERIFY_NAME, "Verify", "", ICON_NAME)
+	if entry := readEntry(t, utility); strings.Contains(entry, "StartupWMClass=") {
+		t.Errorf("got:\n%s\nwant no window class for a utility's entry", entry)
+	}
+}
+
+func TestUninstallEntryRunsTheUninstallUtility(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	root := filepath.Join(t.TempDir(), "Tribes Ascend")
+	installUtilities(t, root, CLI_NAME, UNINSTALL_NAME)
+
+	if err := createUninstallShortcut(root); err != nil {
+		t.Fatalf("create uninstall shortcut: %v", err)
+	}
+	content, err := os.ReadFile(filepath.Join(root, UNINSTALL_SHORTCUT_NAME))
+	if err != nil {
+		t.Fatalf("read uninstall entry: %v", err)
+	}
+	entry := string(content)
+	uninstaller := quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, UNINSTALL_NAME))
+	if !strings.Contains(entry, "Exec=" + escapeDesktopValue(uninstaller) + "\n") || !strings.Contains(entry, "Terminal=false\n") {
+		t.Errorf("got:\n%s\nwant the uninstall utility, without a terminal", entry)
+	}
+}
+
+func TestUninstallEntryFallsBackToTheCLI(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	root := filepath.Join(t.TempDir(), "Tribes Ascend")
+	// Utilities from before the uninstall utility existed.
+	installUtilities(t, root, CLI_NAME)
+
+	if err := createUninstallShortcut(root); err != nil {
+		t.Fatalf("create uninstall shortcut: %v", err)
+	}
+	content, err := os.ReadFile(filepath.Join(root, UNINSTALL_SHORTCUT_NAME))
+	if err != nil {
+		t.Fatalf("read uninstall entry: %v", err)
+	}
+	entry := string(content)
+	cli := quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME))
+	if !strings.Contains(entry, "Exec=" + escapeDesktopValue(cli) + " uninstall") || !strings.Contains(entry, "Terminal=true\n") {
+		t.Errorf("got:\n%s\nwant the CLI, in a terminal", entry)
+	}
+}

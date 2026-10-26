@@ -16,6 +16,7 @@ import (
 
 const PRODUCT_NAME = "Tribes: Ascend"
 const MANIFEST = "manifest.json"
+const REOPENED_FLAG = "reopened"
 
 // Utility describes one of the installation utilities: the CLI subcommand it runs, and the
 // words its dialogs use.
@@ -65,6 +66,9 @@ func Run(utility Utility) int {
 	// Run without showing anything, and without asking: the CLI's `-s` implies `-y` too.
 	// Windows runs the uninstaller like this from its QuietUninstallString.
 	fs.BoolVar(&silent, "s", false, "")
+	// Set on the copy of the utility that reopenInTerminal starts, so it never tries again.
+	reopened := false
+	fs.BoolVar(&reopened, REOPENED_FLAG, false, "")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		return fail(utility, dialogs && !silent, err.Error())
@@ -80,9 +84,28 @@ func Run(utility Utility) int {
 		return runSilently(found, utility)
 	}
 	if !dialogs {
-		return runInTerminal(found, utility)
+		// Without dialogs, a terminal is the only way left to show anything, so a utility
+		// started without one (eg, from a desktop entry) starts again inside one.
+		if reopened || inTerminal() {
+			return runInTerminal(found, utility)
+		}
+		err := reopenInTerminal()
+		if err != nil {
+			return fail(utility, false, err.Error())
+		}
+		return 0
 	}
 	return runWithDialogs(found, utility)
+}
+
+// reopenInTerminal starts this executable again, with the same arguments, in a new terminal
+// window.
+func reopenInTerminal() error {
+	executable, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	return openTerminal(append([]string{executable, "-" + REOPENED_FLAG}, os.Args[1:]...))
 }
 
 // fail reports a problem that stopped the utility before the CLI was started, in a dialog if
