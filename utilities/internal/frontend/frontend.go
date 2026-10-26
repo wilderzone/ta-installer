@@ -19,15 +19,19 @@ const MANIFEST = "manifest.json"
 // words its dialogs use.
 type Utility struct {
 	// The CLI subcommand to run (eg, "verify").
-	Command string
+	Command     string
 	// Heads each of the utility's dialogs (eg, "Verify Tribes: Ascend").
-	Title   string
+	Title       string
 	// Shown in the progress dialog until the CLI reports something of its own.
-	Running string
+	Running     string
 	// Shown when the CLI finishes without error.
-	Success string
+	Success     string
 	// Shown when the CLI fails without explaining why.
-	Failure string
+	Failure     string
+	// Shown instead of Success when the CLI reports the line of the given type (eg, an
+	// update that finds the installation already up to date). A run is expected to report
+	// at most one of these.
+	Conclusions map[string]string
 }
 
 // installation is where the utility found itself: the game it belongs to, and the copy of the

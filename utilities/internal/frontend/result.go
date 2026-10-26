@@ -9,10 +9,25 @@ import (
 
 const DETAILS_BUTTON = "Show Details"
 
+// FAILURES are the lines that report a run that failed outright. The CLI reports these as
+// findings rather than errors, so it still exits cleanly after them.
+var FAILURES = map[string]bool{
+	"INSTALL_FAILURE":   true,
+	"UNINSTALL_FAILURE": true,
+	"UPDATE_FAILURE":    true,
+}
+
+// PARTIALS are the lines that report a run that only managed some of its work. Like
+// FAILURES, the CLI still exits cleanly after them.
+var PARTIALS = map[string]bool{
+	"INSTALL_PARTIAL":   true,
+	"UNINSTALL_PARTIAL": true,
+	"UPDATE_PARTIAL":    true,
+}
+
 // WARNINGS are the lines that report something the user should know about, even though the
 // run as a whole succeeded.
 var WARNINGS = map[string]bool{
-	"INSTALL_PARTIAL":           true,
 	"PREREQUISITES_FAILED":      true,
 	"RUNTIME_CHECK_FAILED":      true,
 	"RUNTIME_CHECK_SKIPPED":     true,
@@ -20,8 +35,6 @@ var WARNINGS = map[string]bool{
 	"RUNTIME_PREPARE_FAILED":    true,
 	"SHORTCUTS_FAILURE":         true,
 	"SHORTCUTS_REMOVE_FAILURE":  true,
-	"UNINSTALL_PARTIAL":         true,
-	"UPDATE_PARTIAL":            true,
 	"UTILITIES_CHECK_SKIPPED":   true,
 	"UTILITIES_REPAIR_DEFERRED": true,
 }
@@ -30,14 +43,29 @@ var WARNINGS = map[string]bool{
 type outcome struct {
 	// The CLI's explanation of how to resume, if the run was interrupted.
 	interrupted string
+	// The CLI's explanation of what was left undone, if the run only partly succeeded.
+	partial     string
+	failed      bool
+	seen        map[string]bool
 	errors      []string
 	warnings    []string
 }
 
 // observe records a line from the CLI's standard output.
 func (o *outcome) observe(l line) {
+	if o.seen == nil {
+		o.seen = map[string]bool{}
+	}
+	o.seen[l.Type] = true
+
 	if l.Type == "INTERRUPTED" || strings.HasSuffix(l.Type, "_INTERRUPTED") {
 		o.interrupted = l.Message
+	}
+	if FAILURES[l.Type] {
+		o.failed = true
+	}
+	if PARTIALS[l.Type] {
+		o.partial = l.Message
 	}
 	if WARNINGS[l.Type] {
 		o.warnings = append(o.warnings, l.Message)
@@ -62,17 +90,28 @@ func (o *outcome) describe(utility Utility, err error) result {
 	if o.interrupted != "" {
 		return result{kind: "warning", text: o.interrupted}
 	}
-	if err != nil {
+	if err != nil || o.failed {
 		text := utility.Failure
 		if len(o.errors) != 0 {
 			text = strings.Join(o.errors, "\n\n")
 		}
 		return result{kind: "error", text: text}
 	}
-	if len(o.warnings) != 0 {
-		return result{kind: "warning", text: utility.Success + "\n\n" + strings.Join(o.warnings, "\n\n")}
+	// What was left undone replaces the success message, rather than contradicting it.
+	if o.partial != "" {
+		return result{kind: "warning", text: strings.Join(append([]string{o.partial}, o.warnings...), "\n\n")}
 	}
-	return result{kind: "info", text: utility.Success}
+
+	success := utility.Success
+	for kind, text := range utility.Conclusions {
+		if o.seen[kind] {
+			success = text
+		}
+	}
+	if len(o.warnings) != 0 {
+		return result{kind: "warning", text: success + "\n\n" + strings.Join(o.warnings, "\n\n")}
+	}
+	return result{kind: "info", text: success}
 }
 
 // show displays the result, offering to open the run's log when there is one.

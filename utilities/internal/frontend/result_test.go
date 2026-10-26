@@ -50,6 +50,50 @@ func TestDescribeAFailedRunWithoutAnExplanation(t *testing.T) {
 	}
 }
 
+func TestDescribeAFailureTheCLIExitedCleanlyFrom(t *testing.T) {
+	outcome := outcome{}
+	outcome.observe(line{Type: "UPDATE_FAILURE", Message: "Update failed."})
+
+	// Every asset failed to patch, but the CLI reports that as a finding and exits 0.
+	got := outcome.describe(TEST_UTILITY, nil)
+	if got.kind != "error" || got.text != TEST_UTILITY.Failure {
+		t.Errorf("got %+v, want the utility's failure message", got)
+	}
+}
+
+func TestDescribeAPartialRun(t *testing.T) {
+	outcome := outcome{}
+	message := "Partially updated. You may need to run the \"verify\" command."
+	outcome.observe(line{Type: "UPDATE_PARTIAL", Message: message})
+
+	got := outcome.describe(TEST_UTILITY, nil)
+	if got.kind != "warning" {
+		t.Errorf("got kind %q, want a warning", got.kind)
+	}
+	if got.text != message {
+		t.Errorf("got text %q, want only what was left undone, without the success message it contradicts", got.text)
+	}
+}
+
+func TestDescribeAConclusion(t *testing.T) {
+	utility := TEST_UTILITY
+	utility.Conclusions = map[string]string{"INSTALL_UP_TO_DATE": "Already up to date."}
+	reached := outcome{}
+	reached.observe(line{Type: "INSTALL_UP_TO_DATE", Message: "Installation is up to date: v12"})
+
+	got := reached.describe(utility, nil)
+	if got.kind != "info" || got.text != "Already up to date." {
+		t.Errorf("got %+v, want the conclusion in place of the success message", got)
+	}
+
+	// A conclusion the run didn't reach leaves the success message alone.
+	unreached := outcome{}
+	got = unreached.describe(utility, nil)
+	if got.text != utility.Success {
+		t.Errorf("got text %q, want the success message", got.text)
+	}
+}
+
 func TestDescribeAnInterruptedRun(t *testing.T) {
 	outcome := outcome{}
 	message := "Verification interrupted. Run \"verify\" again to finish checking the installation."

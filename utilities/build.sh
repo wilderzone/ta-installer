@@ -33,10 +33,10 @@ build() {
 		echo "- uninstall"
 		cd "$SCRIPT_CWD/uninstall" && go build -o "$OUT/uninstall$EXTENSION" .
 		chmod +x "$OUT/uninstall$EXTENSION"
+		# Built as GUI programs: they show dialogs, so a console window would only get in the way.
 		echo "- update"
-		cd "$SCRIPT_CWD/update"    && go build -o "$OUT/update$EXTENSION" .
+		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/update$EXTENSION" ./update
 		chmod +x "$OUT/update$EXTENSION"
-		# Built as a GUI program: it shows dialogs, so a console window would only get in the way.
 		echo "- verify"
 		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/verify$EXTENSION" ./verify
 		chmod +x "$OUT/verify$EXTENSION"
