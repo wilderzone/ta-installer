@@ -36,8 +36,9 @@ build() {
 		echo "- update"
 		cd "$SCRIPT_CWD/update"    && go build -o "$OUT/update$EXTENSION" .
 		chmod +x "$OUT/update$EXTENSION"
+		# Built as a GUI program: it shows dialogs, so a console window would only get in the way.
 		echo "- verify"
-		cd "$SCRIPT_CWD/verify"    && go build -o "$OUT/verify$EXTENSION" .
+		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/verify$EXTENSION" ./verify
 		chmod +x "$OUT/verify$EXTENSION"
 	fi
 

@@ -156,7 +156,7 @@ var (
 	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
 	UTILITIES_DAMAGED         = LogLine{Type: "UTILITIES_DAMAGED", Message: "Installation utilities are damaged:"}
 	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't setup the installation utilities package. " + UTILITIES_FAILURE_HINT}
-	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "These utilities are in use and will be replaced after this window is closed:"}
+	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "The following utilities are in use and will be replaced after this window is closed:"}
 	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
 	UTILITIES_VERIFIED        = LogLine{Type: "UTILITIES_VERIFIED", Message: "Installation utilities verified."}
