@@ -25,11 +25,14 @@ func runWithDialogs(found Installation, utility Utility) int {
 	}
 
 	report := RunWithProgress(found, utility)
-	if report.Complete() && utility.Complete != nil {
-		utility.Complete(found)
-	}
 	report.Show()
-	return report.outcome.exitCode(report.err)
+	return report.exitCode()
+}
+
+// runSilently runs the CLI without showing anything at all. The run is still logged, and its
+// output still read, so that only a run that completely succeeded is followed up.
+func runSilently(found Installation, utility Utility) int {
+	return execute(found, utility, false).exitCode()
 }
 
 // Report is how a run of the CLI went.
@@ -44,6 +47,11 @@ type Report struct {
 // Complete reports whether the run did all of its work.
 func (r Report) Complete() bool {
 	return r.outcome.complete(r.err)
+}
+
+// exitCode returns the utility's exit code for the run.
+func (r Report) exitCode() int {
+	return r.outcome.exitCode(r.err)
 }
 
 // Warned reports whether the run reported anything the user should know about, even if it
@@ -65,29 +73,41 @@ func (r Report) Ask(yes string, no string) bool {
 
 // RunWithProgress runs the CLI behind a progress dialog, and returns how it went without
 // telling the user, so the caller can decide how to.
+func RunWithProgress(found Installation, utility Utility) Report {
+	return execute(found, utility, true)
+}
+
+// execute runs the CLI, behind a progress dialog if it's `visible`, and returns how it went.
+// A run that completes its work is followed up with the utility's Complete.
 //
 // The CLI is never left to prompt: it is passed `-y`, and anything worth asking is asked
 // before it starts. Its standard input is then only ever used to cancel it, so a cancellation
 // can't be mistaken for the answer to a prompt, or swallow one.
-func RunWithProgress(found Installation, utility Utility) Report {
+func execute(found Installation, utility Utility, visible bool) Report {
 	report := Report{utility: utility}
 
 	// Open the dialog before starting anything, so a dialog that can't be shown never leaves
 	// the CLI working where the user can't see it.
-	dialog, err := zenity.Progress(zenity.Title(utility.Title), zenity.MaxValue(PROGRESS_SCALE))
-	if err != nil {
-		report.err = err
-		return report
-	}
 	view := progress{text: utility.Running}
-	_ = dialog.Text(view.text)
+	var dialog zenity.ProgressDialog
+	if visible {
+		var err error
+		dialog, err = zenity.Progress(zenity.Title(utility.Title), zenity.MaxValue(PROGRESS_SCALE))
+		if err != nil {
+			report.err = err
+			return report
+		}
+		_ = dialog.Text(view.text)
+	}
 
 	log := openLog(found, utility)
 	report.log = log.path
 	// `-v` adds the details that the CLI otherwise hides, which is exactly what the log is for.
 	run, err := startCLI(found, []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}, log)
 	if err != nil {
-		_ = dialog.Close()
+		if dialog != nil {
+			_ = dialog.Close()
+		}
 		log.write(err.Error())
 		log.close()
 		report.err = err
@@ -98,7 +118,11 @@ func RunWithProgress(found Installation, utility Utility) Report {
 	outcome := &report.outcome
 	cancelled := false
 	var stopping zenity.ProgressDialog
-	closed := dialog.Done()
+	// Without a dialog, there's nothing to close, and this channel never delivers.
+	var closed <-chan struct{}
+	if dialog != nil {
+		closed = dialog.Done()
+	}
 	for running := true; running; {
 		select {
 			case l, ok := <-run.lines:
@@ -108,7 +132,7 @@ func RunWithProgress(found Installation, utility Utility) Report {
 				}
 				log.write(l.readable())
 				outcome.observe(l)
-				if !cancelled && view.apply(l) {
+				if dialog != nil && !cancelled && view.apply(l) {
 					_ = dialog.Text(view.text)
 					_ = dialog.Value(view.value)
 				}
@@ -125,39 +149,18 @@ func RunWithProgress(found Installation, utility Utility) Report {
 	}
 
 	report.err = run.wait(outcome, utility, log)
-	if !cancelled {
+	if dialog != nil && !cancelled {
 		_ = dialog.Close()
 	}
 	if stopping != nil {
 		_ = stopping.Close()
 	}
 	log.close()
-	return report
-}
 
-// runSilently runs the CLI without showing anything at all. The run is still logged, and
-// its output still read, so that only a run that completely succeeded is followed up.
-func runSilently(found Installation, utility Utility) int {
-	log := openLog(found, utility)
-	defer log.close()
-
-	run, err := startCLI(found, []string{utility.Command, "-m", "-y", "-v", "--path=" + found.Game}, log)
-	if err != nil {
-		log.write(err.Error())
-		return 1
-	}
-
-	outcome := outcome{}
-	for l := range run.lines {
-		log.write(l.readable())
-		outcome.observe(l)
-	}
-
-	err = run.wait(&outcome, utility, log)
-	if outcome.complete(err) && utility.Complete != nil {
+	if report.Complete() && utility.Complete != nil {
 		utility.Complete(found)
 	}
-	return outcome.exitCode(err)
+	return report
 }
 
 // cliRun is the CLI running a subcommand for a utility, with its output read as it arrives.

@@ -44,15 +44,37 @@ type desktopAction struct {
 	Exec string
 }
 
-// UTILITY_ACTIONS are the installation utilities that the game's entry offers as actions, by
-// their file names in the utilities directory, along with the names of the actions.
-var UTILITY_ACTIONS = []struct {
-	file string
-	name string
-}{
-	{VERIFY_NAME, "Verify Files"},
-	{UPDATE_NAME, "Check for Updates"},
-	{UNINSTALL_NAME, "Uninstall"},
+// installationUtility describes how the desktop offers one of the installation utilities.
+type installationUtility struct {
+	file     string // In the utilities directory.
+	shortcut string // The file name of its entry in the installation directory.
+	name     string
+	action   string // The name of the game entry's action that runs it.
+	comment  string
+}
+
+var VERIFY_UTILITY = installationUtility{VERIFY_NAME, VERIFY_SHORTCUT_NAME, "Verify " + PRODUCT_NAME, "Verify Files", "Check the game's files, and repair any that are damaged."}
+var UPDATE_UTILITY = installationUtility{UPDATE_NAME, UPDATE_SHORTCUT_NAME, "Update " + PRODUCT_NAME, "Check for Updates", "Update the game to the latest version."}
+var UNINSTALL_UTILITY = installationUtility{UNINSTALL_NAME, UNINSTALL_SHORTCUT_NAME, "Uninstall " + PRODUCT_NAME, "Uninstall", "Remove " + PRODUCT_NAME + " and its compatibility layer."}
+
+// UTILITY_ACTIONS are the installation utilities that the game's entry offers as actions.
+var UTILITY_ACTIONS = []installationUtility{VERIFY_UTILITY, UPDATE_UTILITY, UNINSTALL_UTILITY}
+
+// path returns where the utility is installed.
+func (u installationUtility) path(root string) string {
+	return filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, u.file)
+}
+
+// entry describes a desktop entry that runs the utility.
+func (u installationUtility) entry(root string, icon string) desktopEntry {
+	return desktopEntry{
+		Name:       u.name,
+		Comment:    u.comment,
+		Exec:       quoteExecArgument(u.path(root)),
+		Icon:       icon,
+		Categories: "Game;",
+		Terminal:   false,
+	}
 }
 
 // dataDirectory returns the XDG base directory for user-specific data files.
@@ -286,39 +308,12 @@ func gameEntry(root string, icon string) desktopEntry {
 func utilityActions(root string) []desktopAction {
 	actions := []desktopAction{}
 	for _, utility := range UTILITY_ACTIONS {
-		path := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, utility.file)
-		if !fileExists(path) {
+		if !fileExists(utility.path(root)) {
 			continue
 		}
-		actions = append(actions, desktopAction{ID: utility.file, Name: utility.name, Exec: quoteExecArgument(path)})
+		actions = append(actions, desktopAction{ID: utility.file, Name: utility.action, Exec: quoteExecArgument(utility.path(root))})
 	}
 	return actions
-}
-
-// utilityEntry describes a desktop entry that runs one of the installation utilities.
-func utilityEntry(root string, utility string, name string, comment string, icon string) desktopEntry {
-	return desktopEntry{
-		Name:       name,
-		Comment:    comment,
-		Exec:       quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, utility)),
-		Icon:       icon,
-		Categories: "Game;",
-		Terminal:   false,
-	}
-}
-
-// utilityEntries returns the installation directory's entries for the utilities that verify
-// and update the game, by file name. A file manager may refuse to run the utilities
-// themselves, but it will open an entry. Only installed utilities get one.
-func utilityEntries(root string, icon string) map[string]desktopEntry {
-	entries := map[string]desktopEntry{}
-	if fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, VERIFY_NAME)) {
-		entries[VERIFY_SHORTCUT_NAME] = utilityEntry(root, VERIFY_NAME, "Verify " + PRODUCT_NAME, "Check the game's files, and repair any that are damaged.", icon)
-	}
-	if fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, UPDATE_NAME)) {
-		entries[UPDATE_SHORTCUT_NAME] = utilityEntry(root, UPDATE_NAME, "Update " + PRODUCT_NAME, "Update the game to the latest version.", icon)
-	}
-	return entries
 }
 
 // createShortcuts creates desktop entries that launch the game. They're placed in the
@@ -339,8 +334,13 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
-	for name, utility := range utilityEntries(root, icon) {
-		err := writeDesktopEntry(filepath.Join(root, name), utility)
+	// A file manager may refuse to run the utilities themselves, but it will open an entry.
+	// The uninstall entry is createUninstallShortcut's, since it goes in the menu as well.
+	for _, utility := range []installationUtility{VERIFY_UTILITY, UPDATE_UTILITY} {
+		if !fileExists(utility.path(root)) {
+			continue
+		}
+		err := writeDesktopEntry(filepath.Join(root, utility.shortcut), utility.entry(root, icon))
 		if err != nil {
 			return fmt.Errorf("create installation directory shortcut: %w", err)
 		}

@@ -215,7 +215,7 @@ func TestOnlyTheGameEntryClaimsTheGameWindow(t *testing.T) {
 	}
 	// A utility's window is a dialog, so an entry waiting for the game's window would leave
 	// the desktop showing it as loading until it gave up.
-	utility := utilityEntry(root, VERIFY_NAME, "Verify", "", ICON_NAME)
+	utility := VERIFY_UTILITY.entry(root, ICON_NAME)
 	if entry := readEntry(t, utility); strings.Contains(entry, "StartupWMClass=") {
 		t.Errorf("got:\n%s\nwant no window class for a utility's entry", entry)
 	}

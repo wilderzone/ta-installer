@@ -1,10 +1,8 @@
 package frontend
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os/exec"
 	"strings"
 )
 
@@ -25,31 +23,20 @@ var UPDATE = Utility{
 // returns the CLI's description of the update it found (eg, "Update found: v12 → v13"), or an
 // empty string if the installation is up to date. The check is abandoned once ctx is done.
 func (i Installation) CheckForUpdates(ctx context.Context) (string, error) {
-	command := exec.CommandContext(ctx, i.CLI, "check-updates", "-m", "--path=" + i.Game)
-	hideWindow(command)
-	stdout := bytes.Buffer{}
-	stderr := bytes.Buffer{}
-	command.Stdout = &stdout
-	command.Stderr = &stderr
-	err := command.Run()
-	if ctx.Err() != nil {
-		return "", ctx.Err()
-	}
-	return interpretUpdateCheck(stdout.Bytes(), stderr.Bytes(), err)
+	return interpretUpdateCheck(i.query(ctx, "check-updates"))
 }
 
-// interpretUpdateCheck turns the output of the CLI's `check-updates` subcommand into the
+// interpretUpdateCheck turns the result of the CLI's `check-updates` subcommand into the
 // update it found, if any.
-func interpretUpdateCheck(stdout []byte, stderr []byte, err error) (string, error) {
-	if err != nil {
-		for _, l := range parseLines(stderr) {
-			if l.Type == "ERROR" {
-				return "", fmt.Errorf("check for updates: %s", l.Message)
-			}
-		}
-		return "", fmt.Errorf("check for updates: %w: %s", err, strings.TrimSpace(string(stderr)))
+func interpretUpdateCheck(lines []line, reported []string, err error) (string, error) {
+	if len(reported) != 0 {
+		return "", fmt.Errorf("check for updates: %s", strings.Join(reported, " "))
 	}
-	for _, l := range parseLines(stdout) {
+	// A cancelled check is passed on as it is, so the caller can tell it apart.
+	if err != nil {
+		return "", err
+	}
+	for _, l := range lines {
 		switch l.Type {
 			case "UPDATE_FOUND":
 				return l.Message, nil
