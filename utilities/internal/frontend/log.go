@@ -21,10 +21,15 @@ type runLog struct {
 	file   *os.File
 }
 
-// openLog creates the log for a run of the given CLI subcommand. A log that can't be created
-// discards what is written to it instead: nothing about a run depends on its log.
-func openLog(game string, command string) *runLog {
-	path := filepath.Join(game, LOGS_DIRECTORY, command + ".txt")
+// openLog creates the log for a run of the utility. A log that can't be created discards
+// what is written to it instead: nothing about a run depends on its log.
+func openLog(found Installation, utility Utility) *runLog {
+	path := filepath.Join(found.Game, LOGS_DIRECTORY, utility.Command + ".txt")
+	// A log kept open inside the installation would be one more file the CLI couldn't
+	// remove, and would be removed along with everything else once it was closed.
+	if utility.TemporaryLog {
+		path = filepath.Join(os.TempDir(), "tai-" + utility.Command + ".txt")
+	}
 	if os.MkdirAll(filepath.Dir(path), os.FileMode(0755)) != nil {
 		return &runLog{writer: io.Discard}
 	}

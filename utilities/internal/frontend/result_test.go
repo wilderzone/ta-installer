@@ -75,6 +75,28 @@ func TestDescribeAPartialRun(t *testing.T) {
 	}
 }
 
+func TestExitCodeOfARunThatDidntFinishItsWork(t *testing.T) {
+	cases := map[string]line{
+		"failed":      {Type: "UNINSTALL_FAILURE", Message: "Failed to uninstall."},
+		"partial":     {Type: "UNINSTALL_PARTIAL", Message: "Partially uninstalled."},
+		"interrupted": {Type: "UNINSTALL_INTERRUPTED", Message: "Uninstall interrupted."},
+	}
+	for name, l := range cases {
+		outcome := outcome{}
+		outcome.observe(l)
+		// The CLI exits cleanly from each of these, so its exit code alone would say otherwise.
+		if outcome.exitCode(nil) == 0 {
+			t.Errorf("%s: got exit code 0, want non-zero", name)
+		}
+	}
+
+	warned := outcome{}
+	warned.observe(line{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts."})
+	if warned.exitCode(nil) != 0 {
+		t.Error("a warning alone made the exit code non-zero")
+	}
+}
+
 func TestDescribeAConclusion(t *testing.T) {
 	utility := TEST_UTILITY
 	utility.Conclusions = map[string]string{"INSTALL_UP_TO_DATE": "Already up to date."}

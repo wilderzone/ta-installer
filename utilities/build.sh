@@ -30,10 +30,10 @@ build() {
 
 	## Build Windows-specific utilities.
 	if [[ $PLATFORM == "Windows" ]]; then
-		echo "- uninstall"
-		cd "$SCRIPT_CWD/uninstall" && go build -o "$OUT/uninstall$EXTENSION" .
-		chmod +x "$OUT/uninstall$EXTENSION"
 		# Built as GUI programs: they show dialogs, so a console window would only get in the way.
+		echo "- uninstall"
+		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/uninstall$EXTENSION" ./uninstall
+		chmod +x "$OUT/uninstall$EXTENSION"
 		echo "- update"
 		cd "$SCRIPT_CWD"           && go build -ldflags="-H=windowsgui" -o "$OUT/update$EXTENSION" ./update
 		chmod +x "$OUT/update$EXTENSION"

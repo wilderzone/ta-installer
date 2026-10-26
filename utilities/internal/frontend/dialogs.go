@@ -23,7 +23,11 @@ const MAX_LINE_LENGTH = 1024 * 1024
 // The CLI is never left to prompt: it is passed `-y`, and anything worth asking is asked
 // before it starts. Its standard input is then only ever used to cancel it, so a cancellation
 // can't be mistaken for the answer to a prompt, or swallow one.
-func runWithDialogs(found installation, utility Utility) int {
+func runWithDialogs(found Installation, utility Utility) int {
+	if utility.Confirm != nil && !utility.Confirm(found) {
+		return 1
+	}
+
 	// Open the dialog before starting anything, so a dialog that can't be shown never leaves
 	// the CLI working where the user can't see it.
 	dialog, err := zenity.Progress(zenity.Title(utility.Title), zenity.MaxValue(PROGRESS_SCALE))
@@ -33,34 +37,16 @@ func runWithDialogs(found installation, utility Utility) int {
 	view := progress{text: utility.Running}
 	_ = dialog.Text(view.text)
 
-	log := openLog(found.game, utility.Command)
-	report := func(err error) int {
+	log := openLog(found, utility)
+	// `-v` adds the details that the CLI otherwise hides, which is exactly what the log is for.
+	run, err := startCLI(found, []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}, log)
+	if err != nil {
+		_ = dialog.Close()
 		log.write(err.Error())
 		log.close()
 		result{kind: "error", text: utility.Failure + "\n\n" + err.Error()}.show(utility, log.path)
 		return 1
 	}
-
-	// `-v` adds the details that the CLI otherwise hides, which is exactly what the log is for.
-	arguments := []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.game}
-	log.write(found.cli + " " + strings.Join(arguments, " "))
-	command := exec.Command(found.cli, arguments...)
-	hideWindow(command)
-	stdin, stdout, stderr, err := pipes(command)
-	if err != nil {
-		_ = dialog.Close()
-		return report(err)
-	}
-	err = command.Start()
-	if err != nil {
-		_ = dialog.Close()
-		return report(err)
-	}
-
-	lines := make(chan line)
-	go readOutput(stdout, lines)
-	failures := make(chan []string, 1)
-	go readErrors(stderr, log, failures)
 
 	outcome := outcome{}
 	cancelled := false
@@ -68,7 +54,7 @@ func runWithDialogs(found installation, utility Utility) int {
 	closed := dialog.Done()
 	for running := true; running; {
 		select {
-			case l, ok := <-lines:
+			case l, ok := <-run.lines:
 				if !ok {
 					running = false
 					break
@@ -86,18 +72,12 @@ func runWithDialogs(found installation, utility Utility) int {
 				closed = nil
 				cancelled = true
 				log.write("Cancelled by the user.")
-				_, _ = io.WriteString(stdin, CANCEL_COMMAND + "\n")
+				run.cancel()
 				stopping = stoppingDialog(utility)
 		}
 	}
 
-	for _, message := range <-failures {
-		outcome.fail(message)
-	}
-	err = command.Wait()
-	if err != nil {
-		log.write(fmt.Sprintf("%s %s: %s", CLI_NAME, utility.Command, err.Error()))
-	}
+	err = run.wait(&outcome, utility, log)
 	if !cancelled {
 		_ = dialog.Close()
 	}
@@ -106,11 +86,89 @@ func runWithDialogs(found installation, utility Utility) int {
 	}
 	log.close()
 
+	if outcome.complete(err) && utility.Complete != nil {
+		utility.Complete(found)
+	}
 	outcome.describe(utility, err).show(utility, log.path)
+	return outcome.exitCode(err)
+}
+
+// runSilently runs the CLI without showing anything at all. The run is still logged, and
+// its output still read, so that only a run that completely succeeded is followed up.
+func runSilently(found Installation, utility Utility) int {
+	log := openLog(found, utility)
+	defer log.close()
+
+	run, err := startCLI(found, []string{utility.Command, "-m", "-y", "-v", "--path=" + found.Game}, log)
 	if err != nil {
+		log.write(err.Error())
 		return 1
 	}
-	return 0
+
+	outcome := outcome{}
+	for l := range run.lines {
+		log.write(l.readable())
+		outcome.observe(l)
+	}
+
+	err = run.wait(&outcome, utility, log)
+	if outcome.complete(err) && utility.Complete != nil {
+		utility.Complete(found)
+	}
+	return outcome.exitCode(err)
+}
+
+// cliRun is the CLI running a subcommand for a utility, with its output read as it arrives.
+type cliRun struct {
+	command  *exec.Cmd
+	stdin    io.WriteCloser
+	// Each of the CLI's output lines, closed once its output ends.
+	lines    chan line
+	// The messages of the errors the CLI reported, sent once its standard error ends.
+	failures chan []string
+}
+
+// startCLI starts the CLI with the given arguments, recording the run in the log.
+func startCLI(found Installation, arguments []string, log *runLog) (*cliRun, error) {
+	log.write(found.CLI + " " + strings.Join(arguments, " "))
+	command := exec.Command(found.CLI, arguments...)
+	hideWindow(command)
+	stdin, stdout, stderr, err := pipes(command)
+	if err != nil {
+		return nil, err
+	}
+	err = command.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	run := &cliRun{
+		command:  command,
+		stdin:    stdin,
+		lines:    make(chan line),
+		failures: make(chan []string, 1),
+	}
+	go readOutput(stdout, run.lines)
+	go readErrors(stderr, log, run.failures)
+	return run, nil
+}
+
+// cancel asks the CLI to stop at its next safe point.
+func (r *cliRun) cancel() {
+	_, _ = io.WriteString(r.stdin, CANCEL_COMMAND + "\n")
+}
+
+// wait waits for the CLI to exit, once all of its output has been read, and records the
+// errors it reported in the outcome.
+func (r *cliRun) wait(o *outcome, utility Utility, log *runLog) error {
+	for _, message := range <-r.failures {
+		o.fail(message)
+	}
+	err := r.command.Wait()
+	if err != nil {
+		log.write(fmt.Sprintf("%s %s: %s", CLI_NAME, utility.Command, err.Error()))
+	}
+	return err
 }
 
 // pipes connects to the CLI's standard streams. It must be called before the CLI is started.

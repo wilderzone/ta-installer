@@ -77,6 +77,22 @@ func (o *outcome) fail(message string) {
 	o.errors = append(o.errors, message)
 }
 
+// complete reports whether a run that exited with the given error did all of its work.
+// Warnings don't count against it: they're about things beside the work itself.
+func (o *outcome) complete(err error) bool {
+	return err == nil && !o.failed && o.partial == "" && o.interrupted == ""
+}
+
+// exitCode returns the utility's exit code for a run that exited with the given error. The
+// CLI exits cleanly from a run that failed or only partly succeeded, but whatever started the
+// utility (eg, a quiet uninstall) needs to know that the work wasn't done.
+func (o *outcome) exitCode(err error) int {
+	if o.complete(err) {
+		return 0
+	}
+	return 1
+}
+
 // result is the dialog shown once the CLI has finished.
 type result struct {
 	kind string // One of "info", "warning", or "error".
