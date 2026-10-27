@@ -11,7 +11,7 @@ func main() {
 		Command: "verify",
 		Title:   "Verify " + frontend.PRODUCT_NAME,
 		Running: "Verifying...",
-		Success: frontend.PRODUCT_NAME + " has been verified.",
-		Failure: "Couldn't verify " + frontend.PRODUCT_NAME + ".",
+		Success: "All files have been verified.",
+		Failure: "Some files couldn't be verified.",
 	}))
 }

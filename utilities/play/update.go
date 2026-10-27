@@ -23,7 +23,7 @@ const UPDATE_CHECK_TIMEOUT = 10 * time.Second
 // finish in time, the game starts as it would have without it, and the reason is logged.
 func offerUpdate(log io.Writer) bool {
 	if !zenity.IsAvailable() {
-		fmt.Fprintln(log, "Skipped the update check: there's no way to show dialogs.")
+		fmt.Fprintln(log, "Skipped the update check: there's no way to show dialogs on this system.")
 		return true
 	}
 	found, err := frontend.Locate()

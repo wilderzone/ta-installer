@@ -39,7 +39,7 @@ func confirm(found frontend.Installation) bool {
 			return false
 
 		case frontend.CHECK_UNREADABLE:
-			text := fmt.Sprintf("The installation's manifest couldn't be read, so there's no telling which files in this folder belong to %s:\n\n%s\n\nUninstalling anyway will permanently delete this folder and everything in it, including any files that weren't installed with the game.", frontend.PRODUCT_NAME, found.Game)
+			text := fmt.Sprintf("%s's files couldn't be identified.\n\nUninstalling anyway will permanently delete this folder and everything in it, including any files that weren't installed with the game:\n\n%s", frontend.PRODUCT_NAME, found.Game)
 			return ask(text, zenity.WarningIcon)
 	}
 
