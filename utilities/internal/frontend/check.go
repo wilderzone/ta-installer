@@ -25,7 +25,7 @@ func (i Installation) Check() (string, error) {
 	return interpretCheck(i.query(context.Background(), "check"))
 }
 
-// interpretCheck turns the result of the CLI's `check` subcommand into what it found.
+// interpretCheck turns the result of the CLI's `check` subcommand into a usable result.
 //
 // An unreadable manifest is the one error `check` reports itself, which tells it apart from the
 // CLI failing to run the check at all.
@@ -68,14 +68,14 @@ func (i Installation) query(ctx context.Context, subcommand string) ([]line, []s
 			reported = append(reported, l.Message)
 		}
 	}
-	// Without an error of its own, whatever the CLI wrote is the best explanation there is.
+	// If nothing was reported and there was no error from the command, use the CLI's error output.
 	if err != nil && len(reported) == 0 {
 		err = fmt.Errorf("%w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 	return parseLines(stdout.Bytes()), reported, err
 }
 
-// parseLines returns the JSON lines in the given output, skipping any that aren't.
+// parseLines returns the JSON lines in the given output, skipping any lines that aren't JSON-formatted.
 func parseLines(output []byte) []line {
 	lines := []line{}
 	scanner := bufio.NewScanner(bytes.NewReader(output))

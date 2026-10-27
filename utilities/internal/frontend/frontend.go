@@ -18,8 +18,7 @@ const PRODUCT_NAME = "Tribes: Ascend"
 const MANIFEST = "manifest.json"
 const REOPENED_FLAG = "reopened"
 
-// Utility describes one of the installation utilities: the CLI subcommand it runs, and the
-// words its dialogs use.
+// Utility describes one of the installation utilities: the CLI subcommand it runs, and the words its dialogs use.
 type Utility struct {
 	// The CLI subcommand to run (eg, "verify").
 	Command      string
@@ -98,8 +97,7 @@ func Run(utility Utility) int {
 	return runWithDialogs(found, utility)
 }
 
-// reopenInTerminal starts this executable again, with the same arguments, in a new terminal
-// window.
+// reopenInTerminal starts this executable again, with the same arguments, in a new terminal window.
 func reopenInTerminal() error {
 	executable, err := os.Executable()
 	if err != nil {
@@ -108,8 +106,7 @@ func reopenInTerminal() error {
 	return openTerminal(append([]string{executable, "-" + REOPENED_FLAG}, os.Args[1:]...))
 }
 
-// fail reports a problem that stopped the utility before the CLI was started, in a dialog if
-// one can be shown.
+// fail reports a problem that stopped the utility before the CLI was started, in a dialog if one can be shown.
 func fail(utility Utility, dialog bool, message string) int {
 	if dialog {
 		_ = zenity.Error(message, zenity.Title(utility.Title))

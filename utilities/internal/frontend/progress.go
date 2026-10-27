@@ -5,12 +5,12 @@ import (
 	"strings"
 )
 
-// PROGRESS_SCALE is the progress dialog's maximum value. Finer than a percentage, so a large
-// download still visibly moves.
+// PROGRESS_SCALE is the progress dialog's maximum value. Finer than a percentage,
+// so a large download still visibly moves.
 const PROGRESS_SCALE = 1000
 
-// line is one of the JSON lines the CLI writes under `-m` and `-p`. Only the fields a
-// utility reads are declared.
+// line is one of the JSON lines the CLI writes under `-m` and `-p`.
+// Only the fields a utility reads are declared.
 type line struct {
 	Type    string `json:"type"`
 	Message string `json:"message"`

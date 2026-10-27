@@ -53,8 +53,7 @@ func offerUpdate(log io.Writer) bool {
 
 	report := frontend.RunWithProgress(found, frontend.UPDATE)
 	if !report.Complete() {
-		// A half-applied update may leave the game unable to start, so whether to try is
-		// the user's call.
+		// A half-applied update may leave the game unable to start, so ask the user before starting the game.
 		return report.Ask("Play Anyway", "Close")
 	}
 	if report.Warned() {

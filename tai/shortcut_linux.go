@@ -11,9 +11,6 @@ import (
 	"strings"
 )
 
-// The icon shipped alongside the CLI, and the name it's installed under. Desktop
-// environments look an unqualified Icon= name up in the icon theme, which is what lets the
-// entry keep working if the installation directory is later moved.
 const ICON_FILE = "icon.png"
 const ICON_NAME = "tribes-ascend"
 const UNINSTALL_ICON_FILE = "uninstall.png"
@@ -36,8 +33,7 @@ type desktopEntry struct {
 	Actions    []desktopAction
 }
 
-// desktopAction is an additional action an entry offers, eg when it is right-clicked in the
-// applications menu or the dock.
+// desktopAction is an additional action an entry offers, eg when it is right-clicked in the applications menu or the dock.
 type desktopAction struct {
 	ID   string
 	Name string
@@ -89,8 +85,7 @@ func dataDirectory() string {
 	return filepath.Join(home, ".local", "share")
 }
 
-// applicationsDirectory returns the directory desktop entries are read from for the
-// applications menu.
+// applicationsDirectory returns the directory desktop entries are read from for the applications menu.
 func applicationsDirectory() string {
 	data := dataDirectory()
 	if data == "" {
@@ -106,8 +101,7 @@ func desktopDirectory() string {
 	output, err := exec.Command("xdg-user-dir", "DESKTOP").Output()
 	if err == nil {
 		path := strings.TrimSpace(string(output))
-		// xdg-user-dir echoes $HOME back when the directory isn't configured, which is
-		// its way of saying "there isn't one".
+		// xdg-user-dir echoes $HOME back when the directory isn't configured.
 		if path != "" && path != os.Getenv("HOME") {
 			return path
 		}
@@ -141,8 +135,7 @@ func quoteExecArgument(argument string) string {
 }
 
 // writeDesktopEntry writes a desktop entry, replacing any existing one. The file is made
-// executable because desktop environments refuse to launch an entry placed outside the
-// applications directory - on the desktop, or in the installation directory - unless it is.
+// executable so it can be launched from outside the applications directory.
 func writeDesktopEntry(path string, entry desktopEntry) error {
 	var file strings.Builder
 	file.WriteString("[Desktop Entry]\n")

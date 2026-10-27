@@ -6,8 +6,7 @@ import (
 	"strings"
 )
 
-// UPDATE is the update utility. It's defined here because play offers the same update
-// before it starts the game.
+// UPDATE is the update utility. It's defined here because play also checks for updates before it starts the game.
 var UPDATE = Utility{
 	Command:     "update",
 	Title:       "Update " + PRODUCT_NAME,
@@ -26,8 +25,7 @@ func (i Installation) CheckForUpdates(ctx context.Context) (string, error) {
 	return interpretUpdateCheck(i.query(ctx, "check-updates"))
 }
 
-// interpretUpdateCheck turns the result of the CLI's `check-updates` subcommand into the
-// update it found, if any.
+// interpretUpdateCheck turns the result of the CLI's `check-updates` subcommand into the update it found, if any.
 func interpretUpdateCheck(lines []line, reported []string, err error) (string, error) {
 	if len(reported) != 0 {
 		return "", fmt.Errorf("check for updates: %s", strings.Join(reported, " "))

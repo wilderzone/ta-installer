@@ -10,23 +10,23 @@ import (
 const DETAILS_BUTTON = "Show Details"
 
 // FAILURES are the lines that report a run that failed outright. The CLI reports these as
-// findings rather than errors, so it still exits cleanly after them.
+// findings rather than errors, so it still exits cleanly after FAILURES.
 var FAILURES = map[string]bool{
 	"INSTALL_FAILURE":   true,
 	"UNINSTALL_FAILURE": true,
 	"UPDATE_FAILURE":    true,
 }
 
-// PARTIALS are the lines that report a run that only managed some of its work. Like
-// FAILURES, the CLI still exits cleanly after them.
+// PARTIALS are the lines that report a run that only managed some of its work.
+// Like FAILURES, the CLI still exits cleanly after PARTIALS.
 var PARTIALS = map[string]bool{
 	"INSTALL_PARTIAL":   true,
 	"UNINSTALL_PARTIAL": true,
 	"UPDATE_PARTIAL":    true,
 }
 
-// WARNINGS are the lines that report something the user should know about, even though the
-// run as a whole succeeded.
+// WARNINGS are the lines that report something the user should know about,
+// even though the run as a whole succeeded.
 var WARNINGS = map[string]bool{
 	"PREREQUISITES_FAILED":      true,
 	"RUNTIME_CHECK_FAILED":      true,

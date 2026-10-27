@@ -18,7 +18,7 @@ const CANCEL_COMMAND = "cancel"
 // MAX_LINE_LENGTH bounds a single line of the CLI's output.
 const MAX_LINE_LENGTH = 1024 * 1024
 
-// runWithDialogs runs the CLI behind a progress dialog, then reports how it went.
+// runWithDialogs runs the CLI behind a progress dialog, then reports the run's result.
 func runWithDialogs(found Installation, utility Utility) int {
 	if utility.Confirm != nil && !utility.Confirm(found) {
 		return 1
@@ -29,8 +29,8 @@ func runWithDialogs(found Installation, utility Utility) int {
 	return report.exitCode()
 }
 
-// runSilently runs the CLI without showing anything at all. The run is still logged, and its
-// output still read, so that only a run that completely succeeded is followed up.
+// runSilently runs the CLI without showing anything at all. The run is still logged.
+// Its output is still read, so that only a run that completely succeeded is followed up.
 func runSilently(found Installation, utility Utility) int {
 	return execute(found, utility, false).exitCode()
 }
@@ -54,8 +54,7 @@ func (r Report) exitCode() int {
 	return r.outcome.exitCode(r.err)
 }
 
-// Warned reports whether the run reported anything the user should know about, even if it
-// completed.
+// Warned reports whether the run reported anything the user should know about, even if it completed.
 func (r Report) Warned() bool {
 	return len(r.outcome.warnings) != 0
 }
@@ -65,8 +64,7 @@ func (r Report) Show() {
 	r.outcome.describe(r.utility, r.err).show(r.utility, r.log)
 }
 
-// Ask tells the user how the run went, and asks them to choose between `yes` and `no`. It
-// reports whether they chose `yes`.
+// Ask tells the user how the run went, and asks them to choose between `yes` and `no`. It reports whether they chose `yes`.
 func (r Report) Ask(yes string, no string) bool {
 	return r.outcome.describe(r.utility, r.err).ask(r.utility, r.log, yes, no)
 }
@@ -81,7 +79,7 @@ func RunWithProgress(found Installation, utility Utility) Report {
 // A run that completes its work is followed up with the utility's Complete.
 //
 // The CLI is never left to prompt: it is passed `-y`, and anything worth asking is asked
-// before it starts. Its standard input is then only ever used to cancel it, so a cancellation
+// before it starts. Its standard input is then only ever used to cancel an action, so a cancellation
 // can't be mistaken for the answer to a prompt, or swallow one.
 func execute(found Installation, utility Utility, visible bool) Report {
 	report := Report{utility: utility}
@@ -102,7 +100,7 @@ func execute(found Installation, utility Utility, visible bool) Report {
 
 	log := openLog(found, utility)
 	report.log = log.path
-	// `-v` adds the details that the CLI otherwise hides, which is exactly what the log is for.
+	// `-v` adds details to the log that the CLI otherwise hides.
 	run, err := startCLI(found, []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}, log)
 	if err != nil {
 		if dialog != nil {
@@ -138,8 +136,8 @@ func execute(found Installation, utility Utility, visible bool) Report {
 				}
 
 			case <-closed:
-				// The user closed the dialog. Ask the CLI to stop, and keep reading until it
-				// does, so it can say how to resume.
+				// The user closed the dialog.
+				// Ask the CLI to stop, and keep reading until it does, so it can say how to resume.
 				closed = nil
 				cancelled = true
 				log.write("Cancelled by the user.")

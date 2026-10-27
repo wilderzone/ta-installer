@@ -19,12 +19,12 @@ func hideWindow(command *exec.Cmd) {
 	command.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: CREATE_NO_WINDOW}
 }
 
-// inTerminal and openTerminal are never needed here: zenity draws its own dialogs on Windows,
-// so they're always available.
+// inTerminal is never needed here: zenity draws its own dialogs on Windows, so they're always available.
 func inTerminal() bool {
 	return false
 }
 
+// openTerminal is never needed here: zenity draws its own dialogs on Windows, so they're always available.
 func openTerminal(command []string) error {
 	return errors.New("no terminal to open")
 }

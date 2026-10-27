@@ -11,8 +11,7 @@ import (
 
 const LOGS_DIRECTORY = "Logs"
 
-// runLog keeps a readable record of a run, for the result dialog's details button. It is
-// replaced on each run, so it only ever describes the one the user is asking about.
+// runLog keeps a readable record of a run, for the result dialog's details button. It is replaced on each run.
 type runLog struct {
 	// Empty if the log couldn't be created, in which case there are no details to show.
 	path   string
@@ -25,8 +24,7 @@ type runLog struct {
 // what is written to it instead: nothing about a run depends on its log.
 func openLog(found Installation, utility Utility) *runLog {
 	path := filepath.Join(found.Game, LOGS_DIRECTORY, utility.Command + ".txt")
-	// A log kept open inside the installation would be one more file the CLI couldn't
-	// remove, and would be removed along with everything else once it was closed.
+	// A log kept open inside the installation would hinder uninstallation.
 	if utility.TemporaryLog {
 		path = filepath.Join(os.TempDir(), "tai-" + utility.Command + ".txt")
 	}

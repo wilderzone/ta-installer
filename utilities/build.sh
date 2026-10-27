@@ -19,8 +19,8 @@ build() {
 	cd "$SCRIPT_CWD/../tai" && go build -o "$OUT/tai-cli$EXTENSION" .
 	chmod +x "$OUT/tai-cli$EXTENSION"
 
-	# Build the other utilities. On Windows they're built as GUI programs: they show dialogs
-	# (or, for play, start the game), so a console window would only get in the way.
+	# Build the other utilities. On Windows they're built as GUI programs (using dialogs),
+	# so hide the unnecessary console window.
 	local LDFLAGS=""
 	if [[ $PLATFORM == "Windows" ]]; then
 		LDFLAGS="-H=windowsgui"
