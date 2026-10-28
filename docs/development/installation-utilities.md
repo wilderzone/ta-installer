@@ -71,7 +71,7 @@ Their checksums are **not** compiled into `tai-cli.exe` - that would be circular
 tai-cli.exe asset --path=<installer build dir> --name=Installer
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the executables keep their execute bits.
+Publish both `Installer.zip` and the generated `Installer.json` under `/installer/` in the repository, renamed to `Installer-windows-amd64.zip` and `Installer-windows-amd64.json`. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the executables keep their execute bits. A [release](/development/building#releasing) builds and publishes both packages in CI.
 
 Build `play.exe`, `uninstall.exe`, `update.exe`, and `verify.exe` for Windows as GUI programs, so that starting the game, or showing a utility's dialogs, doesn't open a console window as well. They're all built from the `/utilities` module:
 
