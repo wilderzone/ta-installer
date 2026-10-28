@@ -11,9 +11,6 @@ import (
 	"strings"
 )
 
-// The icon shipped alongside the CLI, and the name it's installed under. Desktop
-// environments look an unqualified Icon= name up in the icon theme, which is what lets the
-// entry keep working if the installation directory is later moved.
 const ICON_FILE = "icon.png"
 const ICON_NAME = "tribes-ascend"
 const UNINSTALL_ICON_FILE = "uninstall.png"
@@ -29,6 +26,51 @@ type desktopEntry struct {
 	Path       string
 	Categories string
 	Terminal   bool
+	// The window class of the program the entry starts, which ties its window to the entry
+	// so the taskbar shows the entry's icon and name. Left empty for an entry that doesn't
+	// start the game, so the desktop doesn't wait for a game window that never appears.
+	WMClass    string
+	Actions    []desktopAction
+}
+
+// desktopAction is an additional action an entry offers, eg when it is right-clicked in the applications menu or the dock.
+type desktopAction struct {
+	ID   string
+	Name string
+	Exec string
+}
+
+// installationUtility describes how the desktop offers one of the installation utilities.
+type installationUtility struct {
+	file     string // In the utilities directory.
+	shortcut string // The file name of its entry in the installation directory.
+	name     string
+	action   string // The name of the game entry's action that runs it.
+	comment  string
+}
+
+var VERIFY_UTILITY = installationUtility{VERIFY_NAME, VERIFY_SHORTCUT_NAME, "Verify " + PRODUCT_NAME, "Verify Files", "Check the game's files, and repair any that are damaged."}
+var UPDATE_UTILITY = installationUtility{UPDATE_NAME, UPDATE_SHORTCUT_NAME, "Update " + PRODUCT_NAME, "Check for Updates", "Update the game to the latest version."}
+var UNINSTALL_UTILITY = installationUtility{UNINSTALL_NAME, UNINSTALL_SHORTCUT_NAME, "Uninstall " + PRODUCT_NAME, "Uninstall", "Remove " + PRODUCT_NAME + " and its compatibility layer."}
+
+// UTILITY_ACTIONS are the installation utilities that the game's entry offers as actions.
+var UTILITY_ACTIONS = []installationUtility{VERIFY_UTILITY, UPDATE_UTILITY, UNINSTALL_UTILITY}
+
+// path returns where the utility is installed.
+func (u installationUtility) path(root string) string {
+	return filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, u.file)
+}
+
+// entry describes a desktop entry that runs the utility.
+func (u installationUtility) entry(root string, icon string) desktopEntry {
+	return desktopEntry{
+		Name:       u.name,
+		Comment:    u.comment,
+		Exec:       quoteExecArgument(u.path(root)),
+		Icon:       icon,
+		Categories: "Game;",
+		Terminal:   false,
+	}
 }
 
 // dataDirectory returns the XDG base directory for user-specific data files.
@@ -43,8 +85,7 @@ func dataDirectory() string {
 	return filepath.Join(home, ".local", "share")
 }
 
-// applicationsDirectory returns the directory desktop entries are read from for the
-// applications menu.
+// applicationsDirectory returns the directory desktop entries are read from for the applications menu.
 func applicationsDirectory() string {
 	data := dataDirectory()
 	if data == "" {
@@ -60,8 +101,7 @@ func desktopDirectory() string {
 	output, err := exec.Command("xdg-user-dir", "DESKTOP").Output()
 	if err == nil {
 		path := strings.TrimSpace(string(output))
-		// xdg-user-dir echoes $HOME back when the directory isn't configured, which is
-		// its way of saying "there isn't one".
+		// xdg-user-dir echoes $HOME back when the directory isn't configured.
 		if path != "" && path != os.Getenv("HOME") {
 			return path
 		}
@@ -95,8 +135,7 @@ func quoteExecArgument(argument string) string {
 }
 
 // writeDesktopEntry writes a desktop entry, replacing any existing one. The file is made
-// executable because desktop environments refuse to launch an entry placed outside the
-// applications directory - on the desktop, or in the installation directory - unless it is.
+// executable so it can be launched from outside the applications directory.
 func writeDesktopEntry(path string, entry desktopEntry) error {
 	var file strings.Builder
 	file.WriteString("[Desktop Entry]\n")
@@ -118,9 +157,22 @@ func writeDesktopEntry(path string, entry desktopEntry) error {
 	}
 	fmt.Fprintf(&file, "Terminal=%t\n", entry.Terminal)
 	file.WriteString("StartupNotify=true\n")
-	// Ties the game's window to this entry, so the taskbar shows its icon and name
-	// rather than a generic Wine one.
-	fmt.Fprintf(&file, "StartupWMClass=%s\n", escapeDesktopValue(GAME_BINARY_NAME))
+	if entry.WMClass != "" {
+		fmt.Fprintf(&file, "StartupWMClass=%s\n", escapeDesktopValue(entry.WMClass))
+	}
+	if len(entry.Actions) != 0 {
+		file.WriteString("Actions=")
+		for _, action := range entry.Actions {
+			fmt.Fprintf(&file, "%s;", action.ID)
+		}
+		file.WriteString("\n")
+	}
+	// Each action is a group of its own, after the main one.
+	for _, action := range entry.Actions {
+		fmt.Fprintf(&file, "\n[Desktop Action %s]\n", action.ID)
+		fmt.Fprintf(&file, "Name=%s\n", escapeDesktopValue(action.Name))
+		fmt.Fprintf(&file, "Exec=%s\n", escapeDesktopValue(action.Exec))
+	}
 
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {
@@ -236,7 +288,25 @@ func gameEntry(root string, icon string) desktopEntry {
 		Path:       filepath.Join(root, "Binaries", "Win32"),
 		Categories: "Game;ActionGame;",
 		Terminal:   false,
+		// Ties the game's window to this entry, so the taskbar shows its icon and name
+		// rather than a generic Wine one.
+		WMClass:    GAME_BINARY_NAME,
+		Actions:    utilityActions(root),
 	}
+}
+
+// utilityActions returns the game entry's actions, which run the installation utilities, so
+// they're a right-click away wherever the game's entry is. An action is only offered for a
+// utility that is actually installed.
+func utilityActions(root string) []desktopAction {
+	actions := []desktopAction{}
+	for _, utility := range UTILITY_ACTIONS {
+		if !fileExists(utility.path(root)) {
+			continue
+		}
+		actions = append(actions, desktopAction{ID: utility.file, Name: utility.action, Exec: quoteExecArgument(utility.path(root))})
+	}
+	return actions
 }
 
 // createShortcuts creates desktop entries that launch the game. They're placed in the
@@ -256,6 +326,17 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 	err := writeDesktopEntry(filepath.Join(root, SHORTCUT_NAME), entry)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
+	}
+	// A file manager may refuse to run the utilities themselves, but it will open an entry.
+	// The uninstall entry is createUninstallShortcut's, since it goes in the menu as well.
+	for _, utility := range []installationUtility{VERIFY_UTILITY, UPDATE_UTILITY} {
+		if !fileExists(utility.path(root)) {
+			continue
+		}
+		err := writeDesktopEntry(filepath.Join(root, utility.shortcut), utility.entry(root, icon))
+		if err != nil {
+			return fmt.Errorf("create installation directory shortcut: %w", err)
+		}
 	}
 
 	if includeOptionalShortcuts {
@@ -305,6 +386,8 @@ func removeShortcuts(root string) error {
 	// The in-directory entries (may already be gone if the directory was cleared).
 	remove(filepath.Join(root, SHORTCUT_NAME))
 	remove(filepath.Join(root, UNINSTALL_SHORTCUT_NAME))
+	remove(filepath.Join(root, UPDATE_SHORTCUT_NAME))
+	remove(filepath.Join(root, VERIFY_SHORTCUT_NAME))
 
 	// The applications menu entries.
 	if applications := applicationsDirectory(); applications != "" {

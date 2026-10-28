@@ -126,7 +126,6 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `PREREQUISITES_REQUIRED`
 - `PROGRESS`
 - `PROMPT_PROCEED`
-- `PROMPT_REMOVE_DEPENDENTS`
 - `PROMPT_UNINSTALL_ANYWAY`
 - `READING_LOCAL_MANIFEST`
 - `READING_MANIFEST_FAILED`
@@ -185,14 +184,14 @@ An interface driving TAI has no spinner to read, so passing the `-p` flag instru
 ```
 > tai-cli.exe install -p --path="G:/tribes"
 ...
-{"size":2782785536,"message":"","type":"DOWNLOAD_STARTED"}
-{"bytes":15728640,"size":2782785536,"rate":6553600,"message":"","type":"DOWNLOAD_PROGRESS"}
-{"bytes":32505856,"size":2782785536,"rate":6684672,"message":"","type":"DOWNLOAD_PROGRESS"}
+{"size":2782785536,"message":"0% of 2.8 GB","type":"DOWNLOAD_STARTED"}
+{"bytes":15728640,"size":2782785536,"rate":6553600,"message":"0% of 2.8 GB - 7 minutes left","type":"DOWNLOAD_PROGRESS"}
+{"bytes":32505856,"size":2782785536,"rate":6684672,"message":"1% of 2.8 GB - 7 minutes left","type":"DOWNLOAD_PROGRESS"}
 ...
-{"bytes":2782785536,"size":2782785536,"message":"","type":"DOWNLOAD_COMPLETE"}
+{"bytes":2782785536,"size":2782785536,"message":"100% of 2.8 GB","type":"DOWNLOAD_COMPLETE"}
 ```
 
-`bytes` is what has arrived so far, `size` what is expected in total, and `rate` a smoothed average of the bytes per second. These lines are always JSON, with or without `-m`. A manifest that doesn't record the size of every asset it is downloading can't be measured, and reports nothing rather than an inaccurate total.
+`bytes` is what has arrived so far, `size` what is expected in total, and `rate` a smoothed average of the bytes per second. `message` describes the same progress in words, as the spinner would, for an interface that shows it as text. These lines are always JSON, regardless of `-m`. A manifest that doesn't record the size of every asset it is downloading can't be measured, and reports nothing rather than an inaccurate total.
 
 
 ## Development
@@ -228,7 +227,7 @@ Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a comp
 
 A few things differ from Windows by necessity:
 
-- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing.
+- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing, and the game's entry offers the [installation utilities](#installation-utilities) as right-click actions.
 - The default install path is under your home directory.
 - DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
 - The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
@@ -265,10 +264,20 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | Utility     | Windows | Linux | Purpose                                                                                                                           |
 | :---------- | :------ | :---- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `tai-cli`   | ✓       | ✓     | A local copy of TAI CLI.                                                                                                          |
-| `play`      | ✓       | ✓     | Launches the game. All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
-| `uninstall` | ✓       |       | Allows the game to be uninstalled via the Control Panel or the Settings menu. On Linux this action is handled by desktop entries. |
-| `update`    | ✓       |       | Allows the game to be updated via a simple double-click. On Linux this action is handled by desktop entries.                      |
-| `verify`    | ✓       |       | Allows the game files to be verified via a simple double-click. On Linux this action is handled by desktop entries.               |
+| `play`      | ✓       | ✓     | Launches the game, after checking for updates (see below). All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
+| `uninstall` | ✓       | ✓     | Uninstalls the game. On Windows it's run from the Control Panel or the Settings menu; on Linux, from the applications menu or the game's right-click actions. |
+| `update`    | ✓       | ✓     | Updates the game. On Windows, double-click it; on Linux, use the game's right-click actions or the entry in the installation folder. |
+| `verify`    | ✓       | ✓     | Verifies the game's files, and repairs any that are damaged. It's run the same way as `update`.                                   |
+
+`uninstall`, `update`, and `verify` each run one subcommand of the local CLI, and show their progress and result in native dialogs (via [zenity](https://github.com/ncruces/zenity)) instead of a terminal window:
+- A progress dialog follows the CLI's machine-readable output. Pressing **Cancel** asks the CLI to stop at its next safe point.
+- A result dialog reports how the run went. **Show Details** opens the run's log: `Logs/update.txt` or `Logs/verify.txt` inside the installation, or `tai-uninstall.txt` in the temp directory for `uninstall`, since it removes the installation.
+- The CLI is always run with `-y`. Anything worth asking is asked by the utility first: `uninstall` runs `check`, so its confirmation can say exactly what will be deleted.
+- `uninstall` only removes the installation folder after a complete run, and only when nothing but the utilities directory is left in it.
+- Passing `-s` runs a utility without any dialogs or questions. A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined.
+- On Linux, the dialogs need `zenity`, `qarma`, or `matedialog`. Without one, a utility reopens itself in a terminal, where the CLI asks its own questions.
+
+Before it starts the game, `play` checks for an update (which can be skipped), and asks whether to install one if it's found. **Update** installs it like `update` does, then starts the game, offering **Play Anyway** if the update doesn't complete; **Play Now** starts the game straight away. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game simply starts, and the reason is written to `Logs/launcher.txt`. `play -prepare` never checks.
 
 Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
 ```sh
@@ -294,16 +303,18 @@ Their checksums are **not** compiled into `tai-cli.exe` - that would be circular
 tai-cli.exe asset --path=<installer build dir> --name=Installer
 ```
 
-Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so `tai-cli` and `play` keep their execute bits.
+Publish both `Installer.zip` and the generated `Installer.json` to the repository root. Repeat for Linux, publishing `Installer-linux-amd64.zip` and its `.json`. The zip must be built **on Linux** so the executables keep their execute bits.
 
-Build `play.exe` for Windows, configured so starting the game doesn't flash up a console window:
+Build `play.exe`, `uninstall.exe`, `update.exe`, and `verify.exe` for Windows as GUI programs, so that starting the game, or showing a utility's dialogs, doesn't open a console window as well. They're all built from the `/utilities` module:
 
 ```sh
-GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./utilities/play
+cd utilities
+GOOS=windows go build -ldflags="-H=windowsgui" -o play.exe ./play
+GOOS=windows go build -ldflags="-H=windowsgui" -o verify.exe ./verify   # And likewise for uninstall and update.
 ```
 
 The `play` utility writes to `Logs/launcher.txt` inside the installation, replacing it on each launch. The log includes output from the compatibility layer as well.
-The other three utilities print their output to the console window they were launched from.
+The other three utilities keep the logs described above.
 
 </details>
 

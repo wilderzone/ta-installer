@@ -19,27 +19,17 @@ build() {
 	cd "$SCRIPT_CWD/../tai" && go build -o "$OUT/tai-cli$EXTENSION" .
 	chmod +x "$OUT/tai-cli$EXTENSION"
 
-	echo "- play"
-	if [[ $PLATFORM == "Linux" ]]; then
-		cd "$SCRIPT_CWD/play"   && go build -o "$OUT/play$EXTENSION" .
-	fi
+	# Build the other utilities. On Windows they're built as GUI programs (using dialogs),
+	# so hide the unnecessary console window.
+	local LDFLAGS=""
 	if [[ $PLATFORM == "Windows" ]]; then
-		cd "$SCRIPT_CWD/play"   && go build -ldflags="-H=windowsgui" -o "$OUT/play$EXTENSION" .
+		LDFLAGS="-H=windowsgui"
 	fi
-	chmod +x "$OUT/play$EXTENSION"
-
-	## Build Windows-specific utilities.
-	if [[ $PLATFORM == "Windows" ]]; then
-		echo "- uninstall"
-		cd "$SCRIPT_CWD/uninstall" && go build -o "$OUT/uninstall$EXTENSION" .
-		chmod +x "$OUT/uninstall$EXTENSION"
-		echo "- update"
-		cd "$SCRIPT_CWD/update"    && go build -o "$OUT/update$EXTENSION" .
-		chmod +x "$OUT/update$EXTENSION"
-		echo "- verify"
-		cd "$SCRIPT_CWD/verify"    && go build -o "$OUT/verify$EXTENSION" .
-		chmod +x "$OUT/verify$EXTENSION"
-	fi
+	for UTILITY in play uninstall update verify; do
+		echo "- $UTILITY"
+		cd "$SCRIPT_CWD" && go build -ldflags="$LDFLAGS" -o "$OUT/$UTILITY$EXTENSION" "./$UTILITY"
+		chmod +x "$OUT/$UTILITY$EXTENSION"
+	done
 
 	# Copy the icon files.
 	cp "$SCRIPT_CWD/icon.png" "$OUT/icon.png"

@@ -50,6 +50,9 @@ func run() int {
 	if args.prepare {
 		err = prepareRuntime(game, log)
 	} else {
+		if !offerUpdate(log) {
+			return 1
+		}
 		err = launchGame(game, log)
 	}
 	if err != nil {
