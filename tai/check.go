@@ -16,8 +16,10 @@ func Check(logger *Logger, arguments arguments) error {
 		return nil
 	}
 	if err != nil {
-		// The manifest exists but couldn't be read - a genuine problem.
-		return userErrorf(err, "Found an installation at %s, but its manifest couldn't be read.", arguments.path)
+		// The manifest exists but couldn't be read. Reported as a line of
+		// its own as well, so an interface can tell it apart from any other error.
+		logger.log(MANIFEST_UNREADABLE, fmt.Sprintf("Found an installation at %s, but its manifest couldn't be read.", arguments.path))
+		return userErrorf(err, "Couldn't identify the installation's files.")
 	}
 
 	logger.log(INSTALL_FOUND)

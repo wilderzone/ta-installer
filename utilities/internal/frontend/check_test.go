@@ -20,10 +20,20 @@ func TestInterpretCheckNotFound(t *testing.T) {
 }
 
 func TestInterpretCheckUnreadable(t *testing.T) {
-	reported := []string{"Found an installation at G:\\tribes, but its manifest couldn't be read."}
-	got, err := interpretCheck(nil, reported, errors.New("exit status 1"))
+	lines := []line{{Type: "MANIFEST_UNREADABLE", Message: "Found an installation at G:\\tribes, but its manifest couldn't be read."}}
+	reported := []string{"Couldn't identify the installation's files."}
+	got, err := interpretCheck(lines, reported, errors.New("exit status 1"))
 	if err != nil || got != CHECK_UNREADABLE {
 		t.Errorf("got %q, %v, want %q", got, err, CHECK_UNREADABLE)
+	}
+}
+
+func TestInterpretCheckWithAnotherReportedError(t *testing.T) {
+	// Only the CLI's own line means the manifest is unreadable. Taking any other error for
+	// it would offer to delete everything in the installation directory.
+	got, err := interpretCheck(nil, []string{"Something went wrong."}, errors.New("exit status 1"))
+	if err == nil {
+		t.Errorf("got %q, want an error", got)
 	}
 }
 

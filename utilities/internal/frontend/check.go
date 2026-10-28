@@ -27,15 +27,10 @@ func (i Installation) Check() (string, error) {
 
 // interpretCheck turns the result of the CLI's `check` subcommand into a usable result.
 //
-// An unreadable manifest is the one error `check` reports itself, which tells it apart from the
-// CLI failing to run the check at all.
+// The CLI exits with an error after reporting an unreadable manifest, so the lines are read
+// first. Any other error means the check couldn't be done, and says nothing about the
+// installation - it's never taken to mean the installation is unreadable.
 func interpretCheck(lines []line, reported []string, err error) (string, error) {
-	if err != nil {
-		if len(reported) != 0 {
-			return CHECK_UNREADABLE, nil
-		}
-		return "", fmt.Errorf("check the installation: %w", err)
-	}
 	for _, l := range lines {
 		switch l.Type {
 			case "INSTALL_FOUND":
@@ -43,7 +38,16 @@ func interpretCheck(lines []line, reported []string, err error) (string, error) 
 
 			case "INSTALL_NOT_FOUND":
 				return CHECK_NOT_FOUND, nil
+
+			case "MANIFEST_UNREADABLE":
+				return CHECK_UNREADABLE, nil
 		}
+	}
+	if len(reported) != 0 {
+		return "", fmt.Errorf("check the installation: %s", strings.Join(reported, " "))
+	}
+	if err != nil {
+		return "", fmt.Errorf("check the installation: %w", err)
 	}
 	return "", fmt.Errorf("check the installation: no result reported")
 }
