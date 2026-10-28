@@ -22,5 +22,6 @@ The subcommand provided to TAI CLI determines the action to perform. Subcommands
 Notes:
 - _For all subcommands, `--repo` is optional. TAI will retrieve files from the [Wilderzone CDN](https://cdn.wilderzone.org) by default._  
 - _Subcommands such as `verify` may prompt for confirmation. Pass the `-y` flag to skip these prompts._  
+- _Before downloading anything, `install`, `update`, and `verify` check that the installation's drive has room for both the downloads and the files unpacked from them, and ask for confirmation if it may not._  
 - _`install` and `list` accept `--include` and `--exclude` lists of comma-separated values to filter assets by type (e.g. `dlc`) or exact name (e.g. `"Arx Novena"`). Include is applied first, then exclude. Names containing spaces must be quoted, and names cannot contain commas._  
 - _Assets can depend on other assets. TAI manages these relationships automatically: `install` also installs whatever the selected assets require, and `uninstall` also removes assets that are no longer required. See [Dependency Resolution](/cli/dependency-resolution) for more information._

@@ -49,6 +49,7 @@ Passing the `-m` [flag](/cli/options#flags) will instruct TAI to output machine-
 - `INSTALL_VERIFIED`
 - `INSTALLING`
 - `INSTALLING_DEPENDENCIES`
+- `INSUFFICIENT_SPACE`
 - `INTERRUPTED`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
