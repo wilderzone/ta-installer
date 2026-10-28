@@ -115,6 +115,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `INSTALL_VERIFIED`
 - `INSTALLING`
 - `INSTALLING_DEPENDENCIES`
+- `INSUFFICIENT_SPACE`
 - `INTERRUPTED`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`

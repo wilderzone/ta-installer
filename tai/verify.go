@@ -35,6 +35,8 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	if len(damaged) != 0 {
 		message := logger.plural(len(damaged), "asset is damaged and needs", "assets are damaged and need") + " to be redownloaded. "
 		logger.log(ASSETS_ARE_DAMAGED, fmt.Sprintf("%d %s", len(damaged), message))
+		// Redownloading is already asked about, so a lack of space is only worth a warning before it.
+		checkFreeSpace(logger, arguments.path, damaged, "the repair")
 
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if proceed {

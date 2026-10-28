@@ -109,6 +109,7 @@ var (
 	INSTALL_VERIFIED          = LogLine{Type: "INSTALL_VERIFIED", Message: "Installation verified."}
 	INSTALLING                = LogLine{Type: "INSTALLING", Message: "Installing..."}
 	INSTALLING_DEPENDENCIES   = LogLine{Type: "INSTALLING_DEPENDENCIES", Message: "Also installing required assets:"}
+	INSUFFICIENT_SPACE        = LogLine{Type: "INSUFFICIENT_SPACE", Message: "There may not be enough free space."}
 	INTERRUPTED               = LogLine{Type: "INTERRUPTED", Message: "Interrupted."}
 	MANIFEST_CONTENTS         = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED          = LogLine{Type: "MANIFEST_CREATED", Message: ""}
