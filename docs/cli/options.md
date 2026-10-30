@@ -15,6 +15,7 @@ Options can be used to gain fine-grained control over the behaviour of TAI CLI. 
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
 | `--keep`           | A comma-separated list of asset names or types.     | Uninstall everything except the provided assets.                                                                |
+| `--stop-if-short`  | _None._                                             | Stop before downloading anything if there may not be enough free space, rather than asking (even with `-y`). For an interface that asks the user itself. |
 
 
 # Flags

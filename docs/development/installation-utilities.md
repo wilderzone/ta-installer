@@ -21,7 +21,7 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 - **Progress:** A progress dialog follows the CLI's [machine-readable output](/cli/output), showing each step and the progress of any download. Pressing **Cancel** asks the CLI to stop at its next safe point (see [Interrupting a Run](/cli/output#interrupting-a-run)), and the result explains how to pick up where it left off.
 - **Result:** Once the CLI finishes, a dialog reports how it went: a success, a success with warnings (eg, the shortcuts couldn't be created), a partial result, or an error. **Show Details** opens the run's full log, including the CLI's verbose output.
 - **Logs:** `update` and `verify` log to `Logs/update.txt` and `Logs/verify.txt` inside the installation, replacing the log on each run. `uninstall` logs to `tai-uninstall.txt` in the temp directory instead, since it removes the installation.
-- **Questions:** The CLI is always run with `-y`, so it never prompts. Anything worth asking is asked by the utility, before the CLI starts.
+- **Questions:** The CLI is always run with `-y`, so it never prompts. Anything worth asking is asked by the utility, before the CLI starts. The exception is a lack of free space, which `update` and `verify` only discover once they've checked the files. They're run with `--stop-if-short`, and if they stop, the utility asks whether to continue anyway, then runs them again (checking the files over again first).
 - **Silent mode:** Passing `-s` runs a utility without any dialogs or questions. Windows uses this for a quiet uninstall.
 - **Exit code:** A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined. The CLI exits cleanly from some of these, so its own exit code isn't enough to go on.
 
@@ -34,7 +34,7 @@ The CLI removes everything except the utilities directory it runs from. `uninsta
 ### Checking for Updates
 
 Before it starts the game, `play` checks for an update, behind a "Checking for updates..." dialog that can skip the check. If there is one, it asks whether to install it first:
-- **Update** installs it behind the same progress dialog as `update`, then starts the game. If the update doesn't complete, `play` explains what went wrong, and offers **Play Anyway** or **Close**.
+- **Update** installs it behind the same progress dialog as `update`, then starts the game. If the update doesn't complete, `play` explains what went wrong, and offers **Play Anyway** or **Close**. If there may not be enough free space, it asks whether to continue anyway first; **Cancel** starts the game on its current version, since nothing has been downloaded.
 - **Play Now** starts the game straight away.
 
 Nothing about the check stands in the way of playing. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game starts as it would have without it, and the reason is written to `Logs/launcher.txt`. Like `update`, the check compares the installation with the default repository. `play -prepare`, which `install` runs on Linux to set up the compatibility layer, never checks.
