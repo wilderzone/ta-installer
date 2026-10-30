@@ -9,7 +9,7 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | Utility     | Windows | Linux | Purpose                                                                                                                           |
 | :---------- | :------ | :---- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `tai-cli`   | ✓       | ✓     | A local copy of TAI CLI.                                                                                                          |
-| `play`      | ✓       | ✓     | Launches the game, after [checking for updates](#checking-for-updates). All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
+| `play`      | ✓       | ✓     | Launches the game, after [checking for updates](#checking-for-updates), with [TAMods](#tamods) if it's installed. All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
 | `uninstall` | ✓       | ✓     | Uninstalls the game. On Windows it's run from the Control Panel or the Settings menu; on Linux, from the applications menu or the game's right-click actions. |
 | `update`    | ✓       | ✓     | Updates the game. On Windows, double-click it; on Linux, use the game's right-click actions or the entry in the installation folder. |
 | `verify`    | ✓       | ✓     | Verifies the game's files, and repairs any that are damaged. It's run the same way as `update`.                                   |
@@ -38,6 +38,12 @@ Before it starts the game, `play` checks for an update, behind a "Checking for u
 - **Play Now** starts the game straight away.
 
 Nothing about the check stands in the way of playing. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game starts as it would have without it, and the reason is written to `Logs/launcher.txt`. Like `update`, the check compares the installation with the default repository. `play -prepare`, which `install` runs on Linux to set up the compatibility layer, never checks.
+
+### TAMods
+
+If the TA Mods asset is installed, `play` loads TAMods into the game the same way T:A Launcher does. Before the game starts, a copy of `Mods/TAMods/TAMods.dll` takes the place of each of the game's `FonixTtsDtSimple*.dll` text-to-speech libraries in `Binaries/Win32`, and the game's own copies are set aside beside them as `.tai-original` files. Once the game exits, they're put back, so `verify` finds the installation as it was installed. If `play` doesn't get to put them back (eg, the computer lost power), it does so before the next launch. If TAMods can't be applied, the game starts without it, and the reason is written to `Logs/launcher.txt`.
+
+`play` waits for the game to exit so it can put the DLLs back, and only `play` applies TAMods: the game started any other way (eg, by running `TribesAscend.exe` directly) runs without it.
 
 ### On Linux
 
