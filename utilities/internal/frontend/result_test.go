@@ -127,3 +127,17 @@ func TestDescribeAnInterruptedRun(t *testing.T) {
 		t.Errorf("got %+v, want the CLI's explanation of how to resume", got)
 	}
 }
+
+func TestALackOfSpaceStopsTheRunShort(t *testing.T) {
+	warning := "There may not be enough free space. 8.3 GB is free at /games, and 11.0 GB may be required during the update."
+	outcome := outcome{}
+	outcome.observe(line{Type: "INSUFFICIENT_SPACE", Message: warning})
+	outcome.fail("Nothing was downloaded, since there may not be enough free space.")
+
+	if outcome.shortOfSpace != warning {
+		t.Errorf("got %q, want the CLI's warning", outcome.shortOfSpace)
+	}
+	if outcome.complete(errors.New("exit status 1")) {
+		t.Error("got a complete run, want one stopped short")
+	}
+}

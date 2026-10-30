@@ -9,6 +9,10 @@ import (
 
 // Handle the "check" command.
 func Check(logger *Logger, arguments arguments) error {
+	// Report the free space as well, so an interface choosing where to install can warn
+	// about a lack of it before anything starts.
+	reportFreeSpace(logger, arguments.path)
+
 	_, err := readManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
 		// No manifest means no installation. This is an expected outcome.

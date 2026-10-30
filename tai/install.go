@@ -51,6 +51,44 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 		logger.log(INSTALLING_DEPENDENCIES, assets.AssetNames(required))
 	}
 
+	// Only trust an existing manifest if it read cleanly - a half-decoded one would
+	// misreport both what is installed and how it got there.
+	existing, existErr := readManifest(logger, arguments.path)
+	installed := []Asset{}
+	if existErr == nil {
+		installed = existing.Assets
+	}
+
+	// Download the selected assets, plus any dependency that isn't installed yet. An
+	// already-installed dependency is left alone - reinstalling it could mean
+	// re-downloading the entire game just to add a small asset, and repairing a damaged
+	// asset is `verify`'s job.
+	requested := make(map[string]bool, len(explicit))
+	for _, asset := range explicit {
+		requested[asset.Name] = true
+	}
+	present := make(map[string]bool, len(installed))
+	for _, asset := range installed {
+		present[asset.Name] = true
+	}
+	subset := []Asset{}
+	for _, asset := range closure {
+		if requested[asset.Name] || !present[asset.Name] {
+			subset = append(subset, asset)
+		}
+	}
+
+	// Warn about a lack of space while nothing has been written or downloaded yet.
+	if checkFreeSpace(logger, arguments.path, subset, "installation") {
+		if arguments.stopIfShort {
+			return stoppedShort()
+		}
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+		if !proceed {
+			return userErrorf(nil, "Install cancelled.")
+		}
+	}
+
 	// Create the installation directory, if it doesn't already exist.
 	err = os.MkdirAll(arguments.path, os.FileMode(0755))
 	if err != nil {
@@ -63,12 +101,7 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 	// Merge with any existing installation so repeated installs are additive.
 	// Keep the existing (older) version so a later `update` still reconciles every
 	// asset; a fresh install adopts the remote version.
-	// Only trust the existing manifest if it read cleanly - a half-decoded one would
-	// misreport both what is installed and how it got there.
-	existing, existErr := readManifest(logger, arguments.path)
-	installed := []Asset{}
 	if existErr == nil {
-		installed = existing.Assets
 		manifest.Assets = assets.MergeAssets(installed, closure)
 		manifest.Version = min(existing.Version, manifest.Version)
 	} else {
@@ -107,24 +140,6 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 
 	logger.log(INSTALLING)
 
-	// Download the selected assets, plus any dependency that isn't installed yet. An
-	// already-installed dependency is left alone - reinstalling it could mean
-	// re-downloading the entire game just to add a small asset, and repairing a damaged
-	// asset is `verify`'s job.
-	requested := make(map[string]bool, len(explicit))
-	for _, asset := range explicit {
-		requested[asset.Name] = true
-	}
-	present := make(map[string]bool, len(installed))
-	for _, asset := range installed {
-		present[asset.Name] = true
-	}
-	subset := []Asset{}
-	for _, asset := range closure {
-		if requested[asset.Name] || !present[asset.Name] {
-			subset = append(subset, asset)
-		}
-	}
 	failed := downloadAssets(ctx, logger, arguments, subset, "Downloaded")
 	// The remaining assets were never fetched, so there is nothing to finish setting up.
 	// The manifest is already on disk, which allows `install` or `verify` to resume.

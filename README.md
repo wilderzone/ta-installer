@@ -54,6 +54,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
 | `--keep`           | A comma-separated list of asset names or types.     | Uninstall everything except the provided assets.                                                                |
+| `--stop-if-short`  | _NA_                                                | Stop before downloading anything if there may not be enough free space, rather than asking (even with `-y`). For an interface that asks the user itself. |
 | `-m`               | _NA_                                                | Output machine-readable JSON instead of plain-text messages.                                                    |
 | `-p`               | _NA_                                                | Report the progress of a download as JSON lines on stdout. See [Download progress](#download-progress).         |
 | `-s`               | _NA_                                                | Run silently.                                                                                                   |
@@ -105,6 +106,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `DOWNLOAD_STARTED`
 - `DOWNLOADING_MANIFEST`
 - `ERROR`
+- `FREE_SPACE`
 - `INSTALL_FAILURE`
 - `INSTALL_FOUND`
 - `INSTALL_INTERRUPTED`
@@ -115,6 +117,7 @@ Passing the `-m` flag will instruct TAI to output machine-readable JSON instead.
 - `INSTALL_VERIFIED`
 - `INSTALLING`
 - `INSTALLING_DEPENDENCIES`
+- `INSUFFICIENT_SPACE`
 - `INTERRUPTED`
 - `MANIFEST_CONTENTS`
 - `MANIFEST_CREATED`
@@ -272,7 +275,7 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 `uninstall`, `update`, and `verify` each run one subcommand of the local CLI, and show their progress and result in native dialogs (via [zenity](https://github.com/ncruces/zenity)) instead of a terminal window:
 - A progress dialog follows the CLI's machine-readable output. Pressing **Cancel** asks the CLI to stop at its next safe point.
 - A result dialog reports how the run went. **Show Details** opens the run's log: `Logs/update.txt` or `Logs/verify.txt` inside the installation, or `tai-uninstall.txt` in the temp directory for `uninstall`, since it removes the installation.
-- The CLI is always run with `-y`. Anything worth asking is asked by the utility first: `uninstall` runs `check`, so its confirmation can say exactly what will be deleted.
+- The CLI is always run with `-y`. Anything worth asking is asked by the utility first: `uninstall` runs `check`, so its confirmation can say exactly what will be deleted. The exception is a lack of free space, which `update` and `verify` only discover once they've checked the files: they're run with `--stop-if-short`, and if they stop, the utility asks whether to continue anyway, then runs them again.
 - `uninstall` only removes the installation folder after a complete run, and only when nothing but the utilities directory is left in it.
 - Passing `-s` runs a utility without any dialogs or questions. A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined.
 - On Linux, the dialogs need `zenity`, `qarma`, or `matedialog`. Without one, a utility reopens itself in a terminal, where the CLI asks its own questions.
