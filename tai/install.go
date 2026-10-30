@@ -80,6 +80,9 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 
 	// Warn about a lack of space while nothing has been written or downloaded yet.
 	if checkFreeSpace(logger, arguments.path, subset, "installation") {
+		if arguments.stopIfShort {
+			return stoppedShort()
+		}
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if !proceed {
 			return userErrorf(nil, "Install cancelled.")

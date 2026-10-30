@@ -42,13 +42,15 @@ var WARNINGS = map[string]bool{
 // outcome gathers what the result dialog needs to know from the CLI's lines.
 type outcome struct {
 	// The CLI's explanation of how to resume, if the run was interrupted.
-	interrupted string
+	interrupted  string
 	// The CLI's explanation of what was left undone, if the run only partly succeeded.
-	partial     string
-	failed      bool
-	seen        map[string]bool
-	errors      []string
-	warnings    []string
+	partial      string
+	// The CLI's warning that the drive may not have room for the downloads, if it gave one.
+	shortOfSpace string
+	failed       bool
+	seen         map[string]bool
+	errors       []string
+	warnings     []string
 }
 
 // observe records a line from the CLI's standard output.
@@ -69,6 +71,9 @@ func (o *outcome) observe(l line) {
 	}
 	if WARNINGS[l.Type] {
 		o.warnings = append(o.warnings, l.Message)
+	}
+	if l.Type == "INSUFFICIENT_SPACE" {
+		o.shortOfSpace = l.Message
 	}
 }
 

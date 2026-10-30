@@ -85,8 +85,19 @@ func checkFreeSpace(logger *Logger, root string, toDownload []Asset, activity st
 	line := INSUFFICIENT_SPACE
 	line.Bytes = free
 	line.Size = needed
-	logger.log(line, fmt.Sprintf("%s is free at %s, and %s may be required during %s.", byteCountSI(free), root, byteCountSI(needed), activity))
+	message := fmt.Sprintf("%s is free at %s, and %s may be required during %s.", byteCountSI(free), root, byteCountSI(needed), activity)
+	logger.log(line, message)
+	// Sent again as an event, so an interface can ask about it.
+	logger.event(line, INSUFFICIENT_SPACE.Message + " " + message)
 	return true
+}
+
+// stoppedShort is the error a command stops with when `--stop-if-short` asks for that, in
+// place of asking whether to go ahead without enough free space. An interface that runs the
+// CLI with `-y` can't answer that question, so it asks the user itself, and runs the command
+// again without the flag if they want to go ahead.
+func stoppedShort() error {
+	return userErrorf(nil, "Nothing was downloaded, since there may not be enough free space.")
 }
 
 // reportFreeSpace reports how much free space the installation's drive has, if that can be measured.

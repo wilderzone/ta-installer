@@ -25,6 +25,10 @@ func runWithDialogs(found Installation, utility Utility) int {
 	}
 
 	report := RunWithProgress(found, utility)
+	// The user has already been told why nothing happened.
+	if report.Declined() {
+		return 1
+	}
 	report.Show()
 	return report.exitCode()
 }
@@ -32,16 +36,18 @@ func runWithDialogs(found Installation, utility Utility) int {
 // runSilently runs the CLI without showing anything at all. The run is still logged.
 // Its output is still read, so that only a run that completely succeeded is followed up.
 func runSilently(found Installation, utility Utility) int {
-	return execute(found, utility, false).exitCode()
+	return execute(found, utility, false, false).exitCode()
 }
 
 // Report is how a run of the CLI went.
 type Report struct {
-	utility Utility
-	outcome outcome
-	err     error
+	utility  Utility
+	outcome  outcome
+	err      error
 	// The run's log, or empty if there isn't one.
-	log     string
+	log      string
+	// Whether the user chose not to go ahead without enough free space.
+	declined bool
 }
 
 // Complete reports whether the run did all of its work.
@@ -52,6 +58,12 @@ func (r Report) Complete() bool {
 // exitCode returns the utility's exit code for the run.
 func (r Report) exitCode() int {
 	return r.outcome.exitCode(r.err)
+}
+
+// Declined reports whether the user chose not to go ahead, after the CLI warned that there may
+// not be enough free space. Nothing was downloaded, so the installation is as it was.
+func (r Report) Declined() bool {
+	return r.declined
 }
 
 // Warned reports whether the run reported anything the user should know about, even if it completed.
@@ -71,8 +83,32 @@ func (r Report) Ask(yes string, no string) bool {
 
 // RunWithProgress runs the CLI behind a progress dialog, and returns how it went without
 // telling the user, so the caller can decide how to.
+//
+// If there may not be enough free space, the CLI stops before downloading anything, and the
+// user is asked whether to go ahead anyway. If they do, it's run again without stopping,
+// which checks the installation's files over again first.
 func RunWithProgress(found Installation, utility Utility) Report {
-	return execute(found, utility, true)
+	report := execute(found, utility, true, true)
+	if report.outcome.shortOfSpace == "" || report.Complete() {
+		return report
+	}
+	if !askToContinue(utility, report.outcome.shortOfSpace) {
+		report.declined = true
+		return report
+	}
+	return execute(found, utility, true, false)
+}
+
+// askToContinue asks whether to go ahead despite the CLI's warning that there may not be
+// enough free space, and reports whether the user chose to.
+func askToContinue(utility Utility, warning string) bool {
+	err := zenity.Question(warning,
+		zenity.Title(utility.Title),
+		zenity.Icon(zenity.WarningIcon),
+		zenity.OKLabel("Continue Anyway"),
+		zenity.CancelLabel("Cancel"),
+	)
+	return err == nil
 }
 
 // execute runs the CLI, behind a progress dialog if it's `visible`, and returns how it went.
@@ -80,8 +116,10 @@ func RunWithProgress(found Installation, utility Utility) Report {
 //
 // The CLI is never left to prompt: it is passed `-y`, and anything worth asking is asked
 // before it starts. Its standard input is then only ever used to cancel an action, so a cancellation
-// can't be mistaken for the answer to a prompt, or swallow one.
-func execute(found Installation, utility Utility, visible bool) Report {
+// can't be mistaken for the answer to a prompt, or swallow one. A lack of free space is the
+// one thing that can't be known beforehand, so `stopIfShort` has the CLI stop there instead,
+// for the caller to ask about.
+func execute(found Installation, utility Utility, visible bool, stopIfShort bool) Report {
 	report := Report{utility: utility}
 
 	// Open the dialog before starting anything, so a dialog that can't be shown never leaves
@@ -101,7 +139,11 @@ func execute(found Installation, utility Utility, visible bool) Report {
 	log := openLog(found, utility)
 	report.log = log.path
 	// `-v` adds details to the log that the CLI otherwise hides.
-	run, err := startCLI(found, []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}, log)
+	arguments := []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}
+	if stopIfShort {
+		arguments = append(arguments, "--stop-if-short")
+	}
+	run, err := startCLI(found, arguments, log)
 	if err != nil {
 		if dialog != nil {
 			_ = dialog.Close()

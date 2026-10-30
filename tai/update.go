@@ -60,6 +60,9 @@ func Update(ctx context.Context, logger *Logger, arguments arguments) error {
 		return err
 	}
 	if checkFreeSpace(logger, arguments.path, patch, "the update") {
+		if arguments.stopIfShort {
+			return stoppedShort()
+		}
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if !proceed {
 			return userErrorf(nil, "Update cancelled.")

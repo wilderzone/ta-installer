@@ -128,7 +128,7 @@ const useStore = defineStore('application', () => {
 		if (!spaceWarning.value) {
 			return true;
 		}
-		return ask(`${spaceWarning.value}\n\nInstall anyway?`, {
+		return ask(`${spaceWarning.value}`, {
 			title: 'Tribes: Ascend Installer',
 			kind: 'warning',
 			okLabel: 'Install Anyway',
@@ -136,11 +136,43 @@ const useStore = defineStore('application', () => {
 		});
 	}
 
-	/** Run the currently selected action through TAI CLI. */
+	/** Whether the running action was asked to stop if there may not be enough free space. */
+	let stoppingIfShort = false;
+
+	/** Report whether the last action stopped before downloading anything, for a lack of free space. */
+	function stoppedShort(): boolean {
+		return stoppingIfShort && Boolean(TAI.shortOfSpace.value);
+	}
+
+	/**
+	 * Run the currently selected action through TAI CLI.
+	 *
+	 * Updating and verifying only find out what they need to download once they've checked the
+	 * installation's files, so they stop there if it may not fit, and ask whether to go ahead
+	 * anyway. Going ahead runs them again, which checks the files over again first.
+	 */
 	async function run(): Promise<void> {
 		if (!await confirmSpace()) {
 			return;
 		}
+		await runAction(action.value === 'update' || action.value === 'verify');
+		if (!stoppedShort()) {
+			return;
+		}
+		const proceed = await ask(`${TAI.shortOfSpace.value}`, {
+			title: 'Tribes: Ascend Installer',
+			kind: 'warning',
+			okLabel: 'Continue Anyway',
+			cancelLabel: 'Cancel'
+		});
+		if (proceed) {
+			await runAction(false);
+		}
+	}
+
+	/** Run the currently selected action once. */
+	async function runAction(stopIfShort: boolean): Promise<void> {
+		stoppingIfShort = stopIfShort;
 		loading.add();
 		running.value = true;
 		cancelling.value = false;
@@ -150,7 +182,7 @@ const useStore = defineStore('application', () => {
 			assets.push(...requiredCustomAssets.value, ...selectedCustomAssets.value);
 		}
 		const filter = TAI.filter('include', deduplicate(assets));
-		await TAI.run(action.value, path.value, repository, filter, createShortcuts.value);
+		await TAI.run(action.value, path.value, repository, filter, createShortcuts.value, stopIfShort);
 
 		// An interrupted install still leaves a partial installation behind, and the selected
 		// variant is what identifies it, so record the variant either way.
@@ -195,7 +227,8 @@ const useStore = defineStore('application', () => {
 			progressMax.value = progressMax.value || 1;
 			progressValue.value = progressMax.value;
 		}
-		if (!cancelling.value) {
+		// An action that stopped short is about to be asked about instead.
+		if (!cancelling.value && !stoppedShort()) {
 			const verb = verbs[action.value];
 			let message = `${verb} complete.`;
 			if (action.value === 'install') {
