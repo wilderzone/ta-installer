@@ -88,3 +88,15 @@ func checkFreeSpace(logger *Logger, root string, toDownload []Asset, activity st
 	logger.log(line, fmt.Sprintf("%s is free at %s, and %s may be required during %s.", byteCountSI(free), root, byteCountSI(needed), activity))
 	return true
 }
+
+// reportFreeSpace reports how much free space the installation's drive has, if that can be measured.
+func reportFreeSpace(logger *Logger, root string) {
+	free, err := freeSpace(root)
+	if err != nil {
+		logger.detail("measure free space", err)
+		return
+	}
+	line := FREE_SPACE
+	line.Bytes = free
+	logger.log(line, fmt.Sprintf("%s is free at %s.", byteCountSI(free), root))
+}

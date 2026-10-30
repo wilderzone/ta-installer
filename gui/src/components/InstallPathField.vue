@@ -95,6 +95,7 @@ function change(event: Event): void {
 				<span v-else-if="store.variant === 'modded'">A new modded installation will be created here.</span>
 				<span v-else-if="store.variant === 'custom'">A new custom installation will be created here.</span>
 				<span v-else>A new installation will be created here.</span>
+				<span v-if="store.spaceWarning" class="yellow"><br>{{ store.spaceWarning }}</span>
 			</template>
 
 			<template v-if="store.pathState === DirectoryState.NeedsUpdate">

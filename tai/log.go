@@ -99,6 +99,7 @@ var (
 	DOWNLOAD_PROGRESS         = LogLine{Type: "DOWNLOAD_PROGRESS", Message: ""}
 	DOWNLOAD_STARTED          = LogLine{Type: "DOWNLOAD_STARTED", Message: ""}
 	DOWNLOADING_MANIFEST      = LogLine{Type: "DOWNLOADING_MANIFEST", Message: "Downloading manifest from:"}
+	FREE_SPACE                = LogLine{Type: "FREE_SPACE", Message: ""}
 	INSTALL_FAILURE           = LogLine{Type: "INSTALL_FAILURE", Message: "Installation failed."}
 	INSTALL_FOUND             = LogLine{Type: "INSTALL_FOUND", Message: "Installation found."}
 	INSTALL_INTERRUPTED       = LogLine{Type: "INSTALL_INTERRUPTED", Message: "Installation interrupted. Run \"install\" or \"verify\" again to finish installing."}

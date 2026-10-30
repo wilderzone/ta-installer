@@ -59,29 +59,38 @@ function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void, cancel
 	});
 }
 
-async function getDirectoryState(path: string): Promise<DirectoryState> {
-	let state = DirectoryState.Invalid;
+export interface PathCheck {
+	state: DirectoryState;
+	/** The bytes free on the path's drive, or `undefined` if free space couldn't be measured. */
+	freeSpace: number | undefined;
+}
+
+async function checkDirectory(path: string): Promise<PathCheck> {
+	const check: PathCheck = { state: DirectoryState.Invalid, freeSpace: undefined };
 
 	await spawn(['check', '-m', `--path=${path}`], (event) => {
 		if (event.type === 'stdout') {
 			try {
 				const message = JSON.parse(event.data);
 				switch (message?.type) {
+					case 'FREE_SPACE':
+						check.freeSpace = Number(message.bytes ?? 0);
+						break;
 					case 'INSTALL_FOUND':
-						state = DirectoryState.Installed;
+						check.state = DirectoryState.Installed;
 						break;
 					case 'INSTALL_NOT_FOUND':
-						state = DirectoryState.Valid;
+						check.state = DirectoryState.Valid;
 						break;
 				}
 			} catch {}
 		}
 		if (event.type === 'exit' && event.data !== 0) {
-			state = DirectoryState.Invalid;
+			check.state = DirectoryState.Invalid;
 		}
 	});
 
-	return state;
+	return check;
 }
 
 async function checkForGameUpdates(state: DirectoryState, path: string): Promise<DirectoryState> {
@@ -145,10 +154,15 @@ export class TAI {
 		return invoke('cancel_tai');
 	}
 
-	public static async checkPath(path: string): Promise<DirectoryState> {
-		let state = await getDirectoryState(path);
-		state = await checkForGameUpdates(state, path);
-		return state;
+	public static async checkPath(path: string): Promise<PathCheck> {
+		const check = await checkDirectory(path);
+		check.state = await checkForGameUpdates(check.state, path);
+		return check;
+	}
+
+	/** Measure the free space on the path's drive, without checking for updates. */
+	public static async freeSpace(path: string): Promise<number | undefined> {
+		return (await checkDirectory(path)).freeSpace;
 	}
 
 	public static async checkRepo(repo: string): Promise<boolean> {
