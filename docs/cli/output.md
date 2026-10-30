@@ -39,6 +39,7 @@ Passing the `-m` [flag](/cli/options#flags) will instruct TAI to output machine-
 - `DOWNLOAD_STARTED`
 - `DOWNLOADING_MANIFEST`
 - `ERROR`
+- `FREE_SPACE`
 - `INSTALL_FAILURE`
 - `INSTALL_FOUND`
 - `INSTALL_INTERRUPTED`
