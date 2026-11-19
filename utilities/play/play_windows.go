@@ -23,7 +23,7 @@ func prepareRuntime(game string, log io.Writer) error {
 func launchGame(game string, log io.Writer) error {
 	working := filepath.Join(game, "Binaries", "Win32")
 
-	command := exec.Command(filepath.Join(working, GAME_BINARY_NAME), gameArguments(gameLogPath(game))...)
+	command := exec.Command(filepath.Join(working, GAME_BINARY_NAME), gameArguments()...)
 	command.Dir = working
 
 	fmt.Fprintln(log, strings.Join(command.Args, " "))

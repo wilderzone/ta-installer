@@ -109,10 +109,9 @@ func gameDirectory() (string, error) {
 // Nothing here is quoted. These are passed straight to the process rather than through a
 // shell or a shortcut's command line, so a quote would become part of the value and the game
 // would go looking for a log path that includes it.
-func gameArguments(logPath string) []string {
+func gameArguments() []string {
 	return []string{
 		"-hostx=" + LOGIN_SERVER,
-		"-abslog=" + logPath,
 	}
 }
 
