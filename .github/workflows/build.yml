@@ -187,6 +187,7 @@ jobs:
         Installer-windows-amd64.zip
         Installer-linux-amd64.json
         Installer-windows-amd64.json
+        version
     steps:
       - uses: actions/checkout@v7
         with:
@@ -212,6 +213,10 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+
+      - name: Create the version file
+        working-directory: dist
+        run: echo "${{ github.ref_name }}" > version
 
       # Named files rather than `sync --delete`, so unrelated files in the destination directory aren't removed.
       - name: Upload to the CDN
