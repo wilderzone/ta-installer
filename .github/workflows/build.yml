@@ -153,7 +153,7 @@ jobs:
       - name: Rename the Linux binary
         if: matrix.os == 'ubuntu-latest'
         shell: bash
-        run: mv gui/src-tauri/target/release/tribes-ascend-installer gui/src-tauri/target/release/ta-installer-linux
+        run: mv gui/src-tauri/target/release/tribes-ascend-installer gui/src-tauri/target/release/ta-installer-linux.run
 
       - name: Rename the Windows binary
         if: matrix.os == 'windows-latest'
@@ -165,7 +165,7 @@ jobs:
         with:
           name: tai-gui-${{ matrix.os }}
           path: |
-            gui/src-tauri/target/release/ta-installer-linux
+            gui/src-tauri/target/release/ta-installer-linux.run
             gui/src-tauri/target/release/ta-installer-windows.exe
           if-no-files-found: warn
 
@@ -181,7 +181,7 @@ jobs:
     env:
       # Packages before their asset files, so nobody fetches new checksums for an old package.
       FILES: >-
-        ta-installer-linux
+        ta-installer-linux.run
         ta-installer-windows.exe
         Installer-linux-amd64.zip
         Installer-windows-amd64.zip
