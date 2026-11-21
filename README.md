@@ -282,6 +282,8 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 
 Before it starts the game, `play` checks for an update (which can be skipped), and asks whether to install one if it's found. **Update** installs it like `update` does, then starts the game, offering **Play Anyway** if the update doesn't complete; **Play Now** starts the game straight away. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game simply starts, and the reason is written to `Logs/launcher.txt`. `play -prepare` never checks.
 
+On Windows, each of the game's shortcuts carries an AppUserModelID (`Wilderzone.TribesAscend`, or `Wilderzone.TribesAscend.PUGs` for the PUGs shortcut), and `play` starts the game with the ID of the shortcut it was started from. The taskbar uses the ID to tie the game's window back to the shortcut, so the game shares the shortcut's taskbar button, and pinning the game pins the shortcut rather than `TribesAscend.exe`, which can't reach a login server by itself. Started any other way (eg, from a shortcut made by an older installer, which has no ID), the game can't be pinned at all.
+
 Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
 ```sh
 ./utilities/build.sh
