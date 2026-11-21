@@ -24,7 +24,7 @@ Shown beneath each option is the download size, and the installed size.
 When the "Custom" game type is selected, an "Edit" button will appear.
 
 <p align="center">
-  <img src="/assets/gui-example-game-type-custom.png" class="gui-image" alt="The Game Type selector, with the Custom option selected, showing the Edit button" />
+  <img src="/assets/gui-example-configurator-custom.png" alt="The Game Type selector, with the Custom option selected, showing the Edit button" />
 </p>
 
 This allows you to select exactly the content you'd like to install.
