@@ -68,7 +68,7 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	err = addUninstallerToRegistry(arguments.path, refreshInstallDate)
 	logger.detail("add uninstaller to registry", err)
 	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
-	if err != nil && arguments.shortcuts {
+	if err != nil {
 		logger.log(SHORTCUTS_FAILURE)
 		logger.detail("create shortcuts", err)
 	}

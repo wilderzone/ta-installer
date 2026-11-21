@@ -86,7 +86,7 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "Flags:\n")
 	fmt.Fprint(w, "  --path=<path>            The installation directory.\n")
 	fmt.Fprint(w, "  --repo=<url>             The repository URL to download from.\n")
-	fmt.Fprint(w, "  --shortcuts=true|false   Create Desktop and Start Menu shortcuts for the game (when installing).\n")
+	fmt.Fprint(w, "  --shortcuts=true|false   Create desktop shortcuts for the game (when installing). Applications Menu and Start Menu shortcuts are always created.\n")
 	fmt.Fprint(w, "  --include=<a,b,...>      Install/list only these assets (by type or name).\n")
 	fmt.Fprint(w, "  --exclude=<a,b,...>      Install/list everything except these assets (by type or name).\n")
 	fmt.Fprint(w, "  --remove=<a,b,...>       Uninstall only these assets (by type or name).\n")

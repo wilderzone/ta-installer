@@ -155,7 +155,7 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 
 	// Create shortcuts.
 	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
-	if err != nil && arguments.shortcuts {
+	if err != nil {
 		logger.log(SHORTCUTS_FAILURE)
 		logger.detail("create shortcuts", err)
 	}

@@ -2,8 +2,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"image"
 	"image/png"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -240,7 +243,6 @@ func TestCreateShortcutsWritesAnEntryPerLoginServer(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "Tribes Ascend")
 	installUtilities(t, root, PLAY_NAME)
 
-	// Without the optional shortcuts, nothing outside the installation directory is written.
 	if err := createShortcuts(&Logger{silent: true}, root, false); err != nil {
 		t.Fatalf("create shortcuts: %v", err)
 	}
@@ -264,6 +266,55 @@ func TestCreateShortcutsWritesAnEntryPerLoginServer(t *testing.T) {
 		if !strings.Contains(string(content), want) {
 			t.Errorf("%s: got:\n%s\nwant an Exec line of:\n%s", c.file, content, want)
 		}
+	}
+}
+
+// isolateHome points everything outside the installation directory at a temporary home, so a
+// test never touches the real desktop or applications menu.
+func isolateHome(t *testing.T) {
+	t.Helper()
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(home, ".local", "share"))
+}
+
+// expectGameEntries checks whether a directory holds the game's entries, one for each login server.
+func expectGameEntries(t *testing.T, directory string, want bool) {
+	t.Helper()
+	for _, name := range []string{SHORTCUT_NAME_MAIN, SHORTCUT_NAME_PUG} {
+		path := filepath.Join(directory, name)
+		_, err := os.Stat(path)
+		if want && err != nil {
+			t.Errorf("%s wasn't written: %v", path, err)
+		}
+		if !want && !errors.Is(err, fs.ErrNotExist) {
+			t.Errorf("got %s, want no entry there", path)
+		}
+	}
+}
+
+func TestShortcutsGoInTheMenuWhetherOrNotOnTheDesktop(t *testing.T) {
+	for _, desktop := range []bool{true, false} {
+		t.Run(fmt.Sprintf("desktop=%t", desktop), func(t *testing.T) {
+			isolateHome(t)
+			root := filepath.Join(t.TempDir(), "Tribes Ascend")
+			installUtilities(t, root, PLAY_NAME)
+
+			if err := createShortcuts(&Logger{silent: true}, root, desktop); err != nil {
+				t.Fatalf("create shortcuts: %v", err)
+			}
+			// The choice only covers the desktop. The menu is where the game is looked for.
+			expectGameEntries(t, applicationsDirectory(), true)
+			expectGameEntries(t, desktopDirectory(), desktop)
+
+			// And an uninstall takes them all away again.
+			if err := removeShortcuts(root); err != nil {
+				t.Fatalf("remove shortcuts: %v", err)
+			}
+			expectGameEntries(t, applicationsDirectory(), false)
+			expectGameEntries(t, desktopDirectory(), false)
+		})
 	}
 }
 

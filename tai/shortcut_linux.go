@@ -327,12 +327,22 @@ func utilityActions(root string) []desktopAction {
 	return actions
 }
 
-// createShortcuts creates desktop entries that launch the game. They're placed in the
-// game's install directory, the applications menu, and on the user's desktop.
+// writeGameEntries writes the game's desktop entries into a directory: one for each login server.
+func writeGameEntries(directory string, game desktopEntry, pugs desktopEntry) error {
+	err := writeDesktopEntry(filepath.Join(directory, SHORTCUT_NAME_MAIN), game)
+	if err != nil {
+		return err
+	}
+	return writeDesktopEntry(filepath.Join(directory, SHORTCUT_NAME_PUG), pugs)
+}
+
+// createShortcuts creates desktop entries that launch the game, one for each login server.
+// They're placed in the game's install directory and the applications menu, and on the
+// user's desktop if desired.
 //
 // They run the play utility rather than the game directly, so that a shortcut written by an
 // older installation keeps working if the game's launch mechanism is ever changed.
-func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
+func createShortcuts(logger *Logger, root string, includeDesktopShortcuts bool) error {
 	if !fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)) {
 		return fmt.Errorf("create shortcuts: the play utility is missing")
 	}
@@ -345,14 +355,11 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 	if pugsIcon == "" {
 		pugsIcon = icon
 	}
+	// An alternate entry for the PUG login server.
+	pugs := pugEntry(root, pugsIcon)
 
-	// Create an entry in the installation directory for convenience.
-	err := writeDesktopEntry(filepath.Join(root, SHORTCUT_NAME_MAIN), entry)
-	if err != nil {
-		return fmt.Errorf("create installation directory shortcut: %w", err)
-	}
-	// Create an alternate entry in the installation directory for the PUG login server.
-	err = writeDesktopEntry(filepath.Join(root, SHORTCUT_NAME_PUG), pugEntry(root, pugsIcon))
+	// Create entries in the installation directory for convenience.
+	err := writeGameEntries(root, entry, pugs)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
@@ -368,31 +375,31 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		}
 	}
 
-	if includeOptionalShortcuts {
-		// Create an entry in the applications menu.
-		applications := applicationsDirectory()
-		if applications == "" {
-			return fmt.Errorf("create applications menu shortcut: no home directory")
-		}
-		err = writeDesktopEntry(filepath.Join(applications, SHORTCUT_NAME_MAIN), entry)
-		if err != nil {
-			return fmt.Errorf("create applications menu shortcut: %w", err)
-		}
+	// Create entries in the applications menu. They're created whether or not the user wants
+	// them on the desktop, since the menu is where the desktop expects to find an installed game.
+	applications := applicationsDirectory()
+	if applications == "" {
+		return fmt.Errorf("create applications menu shortcut: no home directory")
+	}
+	err = writeGameEntries(applications, entry, pugs)
+	if err != nil {
+		return fmt.Errorf("create applications menu shortcut: %w", err)
+	}
+	refreshDesktopDatabase()
 
-		// Create an entry on the desktop.
+	if includeDesktopShortcuts {
+		// Create entries on the desktop.
 		desktop := desktopDirectory()
 		if desktop == "" {
 			return fmt.Errorf("create desktop shortcut: no home directory")
 		}
-		err = writeDesktopEntry(filepath.Join(desktop, SHORTCUT_NAME_MAIN), entry)
+		err = writeGameEntries(desktop, entry, pugs)
 		if err != nil {
 			return fmt.Errorf("create desktop shortcut: %w", err)
 		}
-
-		refreshDesktopDatabase()
-		logger.log(SHORTCUTS_SUCCESS)
 	}
 
+	logger.log(SHORTCUTS_SUCCESS)
 	return nil
 }
 
@@ -422,14 +429,16 @@ func removeShortcuts(root string) error {
 	// The applications menu entries.
 	if applications := applicationsDirectory(); applications != "" {
 		remove(filepath.Join(applications, SHORTCUT_NAME_MAIN))
+		remove(filepath.Join(applications, SHORTCUT_NAME_PUG))
 		remove(filepath.Join(applications, UNINSTALL_SHORTCUT_NAME))
 	} else if firstErr == nil {
 		firstErr = fmt.Errorf("locate the applications directory")
 	}
 
-	// The desktop entry.
+	// The desktop entries.
 	if desktop := desktopDirectory(); desktop != "" {
 		remove(filepath.Join(desktop, SHORTCUT_NAME_MAIN))
+		remove(filepath.Join(desktop, SHORTCUT_NAME_PUG))
 	} else if firstErr == nil {
 		firstErr = fmt.Errorf("locate the desktop directory")
 	}

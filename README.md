@@ -49,7 +49,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | :----------------- | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
 | `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.                        |
 | `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                                 |
-| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
+| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Desktop shortcuts when installing the game. Start Menu (or applications menu) shortcuts are always created. |
 | `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets. Assets that the provided assets require are installed as well. |
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
@@ -230,7 +230,7 @@ Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a comp
 
 A few things differ from Windows by necessity:
 
-- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing, and the game's entry offers the [installation utilities](#installation-utilities) as right-click actions.
+- Shortcuts are desktop entries that are placed in the applications menu, in the installation directory, and (unless `--shortcuts=false`) on the desktop, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing, and the game's entry offers the [installation utilities](#installation-utilities) as right-click actions.
 - The default install path is under your home directory.
 - DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
 - The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
@@ -281,6 +281,8 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 - On Linux, the dialogs need `zenity`, `qarma`, or `matedialog`. Without one, a utility reopens itself in a terminal, where the CLI asks its own questions.
 
 Before it starts the game, `play` checks for an update (which can be skipped), and asks whether to install one if it's found. **Update** installs it like `update` does, then starts the game, offering **Play Anyway** if the update doesn't complete; **Play Now** starts the game straight away. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game simply starts, and the reason is written to `Logs/launcher.txt`. `play -prepare` never checks.
+
+On Windows, each of the game's shortcuts carries an AppUserModelID (`Wilderzone.TribesAscend`, or `Wilderzone.TribesAscend.PUGs` for the PUGs shortcut), and `play` starts the game with the ID of the shortcut it was started from. The taskbar uses the ID to tie the game's window back to the shortcut, so the game shares the shortcut's taskbar button, and pinning the game pins the shortcut rather than `TribesAscend.exe`, which can't reach a login server by itself. Started any other way (eg, from a shortcut made by an older installer, which has no ID), the game can't be pinned at all.
 
 Build these utilities automatically by running the `build.sh` script in the `/utilities` directory of this repo. This script must be run on Linux.
 ```sh

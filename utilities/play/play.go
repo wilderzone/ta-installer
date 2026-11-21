@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -29,15 +31,7 @@ func main() {
 // run does the work and returns a process exit code. It never calls os.Exit itself, so
 // every path back to main goes through the same reporting.
 func run() int {
-	args := arguments{}
-	fs := flag.NewFlagSet("play", flag.ContinueOnError)
-	fs.SetOutput(io.Discard) // Errors are surfaced below instead.
-	// Set up the compatibility layer and exit, without starting the game. The installer
-	// runs this at the end of an install so the first launch isn't the one that pays for
-	// it. On a platform that runs the game directly this does nothing.
-	fs.BoolVar(&args.prepare, "prepare", false, "")
-	fs.StringVar(&args.loginServer, "hostx", DEFAULT_LOGIN_SERVER, "")
-	err := fs.Parse(os.Args[1:])
+	args, ignored, err := parseArguments(os.Args[1:])
 	if err != nil {
 		return fail(io.Discard, err)
 	}
@@ -52,6 +46,9 @@ func run() int {
 
 	// Log the arguments passed to `play`.
 	fmt.Fprintf(log, "Utility arguments: loginServer=%s, prepare=%t\n", args.loginServer, args.prepare)
+	if len(ignored) > 0 {
+		fmt.Fprintf(log, "Ignored unrecognised arguments: %q\n", ignored)
+	}
 
 	if args.prepare {
 		err = prepareRuntime(game, log)
@@ -66,6 +63,45 @@ func run() int {
 	}
 
 	return 0
+}
+
+// parseArguments reads the launcher's arguments, and returns them along with any it doesn't
+// recognise. A recognised flag with a bad value produces an error.
+//
+// The shortcuts that start this launcher are written by the installer, but the launcher
+// itself comes from the default repository, so the two aren't always from the same release.
+// A shortcut written for a newer launcher may pass it a flag it doesn't know yet, which
+// shouldn't stop the game from starting.
+func parseArguments(command []string) (arguments, []string, error) {
+	args := arguments{}
+	fs := flag.NewFlagSet("play", flag.ContinueOnError)
+	fs.SetOutput(io.Discard) // Errors are surfaced by the caller instead.
+	// Set up the compatibility layer and exit, without starting the game. The installer
+	// runs this at the end of an install so the first launch isn't the one that pays for
+	// it. On a platform that runs the game directly this does nothing.
+	fs.BoolVar(&args.prepare, "prepare", false, "")
+	fs.StringVar(&args.loginServer, "hostx", DEFAULT_LOGIN_SERVER, "")
+
+	ignored := []string{}
+	remaining := command
+	for {
+		err := fs.Parse(remaining)
+		// The flag package has no error of its own for an unknown flag, only this message.
+		// It has already moved past the flag, so the arguments still to parse are the ones
+		// after it.
+		if err != nil && (strings.HasPrefix(err.Error(), "flag provided but not defined") || errors.Is(err, flag.ErrHelp)) {
+			ignored = append(ignored, remaining[len(remaining) - len(fs.Args()) - 1])
+			remaining = fs.Args()
+		} else if err == nil && fs.NArg() > 0 {
+			// Parsing stops at the first argument that isn't a flag. This launcher takes no
+			// positional arguments, so it's most likely the value of an unknown flag before it,
+			// and is skipped to get to any flags after it.
+			ignored = append(ignored, fs.Arg(0))
+			remaining = fs.Args()[1:]
+		} else {
+			return args, ignored, err
+		}
+	}
 }
 
 // openLog opens the launcher's log, and returns a handle to the file along with the function that closes it.
