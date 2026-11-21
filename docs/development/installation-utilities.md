@@ -45,6 +45,10 @@ If the TA Mods asset is installed, `play` loads TAMods into the game the same wa
 
 `play` waits for the game to exit so it can put the DLLs back, and only `play` applies TAMods: the game started any other way (eg, by running `TribesAscend.exe` directly) runs without it.
 
+### Taskbar
+
+On Windows, each of the game's shortcuts carries an AppUserModelID (`Wilderzone.TribesAscend`, or `Wilderzone.TribesAscend.PUGs` for the PUGs shortcut), and `play` starts the game with the ID of the shortcut it was started from. The taskbar uses the ID to tie the game's window back to the shortcut, so the game shares the shortcut's taskbar button, and pinning the game pins the shortcut rather than `TribesAscend.exe`, which can't reach a login server by itself. Started any other way (eg, from a shortcut made by an older installer, which has no ID), the game can't be pinned at all.
+
 ### On Linux
 
 The game's desktop entry offers each utility as an action: right-click the game in the applications menu or the dock for **Verify Files**, **Check for Updates**, and **Uninstall**. The installation folder also holds a desktop entry for each utility, and the "Uninstall Tribes: Ascend" entry in the applications menu stands in for Add/Remove Programs.
