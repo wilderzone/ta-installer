@@ -11,13 +11,12 @@ import (
 	"strings"
 )
 
-// The icon shipped alongside the CLI, and the name it's installed under. Desktop
-// environments look an unqualified Icon= name up in the icon theme, which is what lets the
-// entry keep working if the installation directory is later moved.
 const ICON_FILE = "icon.png"
 const ICON_NAME = "tribes-ascend"
 const UNINSTALL_ICON_FILE = "uninstall.png"
 const UNINSTALL_ICON_NAME = "tribes-ascend-uninstall"
+const PUGS_ICON_FILE = "pugs.png"
+const PUGS_ICON_NAME = "tribes-ascend-pugs"
 
 // desktopEntry is the subset of the Desktop Entry specification TAI writes.
 // See: https://specifications.freedesktop.org/desktop-entry-spec/latest/
@@ -29,6 +28,51 @@ type desktopEntry struct {
 	Path       string
 	Categories string
 	Terminal   bool
+	// The window class of the program the entry starts, which ties its window to the entry
+	// so the taskbar shows the entry's icon and name. Left empty for an entry that doesn't
+	// start the game, so the desktop doesn't wait for a game window that never appears.
+	WMClass    string
+	Actions    []desktopAction
+}
+
+// desktopAction is an additional action an entry offers, eg when it is right-clicked in the applications menu or the dock.
+type desktopAction struct {
+	ID   string
+	Name string
+	Exec string
+}
+
+// installationUtility describes how the desktop offers one of the installation utilities.
+type installationUtility struct {
+	file     string // In the utilities directory.
+	shortcut string // The file name of its entry in the installation directory.
+	name     string
+	action   string // The name of the game entry's action that runs it.
+	comment  string
+}
+
+var VERIFY_UTILITY = installationUtility{VERIFY_NAME, VERIFY_SHORTCUT_NAME, "Verify " + PRODUCT_NAME, "Verify Files", "Check the game's files, and repair any that are damaged."}
+var UPDATE_UTILITY = installationUtility{UPDATE_NAME, UPDATE_SHORTCUT_NAME, "Update " + PRODUCT_NAME, "Check for Updates", "Update the game to the latest version."}
+var UNINSTALL_UTILITY = installationUtility{UNINSTALL_NAME, UNINSTALL_SHORTCUT_NAME, "Uninstall " + PRODUCT_NAME, "Uninstall", "Remove " + PRODUCT_NAME + " and its compatibility layer."}
+
+// UTILITY_ACTIONS are the installation utilities that the game's entry offers as actions.
+var UTILITY_ACTIONS = []installationUtility{VERIFY_UTILITY, UPDATE_UTILITY, UNINSTALL_UTILITY}
+
+// path returns where the utility is installed.
+func (u installationUtility) path(root string) string {
+	return filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, u.file)
+}
+
+// entry describes a desktop entry that runs the utility.
+func (u installationUtility) entry(root string, icon string) desktopEntry {
+	return desktopEntry{
+		Name:       u.name,
+		Comment:    u.comment,
+		Exec:       quoteExecArgument(u.path(root)),
+		Icon:       icon,
+		Categories: "Game;",
+		Terminal:   false,
+	}
 }
 
 // dataDirectory returns the XDG base directory for user-specific data files.
@@ -43,8 +87,7 @@ func dataDirectory() string {
 	return filepath.Join(home, ".local", "share")
 }
 
-// applicationsDirectory returns the directory desktop entries are read from for the
-// applications menu.
+// applicationsDirectory returns the directory desktop entries are read from for the applications menu.
 func applicationsDirectory() string {
 	data := dataDirectory()
 	if data == "" {
@@ -60,8 +103,7 @@ func desktopDirectory() string {
 	output, err := exec.Command("xdg-user-dir", "DESKTOP").Output()
 	if err == nil {
 		path := strings.TrimSpace(string(output))
-		// xdg-user-dir echoes $HOME back when the directory isn't configured, which is
-		// its way of saying "there isn't one".
+		// xdg-user-dir echoes $HOME back when the directory isn't configured.
 		if path != "" && path != os.Getenv("HOME") {
 			return path
 		}
@@ -95,8 +137,7 @@ func quoteExecArgument(argument string) string {
 }
 
 // writeDesktopEntry writes a desktop entry, replacing any existing one. The file is made
-// executable because desktop environments refuse to launch an entry placed outside the
-// applications directory - on the desktop, or in the installation directory - unless it is.
+// executable so it can be launched from outside the applications directory.
 func writeDesktopEntry(path string, entry desktopEntry) error {
 	var file strings.Builder
 	file.WriteString("[Desktop Entry]\n")
@@ -118,9 +159,22 @@ func writeDesktopEntry(path string, entry desktopEntry) error {
 	}
 	fmt.Fprintf(&file, "Terminal=%t\n", entry.Terminal)
 	file.WriteString("StartupNotify=true\n")
-	// Ties the game's window to this entry, so the taskbar shows its icon and name
-	// rather than a generic Wine one.
-	fmt.Fprintf(&file, "StartupWMClass=%s\n", escapeDesktopValue(GAME_BINARY_NAME))
+	if entry.WMClass != "" {
+		fmt.Fprintf(&file, "StartupWMClass=%s\n", escapeDesktopValue(entry.WMClass))
+	}
+	if len(entry.Actions) != 0 {
+		file.WriteString("Actions=")
+		for _, action := range entry.Actions {
+			fmt.Fprintf(&file, "%s;", action.ID)
+		}
+		file.WriteString("\n")
+	}
+	// Each action is a group of its own, after the main one.
+	for _, action := range entry.Actions {
+		fmt.Fprintf(&file, "\n[Desktop Action %s]\n", action.ID)
+		fmt.Fprintf(&file, "Name=%s\n", escapeDesktopValue(action.Name))
+		fmt.Fprintf(&file, "Exec=%s\n", escapeDesktopValue(action.Exec))
+	}
 
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {
@@ -151,65 +205,71 @@ func iconSizeDirectory(width int, height int) string {
 	return fmt.Sprintf("%dx%d", chosen, chosen)
 }
 
-// removeInstalledIcons deletes the icon from every size directory it could be in. Which one
+// removeInstalledIcon deletes an icon from every size directory it could be in. Which one
 // was used depends on the dimensions of the icon that shipped, and those can change between
 // releases, so a stale copy in another directory could otherwise outrank the current one.
-func removeInstalledIcons(data string) {
+func removeInstalledIcon(data string, name string) {
 	for _, size := range ICON_SIZES {
-		_ = os.Remove(filepath.Join(data, "icons", "hicolor", fmt.Sprintf("%dx%d", size, size), "apps", ICON_NAME + ".png"))
-		_ = os.Remove(filepath.Join(data, "icons", "hicolor", fmt.Sprintf("%dx%d", size, size), "apps", UNINSTALL_ICON_NAME + ".png"))
+		_ = os.Remove(filepath.Join(data, "icons", "hicolor", fmt.Sprintf("%dx%d", size, size), "apps", name + ".png"))
 	}
 }
 
-// installIcons copies the icons shipped with the utilities into the user's icon theme and
-// reports the names to reference them by. An installation whose utilities failed to download
-// has no icons to install, so this reports empty names and the entries simply go without.
-//
-// The first returned string is the game icon, the second is the uninstall icon.
-func installIcons(root string) (string, string) {
-	iSource := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, ICON_FILE)
-	uSource := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, UNINSTALL_ICON_FILE)
-	iFile, err := os.Open(iSource)
-	if err != nil {
-		return "", ""
+// removeInstalledIcons deletes every icon TAI installs, from wherever it landed.
+func removeInstalledIcons(data string) {
+	for _, name := range []string{ICON_NAME, UNINSTALL_ICON_NAME, PUGS_ICON_NAME} {
+		removeInstalledIcon(data, name)
 	}
-	uFile, err := os.Open(uSource)
-	if err != nil {
-		return "", ""
-	}
-	// Only the header is read, so the size of the image doesn't matter here.
-	iConfig, err := png.DecodeConfig(iFile)
-	iFile.Close()
-	if err != nil {
-		return "", ""
-	}
-	uConfig, err := png.DecodeConfig(uFile)
-	uFile.Close()
-	if err != nil {
-		return "", ""
-	}
+}
 
+// installedIcons are the names to reference the installed icons by. A name is empty when its
+// icon couldn't be installed, and an entry given an empty name simply goes without.
+type installedIcons struct {
+	game      string
+	uninstall string
+	pugs      string
+}
+
+// installIcons copies the icons shipped with the utilities into the user's icon theme and
+// reports the names to reference them by. Each icon is installed on its own, so utilities
+// from before an icon existed still provide the others; an installation whose utilities
+// failed to download has none to install at all.
+func installIcons(root string) installedIcons {
 	data := dataDirectory()
 	if data == "" {
-		return "", ""
+		return installedIcons{}
 	}
-	removeInstalledIcons(data)
+	return installedIcons{
+		game:      installIcon(root, data, ICON_FILE, ICON_NAME),
+		uninstall: installIcon(root, data, UNINSTALL_ICON_FILE, UNINSTALL_ICON_NAME),
+		pugs:      installIcon(root, data, PUGS_ICON_FILE, PUGS_ICON_NAME),
+	}
+}
 
-	iTarget := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(iConfig.Width, iConfig.Height), "apps", ICON_NAME + ".png")
-	uTarget := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(uConfig.Width, uConfig.Height), "apps", UNINSTALL_ICON_NAME + ".png")
-	if err := os.MkdirAll(filepath.Dir(iTarget), os.FileMode(0755)); err != nil {
-		return "", ""
+// installIcon copies one icon from the utilities directory into the user's icon theme, and
+// reports the name to reference it by - or an empty name if it couldn't be installed. A
+// previously installed copy is only removed once there's a replacement for it.
+func installIcon(root string, data string, file string, name string) string {
+	source := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, file)
+	opened, err := os.Open(source)
+	if err != nil {
+		return ""
 	}
-	if err := replaceInPlace(iSource, iTarget); err != nil {
-		return "", ""
+	// Only the header is read, so the size of the image doesn't matter here.
+	config, err := png.DecodeConfig(opened)
+	opened.Close()
+	if err != nil {
+		return ""
 	}
-	if err := os.MkdirAll(filepath.Dir(uTarget), os.FileMode(0755)); err != nil {
-		return ICON_NAME, ""
+
+	removeInstalledIcon(data, name)
+	target := filepath.Join(data, "icons", "hicolor", iconSizeDirectory(config.Width, config.Height), "apps", name + ".png")
+	if err := os.MkdirAll(filepath.Dir(target), os.FileMode(0755)); err != nil {
+		return ""
 	}
-	if err := replaceInPlace(uSource, uTarget); err != nil {
-		return ICON_NAME, ""
+	if err := replaceInPlace(source, target); err != nil {
+		return ""
 	}
-	return ICON_NAME, UNINSTALL_ICON_NAME
+	return name
 }
 
 // refreshDesktopDatabase asks the desktop environment to re-read the applications
@@ -236,53 +296,110 @@ func gameEntry(root string, icon string) desktopEntry {
 		Path:       filepath.Join(root, "Binaries", "Win32"),
 		Categories: "Game;ActionGame;",
 		Terminal:   false,
+		// Ties the game's window to this entry, so the taskbar shows its icon and name
+		// rather than a generic Wine one.
+		WMClass:    GAME_BINARY_NAME,
+		Actions:    utilityActions(root),
 	}
 }
 
-// createShortcuts creates desktop entries that launch the game. They're placed in the
-// game's install directory, the applications menu, and on the user's desktop.
+// pugEntry describes the desktop entry that launches the game on the PUG login server. It is
+// the game's entry with the server added to the play utility's command line; without it, the
+// play utility chooses the server itself.
+func pugEntry(root string, icon string) desktopEntry {
+	entry := gameEntry(root, icon)
+	entry.Name = PRODUCT_NAME + " PUGs"
+	entry.Exec += " " + quoteExecArgument("-hostx=" + LOGIN_SERVER_PUG)
+	return entry
+}
+
+// utilityActions returns the game entry's actions, which run the installation utilities, so
+// they're a right-click away wherever the game's entry is. An action is only offered for a
+// utility that is actually installed.
+func utilityActions(root string) []desktopAction {
+	actions := []desktopAction{}
+	for _, utility := range UTILITY_ACTIONS {
+		if !fileExists(utility.path(root)) {
+			continue
+		}
+		actions = append(actions, desktopAction{ID: utility.file, Name: utility.action, Exec: quoteExecArgument(utility.path(root))})
+	}
+	return actions
+}
+
+// writeGameEntries writes the game's desktop entries into a directory: one for each login server.
+func writeGameEntries(directory string, game desktopEntry, pugs desktopEntry) error {
+	err := writeDesktopEntry(filepath.Join(directory, SHORTCUT_NAME_MAIN), game)
+	if err != nil {
+		return err
+	}
+	return writeDesktopEntry(filepath.Join(directory, SHORTCUT_NAME_PUG), pugs)
+}
+
+// createShortcuts creates desktop entries that launch the game, one for each login server.
+// They're placed in the game's install directory and the applications menu, and on the
+// user's desktop if desired.
 //
 // They run the play utility rather than the game directly, so that a shortcut written by an
 // older installation keeps working if the game's launch mechanism is ever changed.
-func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
+func createShortcuts(logger *Logger, root string, includeDesktopShortcuts bool) error {
 	if !fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)) {
 		return fmt.Errorf("create shortcuts: the play utility is missing")
 	}
 
-	icon, _ := installIcons(root)
+	icons := installIcons(root)
+	icon := icons.game
 	entry := gameEntry(root, icon)
+	// Utilities from before the PUGs icon existed don't have it; the game's icon will do.
+	pugsIcon := icons.pugs
+	if pugsIcon == "" {
+		pugsIcon = icon
+	}
+	// An alternate entry for the PUG login server.
+	pugs := pugEntry(root, pugsIcon)
 
-	// Create an entry in the installation directory for convenience.
-	err := writeDesktopEntry(filepath.Join(root, SHORTCUT_NAME), entry)
+	// Create entries in the installation directory for convenience.
+	err := writeGameEntries(root, entry, pugs)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
-
-	if includeOptionalShortcuts {
-		// Create an entry in the applications menu.
-		applications := applicationsDirectory()
-		if applications == "" {
-			return fmt.Errorf("create applications menu shortcut: no home directory")
+	// A file manager may refuse to run the utilities themselves, but it will open an entry.
+	// The uninstall entry is createUninstallShortcut's, since it goes in the menu as well.
+	for _, utility := range []installationUtility{VERIFY_UTILITY, UPDATE_UTILITY} {
+		if !fileExists(utility.path(root)) {
+			continue
 		}
-		err = writeDesktopEntry(filepath.Join(applications, SHORTCUT_NAME), entry)
+		err := writeDesktopEntry(filepath.Join(root, utility.shortcut), utility.entry(root, icon))
 		if err != nil {
-			return fmt.Errorf("create applications menu shortcut: %w", err)
+			return fmt.Errorf("create installation directory shortcut: %w", err)
 		}
+	}
 
-		// Create an entry on the desktop.
+	// Create entries in the applications menu. They're created whether or not the user wants
+	// them on the desktop, since the menu is where the desktop expects to find an installed game.
+	applications := applicationsDirectory()
+	if applications == "" {
+		return fmt.Errorf("create applications menu shortcut: no home directory")
+	}
+	err = writeGameEntries(applications, entry, pugs)
+	if err != nil {
+		return fmt.Errorf("create applications menu shortcut: %w", err)
+	}
+	refreshDesktopDatabase()
+
+	if includeDesktopShortcuts {
+		// Create entries on the desktop.
 		desktop := desktopDirectory()
 		if desktop == "" {
 			return fmt.Errorf("create desktop shortcut: no home directory")
 		}
-		err = writeDesktopEntry(filepath.Join(desktop, SHORTCUT_NAME), entry)
+		err = writeGameEntries(desktop, entry, pugs)
 		if err != nil {
 			return fmt.Errorf("create desktop shortcut: %w", err)
 		}
-
-		refreshDesktopDatabase()
-		logger.log(SHORTCUTS_SUCCESS)
 	}
 
+	logger.log(SHORTCUTS_SUCCESS)
 	return nil
 }
 
@@ -303,20 +420,25 @@ func removeShortcuts(root string) error {
 	}
 
 	// The in-directory entries (may already be gone if the directory was cleared).
-	remove(filepath.Join(root, SHORTCUT_NAME))
+	remove(filepath.Join(root, SHORTCUT_NAME_MAIN))
+	remove(filepath.Join(root, SHORTCUT_NAME_PUG))
 	remove(filepath.Join(root, UNINSTALL_SHORTCUT_NAME))
+	remove(filepath.Join(root, UPDATE_SHORTCUT_NAME))
+	remove(filepath.Join(root, VERIFY_SHORTCUT_NAME))
 
 	// The applications menu entries.
 	if applications := applicationsDirectory(); applications != "" {
-		remove(filepath.Join(applications, SHORTCUT_NAME))
+		remove(filepath.Join(applications, SHORTCUT_NAME_MAIN))
+		remove(filepath.Join(applications, SHORTCUT_NAME_PUG))
 		remove(filepath.Join(applications, UNINSTALL_SHORTCUT_NAME))
 	} else if firstErr == nil {
 		firstErr = fmt.Errorf("locate the applications directory")
 	}
 
-	// The desktop entry.
+	// The desktop entries.
 	if desktop := desktopDirectory(); desktop != "" {
-		remove(filepath.Join(desktop, SHORTCUT_NAME))
+		remove(filepath.Join(desktop, SHORTCUT_NAME_MAIN))
+		remove(filepath.Join(desktop, SHORTCUT_NAME_PUG))
 	} else if firstErr == nil {
 		firstErr = fmt.Errorf("locate the desktop directory")
 	}

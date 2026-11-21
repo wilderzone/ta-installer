@@ -60,20 +60,23 @@ func init() {
 }
 
 type arguments struct {
-	method    string
-	path      string
-	repo      string
-	name      string
-	include   []string
-	exclude   []string
-	remove    []string
-	keep      []string
-	shortcuts bool
-	progress  bool
-	machine   bool
-	silent    bool
-	verbose   bool
-	yes       bool
+	method      string
+	path        string
+	repo        string
+	name        string
+	include     []string
+	exclude     []string
+	remove      []string
+	keep        []string
+	shortcuts   bool
+	progress    bool
+	machine     bool
+	silent      bool
+	verbose     bool
+	yes         bool
+	// Stop where the drive may not have room for the downloads, rather than asking whether
+	// to go ahead. See stoppedShort.
+	stopIfShort bool
 }
 
 // Write a usage summary to the given writer.
@@ -83,11 +86,12 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "Flags:\n")
 	fmt.Fprint(w, "  --path=<path>            The installation directory.\n")
 	fmt.Fprint(w, "  --repo=<url>             The repository URL to download from.\n")
-	fmt.Fprint(w, "  --shortcuts=true|false   Create Desktop and Start Menu shortcuts for the game (when installing).\n")
+	fmt.Fprint(w, "  --shortcuts=true|false   Create desktop shortcuts for the game (when installing). Applications Menu and Start Menu shortcuts are always created.\n")
 	fmt.Fprint(w, "  --include=<a,b,...>      Install/list only these assets (by type or name).\n")
 	fmt.Fprint(w, "  --exclude=<a,b,...>      Install/list everything except these assets (by type or name).\n")
 	fmt.Fprint(w, "  --remove=<a,b,...>       Uninstall only these assets (by type or name).\n")
 	fmt.Fprint(w, "  --keep=<a,b,...>         Uninstall everything except these assets (by type or name).\n")
+	fmt.Fprint(w, "  --stop-if-short          Stop before downloading if there may not be enough free space, even with -y.\n")
 	fmt.Fprint(w, "  -m                       Output machine-readable JSON.\n")
 	fmt.Fprint(w, "  -p                       Output download progress updates in JSON.\n")
 	fmt.Fprint(w, "  -s                       Suppress all output.\n")
@@ -132,6 +136,7 @@ func getArguments() (arguments, error) {
 	fs.BoolVar(&args.silent, "s", false, "")
 	fs.BoolVar(&args.verbose, "v", false, "")
 	fs.BoolVar(&args.yes, "y", false, "")
+	fs.BoolVar(&args.stopIfShort, "stop-if-short", false, "")
 	fs.Func("include", "", func(value string) error {
 		args.include = parseList(value)
 		return nil

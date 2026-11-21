@@ -9,14 +9,16 @@ const placeholder: LogLineData = {
 </script>
 
 <template>
-	<section name="Log" class="log">
-		<output>
+	<section class="log">
+		<output role="log" aria-label="Progress log">
 			<LogLine v-if="!TAI.log.value.length" v-bind="placeholder" />
 			<LogLine v-for="line of TAI.log.value" v-bind="line" />
 		</output>
 		<button
+			type="button"
 			class="clear"
-			title="Clear the log output"
+			title="Clear the progress log"
+			aria-label="Clear the progress log"
 			@click="TAI.clearLog()"
 		>✕</button>
 	</section>

@@ -21,7 +21,7 @@ func addUninstallerToRegistry(root string, refreshInstallDate bool) error {
 	defer key.Close()
 
 	executable := filepath.Join(root, "Binaries", "Win32", GAME_BINARY_NAME)
-	err = key.SetStringValue("DisplayIcon", executable)
+	err = key.SetStringValue("DisplayIcon", bundledIcon(root, ICON_FILE, executable))
 	if err != nil {
 		return err
 	}

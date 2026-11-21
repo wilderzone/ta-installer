@@ -143,7 +143,7 @@ func prepareRuntime(game string, log io.Writer) error {
 //
 // Unlike the Windows launch this waits for the game to exit, because umu is the parent of
 // the game's process tree and returning would tear it down.
-func launchGame(game string, log io.Writer) error {
+func launchGame(game string, loginServer string, log io.Writer) error {
 	err := prepareRuntime(game, log)
 	if err != nil {
 		return err
@@ -155,9 +155,7 @@ func launchGame(game string, log io.Writer) error {
 		return fmt.Errorf("create the logs directory: %w", err)
 	}
 
-	// The game reads -abslog as a Windows path, so it has to be given one even though
-	// everything around it here is a Unix path.
-	arguments := gameArguments(windowsPath(gameLogPath(game)))
+	arguments := gameArguments(loginServer)
 	command, err := runtimeCommand(game, log, filepath.Join(working, GAME_BINARY_NAME), arguments...)
 	if err != nil {
 		return err

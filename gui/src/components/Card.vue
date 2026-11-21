@@ -2,15 +2,11 @@
 import { computed } from 'vue';
 import { store } from '../store';
 
-defineProps<{
-	name: string;
-}>();
-
 const glow = computed(() => store.progressIndeterminate || store.progressValue && !store.progressComplete);
 </script>
 
 <template>
-	<section class="card" :name>
+	<section class="card">
 		<div class="background">
 			<div class="metal left" :class="{ glow }"></div>
 			<div class="metal right" :class="{ glow }"></div>

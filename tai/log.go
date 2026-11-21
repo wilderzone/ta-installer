@@ -99,6 +99,7 @@ var (
 	DOWNLOAD_PROGRESS         = LogLine{Type: "DOWNLOAD_PROGRESS", Message: ""}
 	DOWNLOAD_STARTED          = LogLine{Type: "DOWNLOAD_STARTED", Message: ""}
 	DOWNLOADING_MANIFEST      = LogLine{Type: "DOWNLOADING_MANIFEST", Message: "Downloading manifest from:"}
+	FREE_SPACE                = LogLine{Type: "FREE_SPACE", Message: ""}
 	INSTALL_FAILURE           = LogLine{Type: "INSTALL_FAILURE", Message: "Installation failed."}
 	INSTALL_FOUND             = LogLine{Type: "INSTALL_FOUND", Message: "Installation found."}
 	INSTALL_INTERRUPTED       = LogLine{Type: "INSTALL_INTERRUPTED", Message: "Installation interrupted. Run \"install\" or \"verify\" again to finish installing."}
@@ -109,6 +110,7 @@ var (
 	INSTALL_VERIFIED          = LogLine{Type: "INSTALL_VERIFIED", Message: "Installation verified."}
 	INSTALLING                = LogLine{Type: "INSTALLING", Message: "Installing..."}
 	INSTALLING_DEPENDENCIES   = LogLine{Type: "INSTALLING_DEPENDENCIES", Message: "Also installing required assets:"}
+	INSUFFICIENT_SPACE        = LogLine{Type: "INSUFFICIENT_SPACE", Message: "There may not be enough free space."}
 	INTERRUPTED               = LogLine{Type: "INTERRUPTED", Message: "Interrupted."}
 	MANIFEST_CONTENTS         = LogLine{Type: "MANIFEST_CONTENTS", Message: ""}
 	MANIFEST_CREATED          = LogLine{Type: "MANIFEST_CREATED", Message: ""}
@@ -156,7 +158,7 @@ var (
 	UTILITIES_CHECK_SKIPPED   = LogLine{Type: "UTILITIES_CHECK_SKIPPED", Message: "Couldn't check the installation utilities:"}
 	UTILITIES_DAMAGED         = LogLine{Type: "UTILITIES_DAMAGED", Message: "Installation utilities are damaged:"}
 	UTILITIES_FAILURE         = LogLine{Type: "UTILITIES_FAILURE", Message: "Couldn't setup the installation utilities package. " + UTILITIES_FAILURE_HINT}
-	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "These utilities are in use and will be replaced after this window is closed:"}
+	UTILITIES_REPAIR_DEFERRED = LogLine{Type: "UTILITIES_REPAIR_DEFERRED", Message: "The following utilities are in use and will be replaced after this window is closed:"}
 	UTILITIES_REPAIRED        = LogLine{Type: "UTILITIES_REPAIRED", Message: "Repaired installation utilities:"}
 	UTILITIES_SUCCESS         = LogLine{Type: "UTILITIES_SUCCESS", Message: "Downloaded installation utilities."}
 	UTILITIES_VERIFIED        = LogLine{Type: "UTILITIES_VERIFIED", Message: "Installation utilities verified."}

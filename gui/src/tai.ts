@@ -59,29 +59,38 @@ function spawn(args: Array<string>, onMessage: (event: TaiEvent) => void, cancel
 	});
 }
 
-async function getDirectoryState(path: string): Promise<DirectoryState> {
-	let state = DirectoryState.Invalid;
+export interface PathCheck {
+	state: DirectoryState;
+	/** The bytes free on the path's drive, or `undefined` if free space couldn't be measured. */
+	freeSpace: number | undefined;
+}
+
+async function checkDirectory(path: string): Promise<PathCheck> {
+	const check: PathCheck = { state: DirectoryState.Invalid, freeSpace: undefined };
 
 	await spawn(['check', '-m', `--path=${path}`], (event) => {
 		if (event.type === 'stdout') {
 			try {
 				const message = JSON.parse(event.data);
 				switch (message?.type) {
+					case 'FREE_SPACE':
+						check.freeSpace = Number(message.bytes ?? 0);
+						break;
 					case 'INSTALL_FOUND':
-						state = DirectoryState.Installed;
+						check.state = DirectoryState.Installed;
 						break;
 					case 'INSTALL_NOT_FOUND':
-						state = DirectoryState.Valid;
+						check.state = DirectoryState.Valid;
 						break;
 				}
 			} catch {}
 		}
 		if (event.type === 'exit' && event.data !== 0) {
-			state = DirectoryState.Invalid;
+			check.state = DirectoryState.Invalid;
 		}
 	});
 
-	return state;
+	return check;
 }
 
 async function checkForGameUpdates(state: DirectoryState, path: string): Promise<DirectoryState> {
@@ -118,6 +127,8 @@ export class TAI {
 	public static download = ref<DownloadProgress | undefined>();
 	public static driversHint = ref<string | undefined>();
 	public static log = ref<Array<LogLineData>>([]);
+	/** The CLI's warning that the drive may not have room for the downloads, if it gave one during this run. */
+	public static shortOfSpace = ref<string | undefined>();
 	public static status = ref();
 
 	public static attach(onInfo: Callback, onError: Callback, onComplete: Callback): void {
@@ -145,10 +156,15 @@ export class TAI {
 		return invoke('cancel_tai');
 	}
 
-	public static async checkPath(path: string): Promise<DirectoryState> {
-		let state = await getDirectoryState(path);
-		state = await checkForGameUpdates(state, path);
-		return state;
+	public static async checkPath(path: string): Promise<PathCheck> {
+		const check = await checkDirectory(path);
+		check.state = await checkForGameUpdates(check.state, path);
+		return check;
+	}
+
+	/** Measure the free space on the path's drive, without checking for updates. */
+	public static async freeSpace(path: string): Promise<number | undefined> {
+		return (await checkDirectory(path)).freeSpace;
 	}
 
 	public static async checkRepo(repo: string): Promise<boolean> {
@@ -258,15 +274,26 @@ export class TAI {
 				case 'RUNTIME_DRIVERS_HINT':
 					TAI.driversHint.value = String(message.message ?? '');
 					return true;
+				case 'INSUFFICIENT_SPACE':
+					TAI.shortOfSpace.value = String(message.message ?? '');
+					return true;
 			}
 		} catch {}
 		return false;
 	}
 
-	public static async run(action: Action, path: string, repo: string, filter: string, shortcuts = true): Promise<void> {
+	/**
+	 * Run an action, resolving once it exits.
+	 * @param stopIfShort Stop before downloading anything if there may not be enough free space,
+	 * rather than going ahead. {@link TAI.shortOfSpace} then holds the CLI's warning.
+	 */
+	public static async run(action: Action, path: string, repo: string, filter: string, shortcuts = true, stopIfShort = false): Promise<void> {
 		const args = [action, '-y', '-p', `--path=${path}`, `--repo=${repo}`];
 		if (!shortcuts) {
 			args.push('--shortcuts=false');
+		}
+		if (stopIfShort) {
+			args.push('--stop-if-short');
 		}
 		if (filter) {
 			args.push(filter);
@@ -278,6 +305,7 @@ export class TAI {
 
 		TAI.download.value = undefined;
 		TAI.driversHint.value = undefined;
+		TAI.shortOfSpace.value = undefined;
 		await spawn(args, (event) => {
 			if (event.type === 'stderr') {
 				TAI.log.value.unshift({ type: 'error', message: event.data });

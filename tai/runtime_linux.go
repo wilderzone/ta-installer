@@ -168,10 +168,10 @@ func preflight(logger *Logger) bool {
 			problems = append(problems, "no Vulkan driver was found")
 
 		case !drivers.present32:
-			problems = append(problems, "no 32-bit Vulkan driver was found, which is the one a 32-bit game needs")
+			problems = append(problems, "no 32-bit Vulkan driver was found")
 
 		case !drivers.hardware32:
-			problems = append(problems, "only software Vulkan rendering is available to 32-bit programs, which will be far too slow to play")
+			problems = append(problems, "only Vulkan software-rendering is available to 32-bit programs on this system (which will be far too slow to play)")
 	}
 
 	// umu is distributed as a Python zipapp.

@@ -20,6 +20,7 @@ export class BaseScene {
 		// Create the engine.
 		this.canvas = canvas;
 		this.engine = new Engine(canvas);
+		this.engine.canvasTabIndex = -1;
 		this.setMaxFramerate('focused');
 
 		// Create a new scene.
@@ -78,6 +79,7 @@ export class BaseScene {
 		this.glow.intensity = 1.5;
 		this.glow.blurKernelSize = 32;
 
+		// Environment.
 		this.scene.environmentTexture = CubeTexture.CreateFromPrefilteredData('/Studio_Softbox_2Umbrellas_cube_specular.env', this.scene);
 		this.scene.environmentIntensity = 0.3;
 	}

@@ -9,21 +9,22 @@ Alongside the game, TAI installs a small set of helper executables into the `Ins
 | Utility     | Windows | Linux | Purpose                                                                                                                           |
 | :---------- | :------ | :---- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `tai-cli`   | ✓       | ✓     | A local copy of TAI CLI.                                                                                                          |
-| `play`      | ✓       | ✓     | Launches the game, after [checking for updates](#checking-for-updates), with [TAMods](#tamods) if it's installed. All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
+| `play`      | ✓       | ✓     | Launches the game, after checking for updates (see below). All shortcuts point at this utility instead of the game's executable, so any changes to the game's launch behaviour or compatibility layer can be easily managed between updates. |
 | `uninstall` | ✓       | ✓     | Uninstalls the game. On Windows it's run from the Control Panel or the Settings menu; on Linux, from the applications menu or the game's right-click actions. |
 | `update`    | ✓       | ✓     | Updates the game. On Windows, double-click it; on Linux, use the game's right-click actions or the entry in the installation folder. |
 | `verify`    | ✓       | ✓     | Verifies the game's files, and repairs any that are damaged. It's run the same way as `update`.                                   |
 
-## Dialogs
+`uninstall`, `update`, and `verify` each run one subcommand of the local CLI, and show their progress and result in native dialogs (via [zenity](https://github.com/ncruces/zenity)) instead of a terminal window:
+- A progress dialog follows the CLI's machine-readable output. Pressing **Cancel** asks the CLI to stop at its next safe point.
+- A result dialog reports how the run went. **Show Details** opens the run's log: `Logs/update.txt` or `Logs/verify.txt` inside the installation, or `tai-uninstall.txt` in the temp directory for `uninstall`, since it removes the installation.
+- The CLI is always run with `-y`. Anything worth asking is asked by the utility first: `uninstall` runs `check`, so its confirmation can say exactly what will be deleted. The exception is a lack of free space, which `update` and `verify` only discover once they've checked the files: they're run with `--stop-if-short`, and if they stop, the utility asks whether to continue anyway, then runs them again.
+- `uninstall` only removes the installation folder after a complete run, and only when nothing but the utilities directory is left in it.
+- Passing `-s` runs a utility without any dialogs or questions. A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined.
+- On Linux, the dialogs need `zenity`, `qarma`, or `matedialog`. Without one, a utility reopens itself in a terminal, where the CLI asks its own questions.
 
-`uninstall`, `update`, and `verify` each run one TAI CLI [subcommand](/cli/subcommands) against the installation they live in, and show their progress and result in native dialogs instead of a terminal window. They're built from a shared Go module in `/utilities`, and use [zenity](https://github.com/ncruces/zenity) for the dialogs.
+Before it starts the game, `play` checks for an update (which can be skipped), and asks whether to install one if it's found. **Update** installs it like `update` does, then starts the game, offering **Play Anyway** if the update doesn't complete; **Play Now** starts the game straight away. Without a connection, when the check fails or takes longer than 10 seconds, or on Linux without a way to show dialogs, the game simply starts, and the reason is written to `Logs/launcher.txt`. `play -prepare` never checks.
 
-- **Progress:** A progress dialog follows the CLI's [machine-readable output](/cli/output), showing each step and the progress of any download. Pressing **Cancel** asks the CLI to stop at its next safe point (see [Interrupting a Run](/cli/output#interrupting-a-run)), and the result explains how to pick up where it left off.
-- **Result:** Once the CLI finishes, a dialog reports how it went: a success, a success with warnings (eg, the shortcuts couldn't be created), a partial result, or an error. **Show Details** opens the run's full log, including the CLI's verbose output.
-- **Logs:** `update` and `verify` log to `Logs/update.txt` and `Logs/verify.txt` inside the installation, replacing the log on each run. `uninstall` logs to `tai-uninstall.txt` in the temp directory instead, since it removes the installation.
-- **Questions:** The CLI is always run with `-y`, so it never prompts. Anything worth asking is asked by the utility, before the CLI starts. The exception is a lack of free space, which `update` and `verify` only discover once they've checked the files. They're run with `--stop-if-short`, and if they stop, the utility asks whether to continue anyway, then runs them again (checking the files over again first).
-- **Silent mode:** Passing `-s` runs a utility without any dialogs or questions. Windows uses this for a quiet uninstall.
-- **Exit code:** A utility exits with a non-zero status if the run failed, only partly succeeded, or was interrupted or declined. The CLI exits cleanly from some of these, so its own exit code isn't enough to go on.
+On Windows, each of the game's shortcuts carries an AppUserModelID (`Wilderzone.TribesAscend`, or `Wilderzone.TribesAscend.PUGs` for the PUGs shortcut), and `play` starts the game with the ID of the shortcut it was started from. The taskbar uses the ID to tie the game's window back to the shortcut, so the game shares the shortcut's taskbar button, and pinning the game pins the shortcut rather than `TribesAscend.exe`, which can't reach a login server by itself. Started any other way (eg, from a shortcut made by an older installer, which has no ID), the game can't be pinned at all.
 
 ### Uninstalling
 

@@ -40,16 +40,14 @@ func scheduleUtilitiesReplace(staging string, installer string, files []string) 
 // an installation in Add/Remove Programs; on Linux the applications menu is the equivalent
 // place to look, so the entry goes there as well as in the installation directory.
 func createUninstallShortcut(root string) error {
-	cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
-	entry := desktopEntry{
-		Name:       "Uninstall " + PRODUCT_NAME,
-		Comment:    "Remove " + PRODUCT_NAME + " and its compatibility layer.",
-		Exec:       fmt.Sprintf("%s uninstall --path=%s", quoteExecArgument(cli), quoteExecArgument(root)),
-		Icon:       UNINSTALL_ICON_NAME,
-		Categories: "Game;",
-		// Uninstalling asks for confirmation and reports what it removed, so it needs
-		// somewhere to ask and somewhere to print.
-		Terminal:   true,
+	entry := UNINSTALL_UTILITY.entry(root, UNINSTALL_ICON_NAME)
+
+	// Utilities installed before the uninstall utility existed leave the CLI to do the job.
+	// It asks for confirmation and reports what it removed, so it needs a terminal to do it in.
+	if !fileExists(UNINSTALL_UTILITY.path(root)) {
+		cli := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, CLI_NAME)
+		entry.Exec = fmt.Sprintf("%s uninstall --path=%s", quoteExecArgument(cli), quoteExecArgument(root))
+		entry.Terminal = true
 	}
 
 	err := writeDesktopEntry(filepath.Join(root, UNINSTALL_SHORTCUT_NAME), entry)

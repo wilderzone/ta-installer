@@ -1,5 +1,5 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { message as messageDialog } from '@tauri-apps/plugin-dialog';
+import { ask, message as messageDialog } from '@tauri-apps/plugin-dialog';
 import { StorageSerializers, useStorage } from '@vueuse/core';
 import { createPinia, defineStore } from 'pinia';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
@@ -7,7 +7,7 @@ import { defaultInstallPath, assetInclusions, models, repository, AppWindow } fr
 import { BundleSize, Manifest } from './manifest';
 import { loadData, saveData } from './persist';
 import { Action, DirectoryState, TAI, verbs } from './tai';
-import { deduplicate, delay, Estimator, formatDuration, brandPath, Semaphore } from './utilities';
+import { byteCountSI, deduplicate, delay, Estimator, formatDuration, brandPath, Semaphore } from './utilities';
 
 const useStore = defineStore('application', () => {
 	const isMainWindow = getCurrentWindow().label === AppWindow.Main;
@@ -26,6 +26,7 @@ const useStore = defineStore('application', () => {
 	});
 	const model = computed(() => models[step.value]);
 	const path = ref(defaultInstallPath);
+	const pathFreeSpace = ref<number | undefined>();
 	const pathState = ref(DirectoryState.Valid);
 	const pathVariant = ref('');
 	const progressDetail = ref('');
@@ -43,6 +44,22 @@ const useStore = defineStore('application', () => {
 	const step2Error = computed(() => pathState.value === DirectoryState.Invalid);
 	const step3Error = ref(false);
 	const variant = ref('modded');
+	/**
+	 * The most space installing the selected variant could take: its downloads, plus the files
+	 * unpacked from them, since the downloads aren't deleted until they've been unpacked. This
+	 * is the CLI's estimate too.
+	 */
+	const spaceRequired = computed(() => {
+		const size = bundleSize[variant.value as keyof typeof bundleSize];
+		return size ? size.packed + size.unpacked : 0;
+	});
+	/** A warning that the chosen location may not have room for the installation, or `''` if there is room. */
+	const spaceWarning = computed(() => {
+		if (action.value !== 'install' || pathFreeSpace.value === undefined || pathFreeSpace.value >= spaceRequired.value) {
+			return '';
+		}
+		return `There may not be enough free space. ${byteCountSI(pathFreeSpace.value)} is free here, and ${byteCountSI(spaceRequired.value)} may be required during installation.`;
+	});
 
 	/** Return to the previous installation step. */
 	function back(): void {
@@ -96,8 +113,66 @@ const useStore = defineStore('application', () => {
 		}
 	}
 
-	/** Run the currently selected action through TAI CLI. */
+	/**
+	 * Ask whether to install despite the location's lack of space. The space is measured again
+	 * first, in case some has been freed since the location was checked.
+	 * @returns `true` if there's room for the installation, or the user wants to go ahead anyway.
+	 */
+	async function confirmSpace(): Promise<boolean> {
+		if (!spaceWarning.value) {
+			return true;
+		}
+		const lock = loading.add();
+		pathFreeSpace.value = await TAI.freeSpace(path.value);
+		lock.remove();
+		if (!spaceWarning.value) {
+			return true;
+		}
+		return ask(`${spaceWarning.value}`, {
+			title: 'Tribes: Ascend Installer',
+			kind: 'warning',
+			okLabel: 'Install Anyway',
+			cancelLabel: 'Cancel'
+		});
+	}
+
+	/** Whether the running action was asked to stop if there may not be enough free space. */
+	let stoppingIfShort = false;
+
+	/** Report whether the last action stopped before downloading anything, for a lack of free space. */
+	function stoppedShort(): boolean {
+		return stoppingIfShort && Boolean(TAI.shortOfSpace.value);
+	}
+
+	/**
+	 * Run the currently selected action through TAI CLI.
+	 *
+	 * Updating and verifying only find out what they need to download once they've checked the
+	 * installation's files, so they stop there if it may not fit, and ask whether to go ahead
+	 * anyway. Going ahead runs them again, which checks the files over again first.
+	 */
 	async function run(): Promise<void> {
+		if (!await confirmSpace()) {
+			return;
+		}
+		await runAction(action.value === 'update' || action.value === 'verify');
+		if (!stoppedShort()) {
+			return;
+		}
+		const proceed = await ask(`${TAI.shortOfSpace.value}`, {
+			title: 'Tribes: Ascend Installer',
+			kind: 'warning',
+			okLabel: 'Continue Anyway',
+			cancelLabel: 'Cancel'
+		});
+		if (proceed) {
+			await runAction(false);
+		}
+	}
+
+	/** Run the currently selected action once. */
+	async function runAction(stopIfShort: boolean): Promise<void> {
+		stoppingIfShort = stopIfShort;
 		loading.add();
 		running.value = true;
 		cancelling.value = false;
@@ -107,7 +182,7 @@ const useStore = defineStore('application', () => {
 			assets.push(...requiredCustomAssets.value, ...selectedCustomAssets.value);
 		}
 		const filter = TAI.filter('include', deduplicate(assets));
-		await TAI.run(action.value, path.value, repository, filter, createShortcuts.value);
+		await TAI.run(action.value, path.value, repository, filter, createShortcuts.value, stopIfShort);
 
 		// An interrupted install still leaves a partial installation behind, and the selected
 		// variant is what identifies it, so record the variant either way.
@@ -152,7 +227,8 @@ const useStore = defineStore('application', () => {
 			progressMax.value = progressMax.value || 1;
 			progressValue.value = progressMax.value;
 		}
-		if (!cancelling.value) {
+		// An action that stopped short is about to be asked about instead.
+		if (!cancelling.value && !stoppedShort()) {
 			const verb = verbs[action.value];
 			let message = `${verb} complete.`;
 			if (action.value === 'install') {
@@ -202,15 +278,16 @@ const useStore = defineStore('application', () => {
 
 			// Check the chosen path with TAI.
 			const chosenPath = path.value;
-			let state = await TAI.checkPath(chosenPath);
+			let check = await TAI.checkPath(chosenPath);
 			let workingPath = chosenPath;
 
 			// If the chosen path returns valid but not installed, use the branded path instead.
-			if (state === DirectoryState.Valid) {
+			if (check.state === DirectoryState.Valid) {
 				const brandedPath = brandPath(chosenPath);
-				state = await TAI.checkPath(brandedPath);
+				check = await TAI.checkPath(brandedPath);
 				workingPath = brandedPath;
 			}
+			const state = check.state;
 
 			// If an installation exists, check the type and read the manifest.
 			if (state === DirectoryState.Installed || state === DirectoryState.NeedsUpdate) {
@@ -225,6 +302,7 @@ const useStore = defineStore('application', () => {
 			}
 
 			store.path = workingPath;
+			store.pathFreeSpace = check.freeSpace;
 			store.pathState = state;
 			lock.remove();
 		});
@@ -289,6 +367,7 @@ const useStore = defineStore('application', () => {
 		model,
 		next,
 		path,
+		pathFreeSpace,
 		pathState,
 		pathVariant,
 		progressComplete,
@@ -303,6 +382,8 @@ const useStore = defineStore('application', () => {
 		run,
 		running,
 		selectedCustomAssets,
+		spaceRequired,
+		spaceWarning,
 		step,
 		step1Error,
 		step2Error,

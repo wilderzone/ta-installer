@@ -1,7 +1,5 @@
-import { DEV } from './dev';
-
 export function cdn(path: string) {
-	const base = DEV ? 'http://localhost:3000/' : 'https://cdn.wilderzone.org/';
+	const base = 'https://cdn.wilderzone.org/';
 	return new URL(path, base);
 }
 
@@ -9,6 +7,8 @@ export enum AppWindow {
 	Main = 'main',
 	AssetSelect = 'assetSelect'
 }
+
+export const infoUrl = 'https://wilderzone.org/docs/ta-installer';
 
 /**
  * Where the game is installed by default.

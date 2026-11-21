@@ -1,12 +1,15 @@
-import { Color3, Material, PBRMaterial, Space, StandardMaterial, Texture, Vector3 } from '@babylonjs/core';
-import { ISceneLoaderAsyncResult, TransformNode } from '@babylonjs/core';
+import type { AbstractMesh, ISceneLoaderAsyncResult, TransformNode } from '@babylonjs/core';
+import { Color3, PBRMaterial, Space, StandardMaterial, Texture, Vector3 } from '@babylonjs/core';
 import { watch } from 'vue';
 import { store } from '../store';
 import { AsyncDebounce } from '../utilities';
 import { BaseScene } from './base';
-import { getMaterial, getNode } from './gltf';
+import { getMaterials, getMeshes, getNode } from './gltf';
 import { items, Model } from './item';
 import { createMist } from './mist';
+
+const meshFilter = /(?:SKL_VEH_GravCycle|SKL_VEH_Shrike|SKL_VEH_Beowulf_primitive0|SKL_VEH_Beowulf_primitive1)/;
+const materialFilter = /(?:MAT_VEH_GravCycle|MAT_Shrike|MAT_Beowulf|MIC_Chaingun_1P)/;
 
 export function homeScene(canvas: HTMLCanvasElement): () => void {
 	const base = new BaseScene(canvas);
@@ -17,13 +20,28 @@ export function homeScene(canvas: HTMLCanvasElement): () => void {
 	// Create a GLB model.
 	let glbModel: ISceneLoaderAsyncResult | undefined;
 	let vehicleModel: TransformNode | undefined;
-	let vehicleMaterial: Material | undefined;
+	const glowMeshes = new Array<AbstractMesh>();
 	const glowMaterial = new StandardMaterial('glow', base.scene);
+	const glowTexture = new Texture('/T_PFX_Clouds_Difference01.png', base.scene);
+	glowMaterial.diffuseTexture = glowTexture;
+	glowMaterial.diffuseTexture.hasAlpha = true;
+	glowMaterial.diffuseColor = new Color3(0, 0, 1);
+	glowMaterial.alphaMode = 6; // One one.
+	glowMaterial.useAlphaFromDiffuseTexture = true;
+	glowMaterial.emissiveTexture = glowTexture;
+	glowMaterial.emissiveColor = new Color3(0.1, 0.2, 1.0);
+	glowMaterial.emissiveTexture.level = 0.08;
+	glowMaterial.specularPower = 128;
+	glowMaterial.disableLighting = true;
 
 	async function loadModel(model: Model): Promise<void> {
-		for (const mesh of glbModel?.meshes || []) {
-			mesh.dispose(false, true);
+		if (glbModel) {
+			base.unloadModel(glbModel);
 		}
+		for (const mesh of glowMeshes) {
+			mesh.dispose(true, false);
+		}
+		glowMeshes.length = 0;
 
 		const result = await base.loadModel(model.directory.href, model.file);
 		glbModel = result;
@@ -43,39 +61,34 @@ export function homeScene(canvas: HTMLCanvasElement): () => void {
 		}
 
 		const shadowRenderList = base.shadows.getShadowMap()?.renderList;
-		for (const mesh of glbModel.meshes) {
+		for (const mesh of getMeshes(glbModel, meshFilter)) {
 			mesh.receiveShadows = true;
 			mesh.doNotSyncBoundingInfo = true;
+			mesh.alwaysSelectAsActiveMesh = true;
 			shadowRenderList?.push(mesh);
 		}
 
-		vehicleMaterial = getMaterial(glbModel, /(?:MAT_VEH_GravCycle|MAT_Shrike|MAT_Beowulf)/);
-		if (vehicleMaterial instanceof PBRMaterial) {
-			vehicleMaterial.albedoColor = new Color3(1, 1, 1);
-			vehicleMaterial.invertNormalMapY = true;
-			vehicleMaterial.maxSimultaneousLights = 16;
-			vehicleMaterial.clearCoat.isEnabled = true;
-			vehicleMaterial.clearCoat.intensity = 0.3;
-			vehicleMaterial.clearCoat.roughness = 0.1;
-			vehicleMaterial.iridescence.isEnabled = true;
-			vehicleMaterial.iridescence.intensity = 0.25;
-			vehicleMaterial.iridescence.indexOfRefraction = 1.6;
+		const materials = getMaterials(glbModel, materialFilter);
+		for (const material of materials) {
+			if (material instanceof PBRMaterial) {
+				material.albedoColor = new Color3(1, 1, 1);
+				material.invertNormalMapY = true;
+				material.maxSimultaneousLights = 16;
+				material.clearCoat.isEnabled = true;
+				material.clearCoat.intensity = 0.3;
+				material.clearCoat.roughness = 0.1;
+				material.iridescence.isEnabled = true;
+				material.iridescence.intensity = 0.25;
+				material.iridescence.indexOfRefraction = 1.6;
+			}
 		}
 
-		const glowTexture = new Texture('/T_PFX_Clouds_Difference01.png', base.scene);
-		glowMaterial.diffuseTexture = glowTexture;
-		glowMaterial.diffuseTexture.hasAlpha = true;
-		glowMaterial.diffuseColor = new Color3(0, 0, 1);
-		glowMaterial.alphaMode = 6; // One one.
-		glowMaterial.useAlphaFromDiffuseTexture = true;
-		glowMaterial.emissiveTexture = glowTexture;
-		glowMaterial.emissiveColor = new Color3(0.1, 0.2, 1.0);
-		glowMaterial.emissiveTexture.level = 0.08;
-		glowMaterial.specularPower = 128;
-		glowMaterial.disableLighting = true;
-		const clone = glbModel.meshes[1].clone('vehicleGlow', null);
-		if (clone) {
-			clone.material = glowMaterial;
+		for (const mesh of getMeshes(glbModel, meshFilter)) {
+			const clone = mesh.clone(`${mesh.name}-glow`, null, true);
+			if (clone) {
+				clone.material = glowMaterial;
+				glowMeshes.push(clone);
+			}
 		}
 	}
 

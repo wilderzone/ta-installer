@@ -9,27 +9,45 @@ import VariantSelector from './VariantSelector.vue';
 </script>
 
 <template>
-	<form class="configurator" action="" @submit.prevent>
+	<form
+		class="configurator"
+		aria-label="Installation configuration"
+		action=""
+		@submit.prevent="store.run()"
+	>
+		<!-- Enter in a field submits the form through its first submit button. This one is
+		     disabled, so those presses do nothing, and only the run button can submit. -->
+		<button type="submit" disabled hidden></button>
 		<Steps v-grid:steps />
-		<ol class="panels">
-			<li
+		<div class="panels" :style="{ '--step': store.step }">
+			<div
+				role="tabpanel"
+				id="panel-step-1"
+				aria-labelledby="tab-step-1"
 				class="panel"
-				:class="{ current: store.step === 1 }"
+				:inert="store.step !== 1"
 			>
 				<VariantSelector />
-			</li>
-			<li
+			</div>
+			<div
+				role="tabpanel"
+				id="panel-step-2"
+				aria-labelledby="tab-step-2"
 				class="panel"
-				:class="{ current: store.step === 2 }"
+				:inert="store.step !== 2"
 			>
 				<InstallPathField />
-			</li>
-			<li
+			</div>
+			<div
+				role="tabpanel"
+				id="panel-step-3"
+				aria-labelledby="tab-step-3"
 				class="panel"
-				:class="{ current: store.step === 3 }"
+				:inert="store.step !== 3"
 			>
 				<div class="output">
 					<ProgressBar
+						:aria-label="`${store.action} progress`"
 						:detail="store.progressDetail"
 						:indeterminate="store.progressIndeterminate"
 						:max="store.progressMax"
@@ -37,8 +55,8 @@ import VariantSelector from './VariantSelector.vue';
 					/>
 					<Log />
 				</div>
-			</li>
-		</ol>
+			</div>
+		</div>
 		<StepNavigation v-grid:navigation />
 	</form>
 </template>
@@ -56,32 +74,41 @@ import VariantSelector from './VariantSelector.vue';
 }
 
 .panels {
+	--panel-gap: calc(var(--gap-m) * 2);
 	grid-area: panels;
-	display: flex;
-	justify-content: center;
 	align-self: flex-start;
-	gap: calc(var(--gap-m) * 2);
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 100%;
+	grid-template-rows: 100%;
+	gap: var(--panel-gap);
 	width: 100%;
 	height: 100%;
+	min-width: 0;
 	min-height: 0;
-	margin: 0;
-	padding: 0;
-	list-style: none;
+	overflow-x: clip;
 
 	.panel {
-		display: none;
+		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--gap-m);
 		width: 100%;
 		height: 100%;
+		min-height: 0;
+		transform: translateX(calc((1 - var(--step)) * (100% + var(--panel-gap))));
+		transition: 0.3s ease transform, 0.4s ease opacity;
 
 		&:where(:focus-visible, :hover) {
 			border-color: var(--color-border);
 		}
 
-		&.current {
-			display: flex;
+		&[inert] {
+			opacity: 0;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: 0.4s ease opacity;
 		}
 	}
 }

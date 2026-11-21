@@ -69,7 +69,10 @@ func Uninstall(ctx context.Context, logger *Logger, arguments arguments) error {
 		if filterProvided {
 			logger.log(UNINSTALL_MATCHED_ALL)
 		}
-		logger.log(UNINSTALL_EVERYTHING)
+		// This line is the question itself, so it's only worth printing when it will be asked.
+		if !arguments.yes {
+			logger.log(UNINSTALL_EVERYTHING)
+		}
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if !proceed {
 			return userErrorf(nil, "Uninstall cancelled.")

@@ -87,12 +87,16 @@ func (p *Progress) sample() {
 
 // report sends the download's current state to whoever is watching: the interface that
 // asked for progress lines, or the spinner in front of a person.
+//
+// The lines carry the spinner's summary as their message, so an interface that shows the
+// progress as text can use the same words instead of composing its own.
 func (p *Progress) report(template LogLine) {
 	if p.counter.logger.progress {
 		line := template
 		line.Bytes = p.received.Load()
 		line.Size = p.size
 		line.Rate = p.rate.Load()
+		line.Message = p.summary()
 		p.counter.logger.logProgress(line)
 		return
 	}

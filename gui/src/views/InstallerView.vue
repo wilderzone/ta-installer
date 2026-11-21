@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import Background from '../components/Background.vue';
 import Card from '../components/Card.vue';
 import Configurator from '../components/Configurator.vue';
@@ -7,18 +8,20 @@ import FocusOverlay from '../components/FocusOverlay.vue';
 import Logo from '../components/Logo.vue';
 import Scene from '../components/Scene.vue';
 import WindowButtons from '../components/WindowButtons.vue';
+
+const driversDialogOpen = ref(false);
 </script>
 
 <template>
 	<Background />
 	<Scene scene="home" />
-	<main>
+	<main :inert="driversDialogOpen">
 		<Logo v-grid:logo />
-		<Card v-grid:steps name="Installation configuration">
+		<Card v-grid:steps>
 			<Configurator />
 		</Card>
 	</main>
-	<DriversDialog />
+	<DriversDialog v-model:open="driversDialogOpen" />
 	<FocusOverlay />
 	<WindowButtons />
 </template>

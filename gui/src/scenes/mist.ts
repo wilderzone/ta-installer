@@ -2,6 +2,9 @@ import { Color4, GPUParticleSystem, MeshBuilder, ParticleSystem, Texture, Vector
 import type { Scene } from '@babylonjs/core';
 
 export function createMist(scene: Scene) {
+	// Leave the mist out entirely for reduced motion.
+	if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
 	// Setup environment.
 	const fountain = MeshBuilder.CreateBox('mistFountain', { size: 0.01 }, scene);
 	fountain.isVisible = false;

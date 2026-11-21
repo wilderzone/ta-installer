@@ -4,7 +4,8 @@ import { ref, watch } from 'vue';
 import { isWindows } from '../config';
 import { TAI } from '../tai';
 
-const open = ref(false);
+const open = defineModel<boolean>('open', { required: true });
+const dialog = ref<HTMLDialogElement>();
 const copied = ref(false);
 const elevatedTerm = isWindows ? 'administrator' : 'elevated';
 
@@ -14,6 +15,14 @@ watch(TAI.driversHint, value => {
 		open.value = true;
 	}
 });
+
+// Not `showModal()`, because a modal dialog covers the window buttons and makes them inert.
+// The view makes the rest of the window inert instead. This runs after the DOM updates, so
+// the window is interactive again by the time closing the dialog restores focus to it.
+watch(open, value => {
+	if (value) dialog.value?.show();
+	else dialog.value?.close();
+}, { flush: 'post' });
 
 function copy(): void {
 	if (!TAI.driversHint.value) {
@@ -25,8 +34,13 @@ function copy(): void {
 </script>
 
 <template>
-	<div v-if="open" class="drivers-dialog" role="dialog" aria-modal="true" aria-labelledby="drivers-dialog-title">
-		<div class="panel">
+	<div v-show="open" class="drivers-dialog">
+		<dialog
+			ref="dialog"
+			class="panel"
+			aria-labelledby="drivers-dialog-title"
+			@keydown.esc="open = false"
+		>
 			<h2 id="drivers-dialog-title"><span>⚠ 32-bit Graphics Drivers are Missing</span></h2>
 			<p>
 				Tribes: Ascend is a 32-bit program, requiring 32-bit drivers for your graphics card.
@@ -41,7 +55,7 @@ function copy(): void {
 				<button @click="copy()">{{ copied ? 'Copied' : 'Copy' }}</button>
 				<button class="primary" @click="open = false">OK</button>
 			</div>
-		</div>
+		</dialog>
 	</div>
 </template>
 
@@ -56,15 +70,21 @@ function copy(): void {
 	backdrop-filter: blur(4px);
 
 	& .panel {
-		display: flex;
 		flex-direction: column;
 		gap: var(--gap-s);
 		max-width: 62ch;
+		margin: 0;
 		padding: var(--gap-m);
+		color: var(--color-text);
 		background: var(--color-background);
 		border: 1px solid var(--color-border);
 		border-radius: var(--border-radius);
 		box-shadow: 0 8px 24px #0008;
+
+		/* Only while open, so the closed dialog stays hidden. */
+		&[open] {
+			display: flex;
+		}
 	}
 
 	& h2 {

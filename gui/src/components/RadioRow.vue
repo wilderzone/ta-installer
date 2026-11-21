@@ -32,7 +32,7 @@ function select(value: unknown): void {
 	border-radius: var(--border-radius);
 
 	&:has(:focus-visible) {
-		outline: 1px solid var(--color-text);
+		outline: var(--focus-outline);
 	}
 }
 </style>

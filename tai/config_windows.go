@@ -2,8 +2,18 @@ package main
 
 const CLI_NAME = "tai-cli.exe"
 const PLAY_NAME = "play.exe"
-const SHORTCUT_NAME = "Tribes Ascend.lnk"
+const SHORTCUT_NAME_MAIN = "Tribes Ascend.lnk"
+const SHORTCUT_NAME_PUG = "Tribes Ascend PUGs.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
+
+// The AppUserModelIDs of the game's shortcuts, one for each login server. The play utility
+// starts the game with the ID of the shortcut it was started from, which ties the game's
+// taskbar button to that shortcut.
+const APP_ID_MAIN = "Wilderzone.TribesAscend"
+const APP_ID_PUG = "Wilderzone.TribesAscend.PUGs"
+const ICON_FILE = "icon.ico"
+const PUGS_ICON_FILE = "pugs.ico"
+const UNINSTALL_ICON_FILE = "uninstall.ico"
 const SHORTCUTS_FAILURE_HINT = "You may need to re-run the installer with admin permissions to create shortcuts."
 const UTILITIES_FAILURE_HINT = "Uninstalling the game via the Windows Settings menu or Control Panel may not be possible."
 const UNINSTALLER_REGISTRY_PATH = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Tribes Ascend`
@@ -26,5 +36,8 @@ var INSTALLATION_UTILITIES = Asset{
 		{File: "uninstall.exe"},
 		{File: "update.exe"},
 		{File: "verify.exe"},
+		{File: ICON_FILE},
+		{File: PUGS_ICON_FILE},
+		{File: UNINSTALL_ICON_FILE},
 	},
 }

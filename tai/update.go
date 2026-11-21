@@ -51,17 +51,28 @@ func Update(ctx context.Context, logger *Logger, arguments arguments) error {
 	}
 	remoteManifest.Assets = assets.ApplyAutomatic(closure, assets.ExplicitAssets(localManifest.Assets), localManifest.Assets)
 
-	// If the remote version is greater, save the new manifest, and then patch the local assets.
-	manifest, err := storeManifest(remoteManifest, arguments.path)
-	if err != nil {
-		return userErrorf(err, "Couldn't save the updated manifest to %s.", arguments.path)
-	}
-
+	// Find what needs patching before saving the new manifest, so an update that stops here
+	// - interrupted, or turned down for lack of space - is still found by the next `update`.
 	logger.log(CHECKING_ASSETS)
-	patch := checkAssets(ctx, logger, arguments.path, manifest, "Needs patching")
+	patch := checkAssets(ctx, logger, arguments.path, remoteManifest, "Needs patching")
 	// Unchecked assets may need patching as well, so the update isn't complete.
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+	if checkFreeSpace(logger, arguments.path, patch, "the update") {
+		if arguments.stopIfShort {
+			return stoppedShort()
+		}
+		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
+		if !proceed {
+			return userErrorf(nil, "Update cancelled.")
+		}
+	}
+
+	// Save the new manifest, and then patch the local assets.
+	_, err = storeManifest(remoteManifest, arguments.path)
+	if err != nil {
+		return userErrorf(err, "Couldn't save the updated manifest to %s.", arguments.path)
 	}
 	if len(patch) == 0 {
 		logger.log(UPDATE_SUCCESS)

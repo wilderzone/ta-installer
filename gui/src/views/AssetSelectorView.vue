@@ -8,6 +8,7 @@ import FocusOverlay from '../components/FocusOverlay.vue';
 <template>
 	<Background />
 	<main>
+		<h1 class="visually-hidden">Select Assets to Install</h1>
 		<AssetList v-grid:list />
 		<AssetNavigation />
 	</main>

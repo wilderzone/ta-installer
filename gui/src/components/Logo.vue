@@ -2,10 +2,10 @@
 </script>
 
 <template>
-	<div class="logo">
+	<h1 class="logo">
 		<img src="../assets/tribes_ascend.png" alt="" draggable="false">
-		<img src="../assets/tribes_ascend.png" alt="Tribes: Ascend" draggable="false">
-	</div>
+		<img src="../assets/tribes_ascend.png" alt="Tribes: Ascend Installer" draggable="false">
+	</h1>
 </template>
 
 <style scoped>
@@ -14,6 +14,7 @@
 	place-items: center;
 	height: 100%;
 	min-height: 0;
+	margin: 0;
 
 	& img {
 		position: absolute;

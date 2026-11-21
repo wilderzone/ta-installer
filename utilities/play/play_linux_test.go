@@ -30,14 +30,13 @@ func TestRuntimeEnvironmentLocatesTheInstallation(t *testing.T) {
 	}
 }
 
-func TestGameArgumentsAreNotQuoted(t *testing.T) {
+func TestGameArguments(t *testing.T) {
 	// These go straight to the process rather than through a shell or a shortcut's
 	// command line, so a quoted path would leave the quotes in the value - and a path
 	// split on its spaces would arrive as two arguments.
-	got := gameArguments(`Z:\home\user\Games\Tribes Ascend\Logs\log.txt`)
+	got := gameArguments(DEFAULT_LOGIN_SERVER)
 	want := []string{
-		"-hostx=" + LOGIN_SERVER,
-		`-abslog=Z:\home\user\Games\Tribes Ascend\Logs\log.txt`,
+		"-hostx=" + DEFAULT_LOGIN_SERVER,
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("got %q, want %q", got, want)

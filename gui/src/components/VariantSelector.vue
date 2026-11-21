@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { ScrollBarStyle } from '@tauri-apps/api/window';
+import { ref } from 'vue';
 import { AppWindow } from '../config.ts';
 import { loading, store } from '../store.ts';
-import { byteCountSI } from '../utilities.ts';
+import { byteCountSI, useFocusRecovery } from '../utilities.ts';
 import Icon from './Icon.vue';
 import RadioRow from './RadioRow.vue';
 import RadioOption from './RadioOption.vue';
+
+const fieldset = ref<HTMLElement>();
+const retryButton = ref<HTMLButtonElement>();
+
+// Retrying hides the Retry button, and loading disables the radio buttons.
+useFocusRecovery(fieldset, loading.value, () => [
+	retryButton.value,
+	fieldset.value?.querySelector<HTMLElement>('input:checked'),
+]);
 
 async function openAssetSelector(): Promise<void> {
 	const existing = await WebviewWindow.getByLabel(AppWindow.AssetSelect);
@@ -31,7 +41,7 @@ async function openAssetSelector(): Promise<void> {
 </script>
 
 <template>
-	<fieldset class="borderless variant-selector">
+	<fieldset ref="fieldset" class="borderless variant-selector">
 		<RadioRow
 			:disabled="loading.value.value"
 			name="variant"
@@ -44,11 +54,19 @@ async function openAssetSelector(): Promise<void> {
 				value="vanilla"
 			>
 				<template v-slot:sublabel>
-					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`">
+					<span
+						class="variant-info"
+						:title="`Download size: ${byteCountSI(store.bundleSize.vanilla.packed)}`"
+					>
+						<span class="visually-hidden">Download size:</span>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.vanilla.packed) }}
 					</span>
-					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`">
+					<span
+						class="variant-info"
+						:title="`Installed size: ${byteCountSI(store.bundleSize.vanilla.unpacked)}`"
+					>
+						<span class="visually-hidden">Installed size:</span>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.vanilla.unpacked) }}
 					</span>
@@ -60,11 +78,19 @@ async function openAssetSelector(): Promise<void> {
 				value="modded"
 			>
 				<template v-slot:sublabel>
-					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`">
+					<span
+						class="variant-info"
+						:title="`Download size: ${byteCountSI(store.bundleSize.modded.packed)}`"
+					>
+						<span class="visually-hidden">Download size:</span>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.modded.packed) }}
 					</span>
-					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`">
+					<span
+						class="variant-info"
+						:title="`Installed size: ${byteCountSI(store.bundleSize.modded.unpacked)}`"
+					>
+						<span class="visually-hidden">Installed size:</span>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.modded.unpacked) }}
 					</span>
@@ -76,31 +102,55 @@ async function openAssetSelector(): Promise<void> {
 				value="custom"
 			>
 				<template v-slot:sublabel>
-					<span class="variant-info" :title="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`">
+					<span
+						class="variant-info"
+						:title="`Download size: ${byteCountSI(store.bundleSize.custom.packed)}`"
+					>
+						<span class="visually-hidden">Download size:</span>
 						<Icon icon="download" />
 						{{ byteCountSI(store.bundleSize.custom.packed) }}
 					</span>
-					<span class="variant-info" :title="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`">
+					<span
+						class="variant-info"
+						:title="`Installed size: ${byteCountSI(store.bundleSize.custom.unpacked)}`"
+					>
+						<span class="visually-hidden">Installed size:</span>
 						<Icon icon="hard-drive" />
 						{{ byteCountSI(store.bundleSize.custom.unpacked) }}
 					</span>
 				</template>
 			</RadioOption>
 		</RadioRow>
+
 		<button
-			:class="{ hidden: store.variant !== 'custom' }"
+			type="button"
 			title="Edit the custom install configuration"
+			aria-label="Edit the custom install configuration"
+			:class="{ hidden: store.variant !== 'custom' }"
+			:inert="store.variant !== 'custom'"
 			@click="openAssetSelector()"
 		>Edit</button>
-		<p v-if="loading.value.value" class="grey">Checking...</p>
-		<p v-else-if="store.repositoryFound" class="green">Game files available.</p>
-		<p v-else-if="!store.repositoryFound" class="red">
-			Game files could not be found. Please check your internet connection.
-			<button
-				class="retry-button"
-				:disabled="loading.value.value"
-				@click="store.refreshRepository()"
-			>Retry</button>
+
+		<p
+			role="status"
+			:class="{
+				grey: loading.value.value,
+				green: !loading.value.value && store.repositoryFound,
+				red: !loading.value.value && !store.repositoryFound,
+			}"
+		>
+			<template v-if="loading.value.value">Checking...</template>
+			<template v-else-if="store.repositoryFound">Game files available.</template>
+			<template v-else>
+				Game files could not be found. Please check your internet connection.
+				<button
+					ref="retryButton"
+					type="button"
+					class="retry-button"
+					:disabled="loading.value.value"
+					@click="store.refreshRepository()"
+				>Retry</button>
+			</template>
 		</p>
 	</fieldset>
 </template>

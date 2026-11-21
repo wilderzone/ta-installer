@@ -1,4 +1,5 @@
-import { computed, ref, watch } from 'vue';
+import { useEventListener } from '@vueuse/core';
+import { computed, ref, Ref, watch, WatchSource } from 'vue';
 
 // Convert a given byte count to a string formatted with SI units.
 export function byteCountSI(bytes: number): string {
@@ -84,6 +85,30 @@ export function parentDirectory(path: string): string {
 		return separator === '/' ? '/' : trimmed;
 	}
 	return parent;
+}
+
+/**
+ * Stop focus dropping back to the page when the focused element in `container` is removed
+ * or disabled. Whenever `source` changes and focus has been lost this way, it moves to the
+ * first usable element returned by `candidates`.
+ */
+export function useFocusRecovery(
+	container: Ref<HTMLElement | undefined>,
+	source: WatchSource | Array<WatchSource>,
+	candidates: () => Array<HTMLElement | null | undefined>,
+): void {
+	// Losing focus to the page fires no `focusin`, so this remembers where it was last.
+	let focusedWithin = false;
+	useEventListener(document, 'focusin', event => {
+		focusedWithin = event.target instanceof Node && Boolean(container.value?.contains(event.target));
+	});
+
+	watch(source, () => {
+		const active = document.activeElement;
+		const lost = !active || active === document.body || active.matches(':disabled');
+		if (!focusedWithin || !lost) return;
+		candidates().find(element => element && !element.matches(':disabled'))?.focus();
+	}, { flush: 'post' });
 }
 
 /** Debounce calls for the provided async function. */

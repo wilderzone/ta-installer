@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { open } from '@tauri-apps/plugin-dialog';
 import { computed } from 'vue';
-import { isWindows } from '../config';
 import { loading, store } from '../store';
 import { DirectoryState } from '../tai';
 
 const noPath = computed(() => !store.path);
-const shortcutLabel = isWindows ? 'Create Desktop & Start Menu shortcuts' : 'Create desktop & applications menu shortcuts';
 const typeImage = computed(() => {
 	const state = store.pathState;
 	const variant = store.pathVariant;
@@ -54,6 +52,9 @@ function change(event: Event): void {
 		<input
 			type="text"
 			class="install-path-input"
+			aria-label="Installation location"
+			aria-describedby="install-path-info"
+			:aria-invalid="store.step2Error"
 			:disabled="loading.value.value"
 			:value="store.path"
 			@change="change($event)"
@@ -61,6 +62,7 @@ function change(event: Event): void {
 		<button
 			type="button"
 			class="primary install-path-button"
+			aria-label="Browse your computer for an installation location"
 			:disabled="loading.value.value"
 			@click="browse()"
 		>Browse</button>
@@ -72,10 +74,10 @@ function change(event: Event): void {
 				name="create-shortcuts"
 				v-model="store.createShortcuts"
 			>
-			<span>{{ shortcutLabel }}</span>
+			<span>Create desktop shortcuts</span>
 		</label>
 
-		<p class="install-path-info">
+		<p id="install-path-info" role="status" class="install-path-info">
 			<span v-if="noPath" class="red">No location specified.</span>
 			<span v-else-if="store.pathState === DirectoryState.Installed || store.pathState === DirectoryState.NeedsUpdate" class="green">
 				<template v-if="store.pathVariant === 'vanilla'">Vanilla installation found.</template>
@@ -91,6 +93,7 @@ function change(event: Event): void {
 				<span v-else-if="store.variant === 'modded'">A new modded installation will be created here.</span>
 				<span v-else-if="store.variant === 'custom'">A new custom installation will be created here.</span>
 				<span v-else>A new installation will be created here.</span>
+				<span v-if="store.spaceWarning" class="yellow"><br>{{ store.spaceWarning }}</span>
 			</template>
 
 			<template v-if="store.pathState === DirectoryState.NeedsUpdate">
@@ -164,6 +167,10 @@ function change(event: Event): void {
 
 	& input[type="checkbox"] {
 		margin: 0;
+
+		&:focus-visible {
+			outline: var(--focus-outline);
+		}
 	}
 }
 </style>

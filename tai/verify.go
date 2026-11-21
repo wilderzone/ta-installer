@@ -35,6 +35,10 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	if len(damaged) != 0 {
 		message := logger.plural(len(damaged), "asset is damaged and needs", "assets are damaged and need") + " to be redownloaded. "
 		logger.log(ASSETS_ARE_DAMAGED, fmt.Sprintf("%d %s", len(damaged), message))
+		// Redownloading is already asked about, so a lack of space is only worth a warning before it.
+		if checkFreeSpace(logger, arguments.path, damaged, "the repair") && arguments.stopIfShort {
+			return stoppedShort()
+		}
 
 		proceed := arguments.yes || logger.prompt(PROMPT_PROCEED)
 		if proceed {
@@ -64,7 +68,7 @@ func Verify(ctx context.Context, logger *Logger, arguments arguments) error {
 	err = addUninstallerToRegistry(arguments.path, refreshInstallDate)
 	logger.detail("add uninstaller to registry", err)
 	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
-	if err != nil && arguments.shortcuts {
+	if err != nil {
 		logger.log(SHORTCUTS_FAILURE)
 		logger.detail("create shortcuts", err)
 	}
