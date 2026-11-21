@@ -20,10 +20,10 @@ func prepareRuntime(game string, log io.Writer) error {
 // taskbar entry around for the whole session.
 //
 // The game manages its own log output; it isn't included in the launcher's logs.
-func launchGame(game string, log io.Writer) error {
+func launchGame(game string, loginServer string, log io.Writer) error {
 	working := filepath.Join(game, "Binaries", "Win32")
 
-	command := exec.Command(filepath.Join(working, GAME_BINARY_NAME), gameArguments()...)
+	command := exec.Command(filepath.Join(working, GAME_BINARY_NAME), gameArguments(loginServer)...)
 	command.Dir = working
 
 	fmt.Fprintln(log, strings.Join(command.Args, " "))

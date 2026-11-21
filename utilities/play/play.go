@@ -9,15 +9,17 @@ import (
 	"time"
 )
 
+// The address of the Community login server (18.197.240.229).
+const DEFAULT_LOGIN_SERVER = "ta.kfk4ever.com"
 const MANIFEST = "manifest.json"
 const LOG_NAME = "log.txt"
-const LOGIN_SERVER = "18.197.240.229"
 const LOGS_DIRECTORY = "Logs"
 const LAUNCHER_LOG_NAME = "launcher.txt"
 const GAME_BINARY_NAME = "TribesAscend.exe"
 
 type arguments struct {
 	prepare bool
+	loginServer string
 }
 
 func main() {
@@ -34,6 +36,7 @@ func run() int {
 	// runs this at the end of an install so the first launch isn't the one that pays for
 	// it. On a platform that runs the game directly this does nothing.
 	fs.BoolVar(&args.prepare, "prepare", false, "")
+	fs.StringVar(&args.loginServer, "hostx", DEFAULT_LOGIN_SERVER, "")
 	err := fs.Parse(os.Args[1:])
 	if err != nil {
 		return fail(io.Discard, err)
@@ -47,13 +50,16 @@ func run() int {
 	log, closeLog := openLog(game)
 	defer closeLog()
 
+	// Log the arguments passed to `play`.
+	fmt.Fprintf(log, "Utility arguments: loginServer=%s, prepare=%t\n", args.loginServer, args.prepare)
+
 	if args.prepare {
 		err = prepareRuntime(game, log)
 	} else {
 		if !offerUpdate(log) {
 			return 1
 		}
-		err = launchGame(game, log)
+		err = launchGame(game, args.loginServer, log)
 	}
 	if err != nil {
 		return fail(log, err)
@@ -109,9 +115,9 @@ func gameDirectory() (string, error) {
 // Nothing here is quoted. These are passed straight to the process rather than through a
 // shell or a shortcut's command line, so a quote would become part of the value and the game
 // would go looking for a log path that includes it.
-func gameArguments() []string {
+func gameArguments(loginServer string) []string {
 	return []string{
-		"-hostx=" + LOGIN_SERVER,
+		"-hostx=" + loginServer,
 	}
 }
 

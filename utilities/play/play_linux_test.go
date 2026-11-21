@@ -34,9 +34,9 @@ func TestGameArguments(t *testing.T) {
 	// These go straight to the process rather than through a shell or a shortcut's
 	// command line, so a quoted path would leave the quotes in the value - and a path
 	// split on its spaces would arrive as two arguments.
-	got := gameArguments()
+	got := gameArguments(DEFAULT_LOGIN_SERVER)
 	want := []string{
-		"-hostx=" + LOGIN_SERVER,
+		"-hostx=" + DEFAULT_LOGIN_SERVER,
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("got %q, want %q", got, want)
