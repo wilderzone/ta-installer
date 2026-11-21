@@ -68,6 +68,10 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      # build.sh converts the shortcuts' icons to .ico files for Windows.
+      - name: Install icoutils
+        run: sudo apt-get update && sudo apt-get install -y icoutils
+
       - name: Build
         run: cd utilities && bash ./build.sh
 

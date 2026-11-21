@@ -39,12 +39,13 @@ func removeShortcuts(root string) error {
 		}
 	}
 
-	// The in-directory shortcut (may already be gone if the directory was cleared).
-	remove(filepath.Join(root, SHORTCUT_NAME))
+	// The in-directory shortcuts (may already be gone if the directory was cleared).
+	remove(filepath.Join(root, SHORTCUT_NAME_MAIN))
+	remove(filepath.Join(root, SHORTCUT_NAME_PUG))
 
 	// The Desktop shortcut.
 	if desktop, err := getSpecialFolder("Desktop"); err == nil {
-		remove(filepath.Join(desktop, SHORTCUT_NAME))
+		remove(filepath.Join(desktop, SHORTCUT_NAME_MAIN))
 	} else if firstErr == nil {
 		firstErr = err
 	}
@@ -75,6 +76,15 @@ func getSpecialFolder(folder string) (string, error) {
 	return path, nil
 }
 
+// bundledIcon returns the location of an icon shipped with the utilities, or a fallback if the icon doesn't exist.
+func bundledIcon(root string, file string, fallback string) string {
+	path := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, file)
+	if !fileExists(path) {
+		return fallback
+	}
+	return fmt.Sprintf("%s,0", path)
+}
+
 // createShortcuts creates shortcuts that launch the game. The shortcuts are placed in the
 // game's install directory, the Start Menu, and on the user's Desktop.
 //
@@ -82,7 +92,8 @@ func getSpecialFolder(folder string) (string, error) {
 // older installation keeps working if the game's launch mechanism is ever changed.
 func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
-	icon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
+	gameIcon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
+	icon := bundledIcon(root, ICON_FILE, gameIcon)
 	launcher := filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)
 
 	if !fileExists(launcher) {
@@ -101,8 +112,18 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 	}
 
 	// Create a shortcut in the installation directory for convenience.
-	sc.ShortcutPath = filepath.Join(root, SHORTCUT_NAME)
+	sc.ShortcutPath = filepath.Join(root, SHORTCUT_NAME_MAIN)
 	err := createShortcut(sc)
+	if err != nil {
+		return fmt.Errorf("create installation directory shortcut: %w", err)
+	}
+
+	// Create an alternate shortcut in the installation directory for the PUG login server.
+	pugs := sc
+	pugs.ShortcutPath = filepath.Join(root, SHORTCUT_NAME_PUG)
+	pugs.Arguments = fmt.Sprintf("-hostx=%s", LOGIN_SERVER_PUG)
+	pugs.IconLocation = bundledIcon(root, PUGS_ICON_FILE, gameIcon)
+	err = createShortcut(pugs)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
@@ -119,7 +140,7 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		if err != nil {
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
 		}
-		sc.ShortcutPath = filepath.Join(startMenuDirectory, SHORTCUT_NAME)
+		sc.ShortcutPath = filepath.Join(startMenuDirectory, SHORTCUT_NAME_MAIN)
 		err = createShortcut(sc)
 		if err != nil {
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
@@ -130,7 +151,7 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		if err != nil {
 			return fmt.Errorf("create Desktop shortcut: %w", err)
 		}
-		sc.ShortcutPath = filepath.Join(desktopFolder, SHORTCUT_NAME)
+		sc.ShortcutPath = filepath.Join(desktopFolder, SHORTCUT_NAME_MAIN)
 		err = createShortcut(sc)
 		if err != nil {
 			return fmt.Errorf("create Desktop shortcut: %w", err)

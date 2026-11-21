@@ -31,9 +31,14 @@ build() {
 		chmod +x "$OUT/$UTILITY$EXTENSION"
 	done
 
-	# Copy the icon files.
-	cp "$SCRIPT_CWD/icon.png" "$OUT/icon.png"
-	cp "$SCRIPT_CWD/uninstall.png" "$OUT/uninstall.png"
+	# Add the icon files. Linux uses the PNGs as they are. Windows needs them converted to icon files (via icoutils).
+	for ICON in icon pugs uninstall; do
+		if [[ $PLATFORM == "Windows" ]]; then
+			icotool --create --output="$OUT/$ICON.ico" "$SCRIPT_CWD/$ICON.png" || exit 1
+		else
+			cp "$SCRIPT_CWD/$ICON.png" "$OUT/$ICON.png"
+		fi
+	done
 
 	# Generate the asset file and zip the package.
 	$SCRIPT_CWD/dist/Linux/tai-cli asset --path="$OUT" --name=Installer

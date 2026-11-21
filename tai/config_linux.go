@@ -5,7 +5,8 @@ const PLAY_NAME = "play"
 const UNINSTALL_NAME = "uninstall"
 const UPDATE_NAME = "update"
 const VERIFY_NAME = "verify"
-const SHORTCUT_NAME = "tribes-ascend.desktop"
+const SHORTCUT_NAME_MAIN = "tribes-ascend.desktop"
+const SHORTCUT_NAME_PUG = "tribes-ascend-pugs.desktop"
 const UNINSTALL_SHORTCUT_NAME = "tribes-ascend-uninstall.desktop"
 const UPDATE_SHORTCUT_NAME = "tribes-ascend-update.desktop"
 const VERIFY_SHORTCUT_NAME = "tribes-ascend-verify.desktop"
@@ -36,6 +37,7 @@ var INSTALLATION_UTILITIES = Asset{
 		{File: UPDATE_NAME},
 		{File: VERIFY_NAME},
 		{File: ICON_FILE},
+		{File: PUGS_ICON_FILE},
 		{File: UNINSTALL_ICON_FILE},
 	},
 }

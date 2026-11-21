@@ -29,7 +29,7 @@ func createUninstallShortcut(root string) error {
 	sc := shortcut.Shortcut{
 		ShortcutPath:     path,
 		Target:           target,
-		IconLocation:     "%SystemRoot%\\System32\\SHELL32.dll,2",
+		IconLocation:     bundledIcon(root, UNINSTALL_ICON_FILE, "%SystemRoot%\\System32\\SHELL32.dll,2"),
 		Arguments:        "",
 		Description:      "Uninstall Tribes: Ascend",
 		Hotkey:           "",

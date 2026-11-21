@@ -2,6 +2,8 @@ package main
 
 const DEFAULT_REPO = "https://cdn.wilderzone.org/ta/game"
 const GAME_BINARY_NAME = "TribesAscend.exe"
+const LOGIN_SERVER_COMMUNITY = "ta.kfk4ever.com"
+const LOGIN_SERVER_PUG = "ta.dodgesdomain.com"
 const MANIFEST_NAME = "manifest.json"
 const PRODUCT_NAME = "Tribes: Ascend"
 const SHORTCUT_DESCRIPTION = "Play Tribes: Ascend"

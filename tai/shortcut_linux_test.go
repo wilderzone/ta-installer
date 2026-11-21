@@ -38,7 +38,7 @@ func TestEscapeDesktopValueDoublesBackslashes(t *testing.T) {
 
 func TestWriteDesktopEntryIsLaunchable(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "Tribes Ascend")
-	path := filepath.Join(root, SHORTCUT_NAME)
+	path := filepath.Join(root, SHORTCUT_NAME_MAIN)
 	err := writeDesktopEntry(path, gameEntry(root, ICON_NAME))
 	if err != nil {
 		t.Fatalf("write desktop entry: %v", err)
@@ -100,9 +100,9 @@ func writeTestIcon(t *testing.T, root string, width int, height int) {
 	if err := os.MkdirAll(directory, os.FileMode(0755)); err != nil {
 		t.Fatalf("create utilities directory: %v", err)
 	}
-	// Both icons ship in the utilities package, and installIcons wants the pair, so a helper
-	// that wrote only one would be testing a package that never gets published.
-	for _, name := range []string{ICON_FILE, UNINSTALL_ICON_FILE} {
+	// Every icon ships in the utilities package, so a helper that wrote only some would be
+	// testing a package that never gets published.
+	for _, name := range []string{ICON_FILE, UNINSTALL_ICON_FILE, PUGS_ICON_FILE} {
 		if err := os.WriteFile(filepath.Join(directory, name), encoded.Bytes(), os.FileMode(0644)); err != nil {
 			t.Fatalf("write %s: %v", name, err)
 		}
@@ -114,13 +114,10 @@ func TestInstallIconFilesByItsRealSize(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", data)
 	root := t.TempDir()
 
+	all := installedIcons{game: ICON_NAME, uninstall: UNINSTALL_ICON_NAME, pugs: PUGS_ICON_NAME}
 	writeTestIcon(t, root, 48, 48)
-	icon1, icon2 := installIcons(root)
-	if icon1 != ICON_NAME {
-		t.Fatalf("got %q, want %q", icon1, ICON_NAME)
-	}
-	if icon2 != UNINSTALL_ICON_NAME {
-		t.Fatalf("got %q, want %q", icon2, UNINSTALL_ICON_NAME)
+	if icons := installIcons(root); icons != all {
+		t.Fatalf("got %+v, want %+v", icons, all)
 	}
 	installed := filepath.Join(data, "icons", "hicolor", "48x48", "apps", ICON_NAME + ".png")
 	if _, err := os.Stat(installed); err != nil {
@@ -130,12 +127,8 @@ func TestInstallIconFilesByItsRealSize(t *testing.T) {
 	// A later release ships a different size. The old copy has to go, or it can outrank
 	// the new one in the theme's lookup.
 	writeTestIcon(t, root, 256, 256)
-	icon1, icon2 = installIcons(root)
-	if icon1 != ICON_NAME {
-		t.Fatalf("got %q, want %q", icon1, ICON_NAME)
-	}
-	if icon2 != UNINSTALL_ICON_NAME {
-		t.Fatalf("got %q, want %q", icon2, UNINSTALL_ICON_NAME)
+	if icons := installIcons(root); icons != all {
+		t.Fatalf("got %+v, want %+v", icons, all)
 	}
 	if _, err := os.Stat(filepath.Join(data, "icons", "hicolor", "256x256", "apps", ICON_NAME + ".png")); err != nil {
 		t.Errorf("resized icon not installed: %v", err)
@@ -148,12 +141,46 @@ func TestInstallIconFilesByItsRealSize(t *testing.T) {
 func TestInstallIconWithoutOneReportsNoName(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
 	// An install whose utilities failed to download has no icon; entries go without.
-	icon1, icon2 := installIcons(t.TempDir())
-	if icon1 != "" {
-		t.Errorf("got %q, want an empty name", icon1)
+	if icons := installIcons(t.TempDir()); icons != (installedIcons{}) {
+		t.Errorf("got %+v, want empty names", icons)
 	}
-	if icon2 != "" {
-		t.Errorf("got %q, want an empty name", icon2)
+}
+
+func TestPUGsEntryFallsBackToTheGameIcon(t *testing.T) {
+	data := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", data)
+	root := filepath.Join(t.TempDir(), "Tribes Ascend")
+	installUtilities(t, root, PLAY_NAME)
+	writeTestIcon(t, root, 32, 32)
+
+	if err := createShortcuts(&Logger{silent: true}, root, false); err != nil {
+		t.Fatalf("create shortcuts: %v", err)
+	}
+	entry, err := os.ReadFile(filepath.Join(root, SHORTCUT_NAME_PUG))
+	if err != nil {
+		t.Fatalf("read PUGs entry: %v", err)
+	}
+	if !strings.Contains(string(entry), "Icon=" + PUGS_ICON_NAME + "\n") {
+		t.Errorf("got:\n%s\nwant the PUGs icon", entry)
+	}
+
+	// Utilities from before the PUGs icon existed: the entry borrows the game's icon rather
+	// than going without, and the other icons are unaffected.
+	if err := os.Remove(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PUGS_ICON_FILE)); err != nil {
+		t.Fatalf("remove PUGs icon: %v", err)
+	}
+	if err := createShortcuts(&Logger{silent: true}, root, false); err != nil {
+		t.Fatalf("create shortcuts: %v", err)
+	}
+	entry, err = os.ReadFile(filepath.Join(root, SHORTCUT_NAME_PUG))
+	if err != nil {
+		t.Fatalf("read PUGs entry: %v", err)
+	}
+	if !strings.Contains(string(entry), "Icon=" + ICON_NAME + "\n") {
+		t.Errorf("got:\n%s\nwant the game's icon", entry)
+	}
+	if _, err := os.Stat(filepath.Join(data, "icons", "hicolor", "32x32", "apps", ICON_NAME + ".png")); err != nil {
+		t.Errorf("the game's icon wasn't installed: %v", err)
 	}
 }
 
@@ -205,6 +232,38 @@ func TestGameEntryOffersTheInstalledUtilities(t *testing.T) {
 	// The actions' groups have to come after the main one, or they'd swallow its keys.
 	if strings.Index(entry, "StartupWMClass=") > strings.Index(entry, "[Desktop Action") {
 		t.Errorf("got:\n%s\nwant every key of the main group before the actions", entry)
+	}
+}
+
+func TestCreateShortcutsWritesAnEntryPerLoginServer(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	root := filepath.Join(t.TempDir(), "Tribes Ascend")
+	installUtilities(t, root, PLAY_NAME)
+
+	// Without the optional shortcuts, nothing outside the installation directory is written.
+	if err := createShortcuts(&Logger{silent: true}, root, false); err != nil {
+		t.Fatalf("create shortcuts: %v", err)
+	}
+
+	launcher := quoteExecArgument(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME))
+	cases := []struct {
+		file string
+		exec string
+	}{
+		// The main entry leaves the choice of server to the play utility.
+		{SHORTCUT_NAME_MAIN, launcher},
+		{SHORTCUT_NAME_PUG, launcher + " " + quoteExecArgument("-hostx=" + LOGIN_SERVER_PUG)},
+	}
+	for _, c := range cases {
+		content, err := os.ReadFile(filepath.Join(root, c.file))
+		if err != nil {
+			t.Fatalf("read %s: %v", c.file, err)
+		}
+		// Entries sharing a file name would leave only the last one written.
+		want := "Exec=" + escapeDesktopValue(c.exec) + "\n"
+		if !strings.Contains(string(content), want) {
+			t.Errorf("%s: got:\n%s\nwant an Exec line of:\n%s", c.file, content, want)
+		}
 	}
 }
 
