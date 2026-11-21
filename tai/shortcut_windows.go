@@ -95,9 +95,8 @@ func bundledIcon(root string, file string, fallback string) string {
 
 // createGameShortcuts creates the game's shortcuts in a directory: one for each login server.
 //
-// Each is given its own AppUserModelID, which the play utility passes on to the game. That
-// way, the game's taskbar button is the shortcut's, and pinning the game pins the shortcut
-// rather than the game's executable, which can't reach a login server by itself.
+// Each is given its own AppUserModelID, which the play utility passes on to the game.
+// This effectively allows each shortcut to be pinned to the taskbar if desired.
 func createGameShortcuts(directory string, game shortcut.Shortcut, pugs shortcut.Shortcut) error {
 	game.ShortcutPath = filepath.Join(directory, SHORTCUT_NAME_MAIN)
 	err := createShortcut(game, APP_ID_MAIN)

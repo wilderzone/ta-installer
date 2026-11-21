@@ -153,8 +153,7 @@ func Install(ctx context.Context, logger *Logger, arguments arguments) error {
 		return fmt.Errorf("create logs directory: %w", err)
 	}
 
-	// Create shortcuts. Start Menu shortcuts are created regardless of user preference,
-	// so a failure is worth reporting either way.
+	// Create shortcuts.
 	err = createShortcuts(logger, arguments.path, arguments.shortcuts)
 	if err != nil {
 		logger.log(SHORTCUTS_FAILURE)

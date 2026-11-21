@@ -338,7 +338,7 @@ func writeGameEntries(directory string, game desktopEntry, pugs desktopEntry) er
 
 // createShortcuts creates desktop entries that launch the game, one for each login server.
 // They're placed in the game's install directory and the applications menu, and on the
-// user's desktop if they asked for them there.
+// user's desktop if desired.
 //
 // They run the play utility rather than the game directly, so that a shortcut written by an
 // older installation keeps working if the game's launch mechanism is ever changed.

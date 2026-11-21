@@ -38,11 +38,7 @@ func launchGame(game string, loginServer string, log io.Writer) error {
 	return process.Release()
 }
 
-// startProcess starts a program with an AppUserModelID, which the taskbar groups its windows
-// by. Unless it's pinnable, the program's windows can't be pinned to the taskbar.
-//
-// os/exec can't do this: the ID goes in the new process's startup information, which it
-// gives no access to.
+// startProcess starts a program with an AppUserModelID, which the taskbar uses to group windows.
 func startProcess(path string, arguments []string, directory string, appID string, pinnable bool) (*os.Process, error) {
 	application, err := windows.UTF16PtrFromString(path)
 	if err != nil {

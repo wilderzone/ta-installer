@@ -95,8 +95,7 @@ func initialiseCOM() (func(), error) {
 	if err == nil || (isCode && uint32(code) == uint32(windows.S_FALSE)) {
 		return windows.CoUninitialize, nil
 	}
-	// It was already initialised in the other threading model. That's still usable, but it's
-	// someone else's to undo.
+	// It was already initialised in the other threading model. That's still usable, but should not be uninitialised here.
 	if isCode && uint32(code) == uint32(windows.RPC_E_CHANGED_MODE) {
 		return func() {}, nil
 	}
@@ -160,7 +159,7 @@ func setShortcutAppID(path string, appID string) error {
 		return fmt.Errorf("set the AppUserModelID of %s: %w", path, err)
 	}
 
-	// Save it back over the file it was loaded from.
+	// Overwrite the file.
 	name, err := windows.UTF16PtrFromString(path)
 	if err != nil {
 		return err

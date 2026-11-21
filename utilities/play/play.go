@@ -66,7 +66,7 @@ func run() int {
 }
 
 // parseArguments reads the launcher's arguments, and returns them along with any it doesn't
-// recognise, which are ignored. A recognised flag with a bad value is still an error.
+// recognise. A recognised flag with a bad value produces an error.
 //
 // The shortcuts that start this launcher are written by the installer, but the launcher
 // itself comes from the default repository, so the two aren't always from the same release.
