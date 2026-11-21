@@ -5,6 +5,12 @@ const PLAY_NAME = "play.exe"
 const SHORTCUT_NAME_MAIN = "Tribes Ascend.lnk"
 const SHORTCUT_NAME_PUG = "Tribes Ascend PUGs.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
+
+// The AppUserModelIDs of the game's shortcuts, one for each login server. The play utility
+// starts the game with the ID of the shortcut it was started from, which ties the game's
+// taskbar button to that shortcut.
+const APP_ID_MAIN = "Wilderzone.TribesAscend"
+const APP_ID_PUG = "Wilderzone.TribesAscend.PUGs"
 const ICON_FILE = "icon.ico"
 const PUGS_ICON_FILE = "pugs.ico"
 const UNINSTALL_ICON_FILE = "uninstall.ico"

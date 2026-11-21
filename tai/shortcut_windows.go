@@ -21,10 +21,17 @@ import (
 // calls land on a thread where COM was never initialised, giving the intermittent
 // "CoInitialize has not been called" error. Locking the thread keeps the whole sequence
 // on one thread.
-func createShortcut(sc shortcut.Shortcut) error {
+//
+// The shortcut is given an AppUserModelID if appID isn't empty. The library can't set one
+// itself, so it's added to the file afterwards, on the same thread.
+func createShortcut(sc shortcut.Shortcut, appID string) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
-	return shortcut.Create(sc)
+	err := shortcut.Create(sc)
+	if err != nil || appID == "" {
+		return err
+	}
+	return setShortcutAppID(sc.ShortcutPath, appID)
 }
 
 // removeShortcuts deletes the shortcuts created by createShortcuts. It is
@@ -87,14 +94,18 @@ func bundledIcon(root string, file string, fallback string) string {
 }
 
 // createGameShortcuts creates the game's shortcuts in a directory: one for each login server.
+//
+// Each is given its own AppUserModelID, which the play utility passes on to the game. That
+// way, the game's taskbar button is the shortcut's, and pinning the game pins the shortcut
+// rather than the game's executable, which can't reach a login server by itself.
 func createGameShortcuts(directory string, game shortcut.Shortcut, pugs shortcut.Shortcut) error {
 	game.ShortcutPath = filepath.Join(directory, SHORTCUT_NAME_MAIN)
-	err := createShortcut(game)
+	err := createShortcut(game, APP_ID_MAIN)
 	if err != nil {
 		return err
 	}
 	pugs.ShortcutPath = filepath.Join(directory, SHORTCUT_NAME_PUG)
-	return createShortcut(pugs)
+	return createShortcut(pugs, APP_ID_PUG)
 }
 
 // createShortcuts creates shortcuts that launch the game, one for each login server. The

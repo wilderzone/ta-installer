@@ -37,7 +37,7 @@ func createUninstallShortcut(root string) error {
 		WorkingDirectory: cwd,
 	}
 
-	err := createShortcut(sc)
+	err := createShortcut(sc, "")
 	if err != nil {
 		return err
 	}
