@@ -8,15 +8,16 @@ order: 1
 This is the graphical version of TAI, providing a simple, guided installation experience.
 
 To install Tribes: Ascend using TAI GUI, download and run the appropriate portable executable for your operating system from the [download page](https://wilderzone.org/games/tribes-ascend).
-You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the folder in which to install TA. Modded is the recommended option, and includes community maps and CTF routes.
 
-:::important
-`tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI.
-:::
+You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the folder in which to install TA. Modded is the recommended option, and includes community maps and CTF routes.
 
 <p align="center">
   <img src="/assets/gui-example-game-type.png" class="gui-image" alt="TAI GUI example" />
 </p>
+
+:::important
+`tai-gui.exe` requires [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) to be installed on your computer. Whilst it's very likely you already have them, it's possible you will need to install them before running TAI.
+:::
 
 :::info
 A [command line version of TAI](/cli) is also provided in case you need more control over the installation process.
