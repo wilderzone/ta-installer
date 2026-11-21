@@ -14,5 +14,5 @@ These docs describe how to use TAI, how it works, and how to contribute to its d
 [Download Tribes: Ascend Installer](https://wilderzone.org/games/tribes-ascend)
 
 <p align="center">
-  <img src="/assets/gui-example-dark-game-type.png" alt="TAI GUI example" />
+  <img src="/assets/gui-example-game-type.png" alt="TAI GUI example" />
 </p>

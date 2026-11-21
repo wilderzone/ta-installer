@@ -7,7 +7,7 @@ order: 1
 
 This is the graphical version of TAI, providing a simple, guided installation experience.
 
-To use TAI GUI, download and run the appropriate portable executable for your operating system from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest).
+To install Tribes: Ascend using TAI GUI, download and run the appropriate portable executable for your operating system from the [download page](https://wilderzone.org/games/tribes-ascend).
 You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the folder in which to install TA. Modded is the recommended option, and includes community maps and CTF routes.
 
 :::important
@@ -15,7 +15,7 @@ You'll be prompted to select the game type (Vanilla, Modded, or Custom) and the 
 :::
 
 <p align="center">
-  <img src="/assets/gui-example-dark-game-type.png" alt="TAI GUI example" />
+  <img src="/assets/gui-example-game-type.png" alt="TAI GUI example" />
 </p>
 
 :::info
