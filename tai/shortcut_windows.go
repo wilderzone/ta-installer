@@ -43,14 +43,15 @@ func removeShortcuts(root string) error {
 	remove(filepath.Join(root, SHORTCUT_NAME_MAIN))
 	remove(filepath.Join(root, SHORTCUT_NAME_PUG))
 
-	// The Desktop shortcut.
+	// The Desktop shortcuts.
 	if desktop, err := getSpecialFolder("Desktop"); err == nil {
 		remove(filepath.Join(desktop, SHORTCUT_NAME_MAIN))
+		remove(filepath.Join(desktop, SHORTCUT_NAME_PUG))
 	} else if firstErr == nil {
 		firstErr = err
 	}
 
-	// The Start Menu folder (removes the folder and the shortcut inside it).
+	// The Start Menu folder (removes the folder and the shortcuts inside it).
 	if startMenu, err := getSpecialFolder("StartMenu"); err == nil {
 		err = os.RemoveAll(filepath.Join(startMenu, "Programs", SHORTCUT_DIRECTORY))
 		if err != nil && firstErr == nil {
@@ -85,8 +86,20 @@ func bundledIcon(root string, file string, fallback string) string {
 	return fmt.Sprintf("%s,0", path)
 }
 
-// createShortcuts creates shortcuts that launch the game. The shortcuts are placed in the
-// game's install directory, the Start Menu, and on the user's Desktop.
+// createGameShortcuts creates the game's shortcuts in a directory: one for each login server.
+func createGameShortcuts(directory string, game shortcut.Shortcut, pugs shortcut.Shortcut) error {
+	game.ShortcutPath = filepath.Join(directory, SHORTCUT_NAME_MAIN)
+	err := createShortcut(game)
+	if err != nil {
+		return err
+	}
+	pugs.ShortcutPath = filepath.Join(directory, SHORTCUT_NAME_PUG)
+	return createShortcut(pugs)
+}
+
+// createShortcuts creates shortcuts that launch the game, one for each login server. The
+// shortcuts are placed in the game's install directory, the Start Menu, and on the user's
+// Desktop.
 //
 // They run the play utility rather than the game directly, so that a shortcut written by an
 // older installation keeps working if the game's launch mechanism is ever changed.
@@ -111,48 +124,40 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		WorkingDirectory: cwd,
 	}
 
-	// Create a shortcut in the installation directory for convenience.
-	sc.ShortcutPath = filepath.Join(root, SHORTCUT_NAME_MAIN)
-	err := createShortcut(sc)
-	if err != nil {
-		return fmt.Errorf("create installation directory shortcut: %w", err)
-	}
-
-	// Create an alternate shortcut in the installation directory for the PUG login server.
+	// An alternate shortcut for the PUG login server.
 	pugs := sc
-	pugs.ShortcutPath = filepath.Join(root, SHORTCUT_NAME_PUG)
 	pugs.Arguments = fmt.Sprintf("-hostx=%s", LOGIN_SERVER_PUG)
 	pugs.IconLocation = bundledIcon(root, PUGS_ICON_FILE, gameIcon)
-	err = createShortcut(pugs)
+
+	// Create shortcuts in the installation directory for convenience.
+	err := createGameShortcuts(root, sc, pugs)
 	if err != nil {
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
 
 	if includeOptionalShortcuts {
-		// Create a shortcut in the Start Menu.
+		// Create shortcuts in the Start Menu.
 		startMenuFolder, err := getSpecialFolder("StartMenu")
 		if err != nil {
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
 		}
 		startMenuDirectory := filepath.Join(startMenuFolder, "Programs", SHORTCUT_DIRECTORY)
-		// The Start Menu shortcut lives in its own folder, which Windows won't create for us.
+		// The Start Menu shortcuts live in their own folder, which Windows won't create for us.
 		err = os.MkdirAll(startMenuDirectory, os.FileMode(0755))
 		if err != nil {
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
 		}
-		sc.ShortcutPath = filepath.Join(startMenuDirectory, SHORTCUT_NAME_MAIN)
-		err = createShortcut(sc)
+		err = createGameShortcuts(startMenuDirectory, sc, pugs)
 		if err != nil {
 			return fmt.Errorf("create Start Menu shortcut: %w", err)
 		}
 
-		// Create a shortcut on the Desktop.
+		// Create shortcuts on the Desktop.
 		desktopFolder, err := getSpecialFolder("Desktop")
 		if err != nil {
 			return fmt.Errorf("create Desktop shortcut: %w", err)
 		}
-		sc.ShortcutPath = filepath.Join(desktopFolder, SHORTCUT_NAME_MAIN)
-		err = createShortcut(sc)
+		err = createGameShortcuts(desktopFolder, sc, pugs)
 		if err != nil {
 			return fmt.Errorf("create Desktop shortcut: %w", err)
 		}

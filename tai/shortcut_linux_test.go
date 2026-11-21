@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"image"
 	"image/png"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -263,6 +265,42 @@ func TestCreateShortcutsWritesAnEntryPerLoginServer(t *testing.T) {
 		want := "Exec=" + escapeDesktopValue(c.exec) + "\n"
 		if !strings.Contains(string(content), want) {
 			t.Errorf("%s: got:\n%s\nwant an Exec line of:\n%s", c.file, content, want)
+		}
+	}
+}
+
+func TestOptionalShortcutsWriteAnEntryPerLoginServer(t *testing.T) {
+	// Everything outside the installation directory is found through these, so the test
+	// never touches the real desktop or applications menu.
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(home, ".local", "share"))
+	root := filepath.Join(t.TempDir(), "Tribes Ascend")
+	installUtilities(t, root, PLAY_NAME)
+
+	if err := createShortcuts(&Logger{silent: true}, root, true); err != nil {
+		t.Fatalf("create shortcuts: %v", err)
+	}
+	// The PUGs entry goes everywhere the game's entry does.
+	paths := []string{}
+	for _, directory := range []string{applicationsDirectory(), desktopDirectory()} {
+		for _, name := range []string{SHORTCUT_NAME_MAIN, SHORTCUT_NAME_PUG} {
+			path := filepath.Join(directory, name)
+			paths = append(paths, path)
+			if _, err := os.Stat(path); err != nil {
+				t.Errorf("%s wasn't written: %v", path, err)
+			}
+		}
+	}
+
+	// And an uninstall takes it away again.
+	if err := removeShortcuts(root); err != nil {
+		t.Fatalf("remove shortcuts: %v", err)
+	}
+	for _, path := range paths {
+		if _, err := os.Stat(path); !errors.Is(err, fs.ErrNotExist) {
+			t.Errorf("%s was left behind", path)
 		}
 	}
 }
