@@ -337,12 +337,12 @@ func writeGameEntries(directory string, game desktopEntry, pugs desktopEntry) er
 }
 
 // createShortcuts creates desktop entries that launch the game, one for each login server.
-// They're placed in the game's install directory, the applications menu, and on the user's
-// desktop.
+// They're placed in the game's install directory and the applications menu, and on the
+// user's desktop if they asked for them there.
 //
 // They run the play utility rather than the game directly, so that a shortcut written by an
 // older installation keeps working if the game's launch mechanism is ever changed.
-func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
+func createShortcuts(logger *Logger, root string, includeDesktopShortcuts bool) error {
 	if !fileExists(filepath.Join(root, INSTALLATION_UTILITIES_DIRECTORY, PLAY_NAME)) {
 		return fmt.Errorf("create shortcuts: the play utility is missing")
 	}
@@ -375,17 +375,19 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		}
 	}
 
-	if includeOptionalShortcuts {
-		// Create entries in the applications menu.
-		applications := applicationsDirectory()
-		if applications == "" {
-			return fmt.Errorf("create applications menu shortcut: no home directory")
-		}
-		err = writeGameEntries(applications, entry, pugs)
-		if err != nil {
-			return fmt.Errorf("create applications menu shortcut: %w", err)
-		}
+	// Create entries in the applications menu. They're created whether or not the user wants
+	// them on the desktop, since the menu is where the desktop expects to find an installed game.
+	applications := applicationsDirectory()
+	if applications == "" {
+		return fmt.Errorf("create applications menu shortcut: no home directory")
+	}
+	err = writeGameEntries(applications, entry, pugs)
+	if err != nil {
+		return fmt.Errorf("create applications menu shortcut: %w", err)
+	}
+	refreshDesktopDatabase()
 
+	if includeDesktopShortcuts {
 		// Create entries on the desktop.
 		desktop := desktopDirectory()
 		if desktop == "" {
@@ -395,11 +397,9 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		if err != nil {
 			return fmt.Errorf("create desktop shortcut: %w", err)
 		}
-
-		refreshDesktopDatabase()
-		logger.log(SHORTCUTS_SUCCESS)
 	}
 
+	logger.log(SHORTCUTS_SUCCESS)
 	return nil
 }
 

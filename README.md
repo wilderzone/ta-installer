@@ -49,7 +49,7 @@ tai-cli.exe <subcommand> --repo=<url> --path=<path>
 | :----------------- | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
 | `--path`           | An absolute directory path.                         | The directory in which to install the game, or where an installation is already located.                        |
 | `--repo`           | A URL. _Defaults to the Wilderzone CDN if omitted._ | The repository from which to download the game.                                                                 |
-| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Start Menu and Desktop shortcuts when installing the game.                                    |
+| `--shortcuts`      | `true` or `false`. _Defaults to `true` if omitted._ | Whether to create Desktop shortcuts when installing the game. Start Menu (or applications menu) shortcuts are always created. |
 | `--include`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by including only the provided assets. Assets that the provided assets require are installed as well. |
 | `--exclude`        | A comma-separated list of asset names or types.     | Filter the results of the `install` and `list` subcommand by excluding all of the provided assets. Excluding an asset that another selected asset requires is an error. |
 | `--remove`         | A comma-separated list of asset names or types.     | Uninstall only the provided assets. Assets that require them are uninstalled as well.                           |
@@ -230,7 +230,7 @@ Tribes: Ascend is a 32-bit Windows game, so a Linux installation includes a comp
 
 A few things differ from Windows by necessity:
 
-- Shortcuts are desktop entries that are placed in the applications menu, on the desktop, and in the installation directory, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing, and the game's entry offers the [installation utilities](#installation-utilities) as right-click actions.
+- Shortcuts are desktop entries that are placed in the applications menu, in the installation directory, and (unless `--shortcuts=false`) on the desktop, and they run the `play` utility rather than the game directly - so a shortcut written by an older install keeps working when the way the game is launched changes. The uninstall entry stands in for the Add/Remove Programs listing, and the game's entry offers the [installation utilities](#installation-utilities) as right-click actions.
 - The default install path is under your home directory.
 - DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
 - The compatibility layer's container image is fetched by umu**, into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".

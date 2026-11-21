@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { open } from '@tauri-apps/plugin-dialog';
 import { computed } from 'vue';
-import { isWindows } from '../config';
 import { loading, store } from '../store';
 import { DirectoryState } from '../tai';
 
 const noPath = computed(() => !store.path);
-const shortcutLabel = isWindows ? 'Create Desktop & Start Menu shortcuts' : 'Create desktop & applications menu shortcuts';
 const typeImage = computed(() => {
 	const state = store.pathState;
 	const variant = store.pathVariant;
@@ -76,7 +74,7 @@ function change(event: Event): void {
 				name="create-shortcuts"
 				v-model="store.createShortcuts"
 			>
-			<span>{{ shortcutLabel }}</span>
+			<span>Create desktop shortcuts</span>
 		</label>
 
 		<p id="install-path-info" role="status" class="install-path-info">

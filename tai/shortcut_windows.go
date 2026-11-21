@@ -98,12 +98,12 @@ func createGameShortcuts(directory string, game shortcut.Shortcut, pugs shortcut
 }
 
 // createShortcuts creates shortcuts that launch the game, one for each login server. The
-// shortcuts are placed in the game's install directory, the Start Menu, and on the user's
-// Desktop.
+// shortcuts are placed in the game's install directory and the Start Menu, and on the user's
+// Desktop if preferred.
 //
 // They run the play utility rather than the game directly, so that a shortcut written by an
 // older installation keeps working if the game's launch mechanism is ever changed.
-func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool) error {
+func createShortcuts(logger *Logger, root string, includeDesktopShortcuts bool) error {
 	cwd := filepath.Join(root, "Binaries", "Win32")
 	gameIcon := fmt.Sprintf("%s,0", filepath.Join(cwd, GAME_BINARY_NAME))
 	icon := bundledIcon(root, ICON_FILE, gameIcon)
@@ -135,23 +135,24 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		return fmt.Errorf("create installation directory shortcut: %w", err)
 	}
 
-	if includeOptionalShortcuts {
-		// Create shortcuts in the Start Menu.
-		startMenuFolder, err := getSpecialFolder("StartMenu")
-		if err != nil {
-			return fmt.Errorf("create Start Menu shortcut: %w", err)
-		}
-		startMenuDirectory := filepath.Join(startMenuFolder, "Programs", SHORTCUT_DIRECTORY)
-		// The Start Menu shortcuts live in their own folder, which Windows won't create for us.
-		err = os.MkdirAll(startMenuDirectory, os.FileMode(0755))
-		if err != nil {
-			return fmt.Errorf("create Start Menu shortcut: %w", err)
-		}
-		err = createGameShortcuts(startMenuDirectory, sc, pugs)
-		if err != nil {
-			return fmt.Errorf("create Start Menu shortcut: %w", err)
-		}
+	// Create shortcuts in the Start Menu. They're created regardless of user preference,
+	// since the Start Menu is where Windows expects to find links to an installed application (for taskbar pinning, etc).
+	startMenuFolder, err := getSpecialFolder("StartMenu")
+	if err != nil {
+		return fmt.Errorf("create Start Menu shortcut: %w", err)
+	}
+	startMenuDirectory := filepath.Join(startMenuFolder, "Programs", SHORTCUT_DIRECTORY)
+	// The Start Menu shortcuts live in their own folder, which Windows won't create for us.
+	err = os.MkdirAll(startMenuDirectory, os.FileMode(0755))
+	if err != nil {
+		return fmt.Errorf("create Start Menu shortcut: %w", err)
+	}
+	err = createGameShortcuts(startMenuDirectory, sc, pugs)
+	if err != nil {
+		return fmt.Errorf("create Start Menu shortcut: %w", err)
+	}
 
+	if includeDesktopShortcuts {
 		// Create shortcuts on the Desktop.
 		desktopFolder, err := getSpecialFolder("Desktop")
 		if err != nil {
@@ -161,9 +162,8 @@ func createShortcuts(logger *Logger, root string, includeOptionalShortcuts bool)
 		if err != nil {
 			return fmt.Errorf("create Desktop shortcut: %w", err)
 		}
-
-		logger.log(SHORTCUTS_SUCCESS)
 	}
 
+	logger.log(SHORTCUTS_SUCCESS)
 	return nil
 }
