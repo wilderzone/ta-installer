@@ -7,7 +7,7 @@ order: 3
 Third, install the game!
 
 <p align="center">
-  <img src="/assets/gui-example-action.png" alt="The final step, showing the Install button" />
+  <img src="/assets/gui-example-action.png" class="gui-image" alt="The final step, showing the Install button" />
 </p>
 
 While the game is installing, progress updates will be shown here. You can cancel the installation at any time with the "Cancel" button.
