@@ -17,6 +17,8 @@ There are just four steps to installing Tribes: Ascend:
 3. Choose where to install the game. The default location should be fine.
 4. Hit the big ol' "Install" button!
 
+The next pages cover each of these steps in more detail. As always, feel free to [contact us](https://wilderzone.org/transparency#admins) if you have any comments or questions.
+
 ---
 
 :::important
