@@ -8,7 +8,7 @@ First, select the game type. There are three to choose from:
 
 | Type     | Description                                                                                                                                                                              |
 | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vanilla  | This will include only the content from the vanilla "Parting Gifts" version of the game.                                                                                                 |
+| Vanilla  | This will only include content from the vanilla "Parting Gifts" version of the game.                                                                                                     |
 | Modded   | This will include all of the vanilla game content, plus [TAMods](https://www.tamods.org/), CTF routes, and all [community-made maps](https://www.dodgesdomain.com/docs/custommaps/).     |
 | Custom   | This will allow you to choose exactly which DLC assets you'd like to install.                                                                                                            |
 
