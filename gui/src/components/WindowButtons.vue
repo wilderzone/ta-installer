@@ -74,7 +74,6 @@ async function close(): Promise<void> {
 }
 
 .window-drag-region {
-	app-region: drag;
 	position: absolute;
 	inset: 0;
 }

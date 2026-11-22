@@ -72,6 +72,7 @@ function change(event: Event): void {
 				type="checkbox"
 				id="create-shortcuts"
 				name="create-shortcuts"
+				:disabled="loading.value.value"
 				v-model="store.createShortcuts"
 			>
 			<span>Create desktop shortcuts</span>
@@ -164,6 +165,11 @@ function change(event: Event): void {
 	font-style: italic;
 	background: var(--color-card);
 	border-radius: var(--border-radius);
+
+	&:has(input[type="checkbox"]:disabled) {
+		opacity: 0.5;
+		pointer-events: none;
+	}
 
 	& input[type="checkbox"] {
 		margin: 0;
