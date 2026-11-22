@@ -4,7 +4,9 @@ order: 3
 
 # Location
 
-Second, select where you'd like the game files to be installed. You can select anywhere on your PC, although, locations that require administrator permissions to access may not work correctly.
+Second, select where you'd like the game files to be installed.
+
+You can select anywhere on your PC, although, locations that require administrator permissions to access may not work correctly.
 You may also choose whether desktop shortcuts should be created or not.
 
 <p align="center">

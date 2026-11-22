@@ -9,9 +9,11 @@ description: 'A CLI and GUI utility for managing Tribes: Ascend installations.'
 
 Tribes: Ascend Installer is a [CLI](https://en.wikipedia.org/wiki/Command-line_interface) and [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface) utility for managing Tribes: Ascend installations on Windows and Linux.
 
-These docs describe how to use TAI, how it works, and how to contribute to its development.
+These docs describe how to use TAI, its inner workings, and how to contribute to its development.
 
-[Download Tribes: Ascend Installer](https://wilderzone.org/games/tribes-ascend)
+<p align="center" style="margin-block: 3em;">
+  <a href="https://wilderzone.org/games/tribes-ascend">Download Tribes: Ascend Installer</a>
+</p>
 
 <p align="center">
   <img src="/assets/gui-example-game-type.png" class="gui-image" alt="TAI GUI example" />

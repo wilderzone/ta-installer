@@ -11,13 +11,13 @@ This is the graphical version of Tribes: Ascend Installer, providing a simple, g
   <img src="/assets/gui-example-game-type.png" class="gui-image" alt="TAI GUI example" />
 </p>
 
-There are just four steps to installing Tribes: Ascend:
+Installing Tribes: Ascend takes just four steps:
 1. [Download](https://wilderzone.org/games/tribes-ascend) and run Tribes: Ascend Installer.
 2. Select the game type ("Modded" is recommended).
 3. Choose where to install the game. The default location should be fine.
 4. Hit the big ol' "Install" button!
 
-The next pages cover each of these steps in more detail. As always, feel free to [contact us](https://wilderzone.org/transparency#admins) if you have any comments or questions.
+The following pages cover each of these steps in more detail. As always, feel free to [contact us](https://wilderzone.org/transparency#admins) if you have any comments or questions.
 
 ---
 
@@ -26,5 +26,5 @@ The next pages cover each of these steps in more detail. As always, feel free to
 :::
 
 :::info
-A [command line version of TAI](/cli) is also provided in case you need more control over the installation process.
+A [command-line version of TAI](/cli) is also provided in case you need more control over the installation process.
 :::

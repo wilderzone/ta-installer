@@ -4,15 +4,15 @@ order: 2
 
 # Game Type
 
-First, select the game type. There are three to choose from:
+The first step in the installer is to select the game type. There are three to choose from:
 
-| Type     | Description                                                                                                                                                                              |
-| :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vanilla  | This will only include content from the vanilla "Parting Gifts" version of the game.                                                                                                     |
-| Modded   | This will include all of the vanilla game content, plus [TAMods](https://www.tamods.org/), CTF routes, and all [community-made maps](https://www.dodgesdomain.com/docs/custommaps/).     |
-| Custom   | This will allow you to choose exactly which DLC assets you'd like to install.                                                                                                            |
+| Type     | Installed Size | Description                                                                                                                                                                                                          |
+| :------- | -------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vanilla  |          5.7GB | This will only include content from the vanilla "Parting Gifts" version of the game.                                                                                                                                 |
+| Modded   |         11.0GB | This will include all of the vanilla game content, plus [TAMods](https://www.tamods.org/), CTF routes, and all [community-made maps](https://www.dodgesdomain.com/docs/custommaps/). This is the recommended option. |
+| Custom   | 6.9GB - 11.0GB | This will allow you to choose exactly which DLC assets you'd like to install.                                                                                                                                        |
 
-Shown beneath each option is the download size, and the installed size.
+Shown beneath each option is the download size, and the size once installed.
 
 <p align="center">
   <img src="/assets/gui-example-game-type.png" class="gui-image" alt="The Game Type selector" />
