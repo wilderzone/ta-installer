@@ -5,10 +5,11 @@ order: 2
 
 # <img src="/assets/cli.svg" style="display: inline;height: 1.5em;margin: 0;"> TAI CLI
 
-TAI CLI is provided as a means to install custom variants of TA, and for use in applications that require programmatic control of the TA installation process, such as launchers.  
+TAI CLI is provided as a means to install custom variants of TA, and for use in applications that require programmatic control of the TA installation process, such as launchers.
+
 To use TAI CLI, download the portable `tai-cli.exe` executable from the [releases page](https://github.com/wilderzone/ta-installer/releases/latest) on GitHub.
 
-Then run TAI, passing a [subcommand](/cli/subcommands), [options](/cli/options), and [flags](/cli/options#flags):
+Then run it, passing a [subcommand](/cli/subcommands), [options](/cli/options), and [flags](/cli/options#flags):
 ```sh
 tai-cli.exe <subcommand> --repo=<url> --path=<path> -v
 ```
