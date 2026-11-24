@@ -12,9 +12,9 @@ const INSTALLATION_UTILITIES_DIRECTORY = "Installer"
 const LOGS_DIRECTORY = "Logs"
 const TEMP_DIRECTORY = "Temp"
 const UNINSTALLER_DISPLAY_VERSION = "0.2.0"
-const UNINSTALLER_ABOUT_LINK = "https://github.com/wilderzone/ta-installer"
-const UNINSTALLER_HELP_LINK = "https://github.com/wilderzone/ta-installer"
-const UNINSTALLER_UPDATES_LINK = "https://github.com/wilderzone/ta-installer/releases"
+const UNINSTALLER_ABOUT_LINK = "https://wilderzone.org/docs/ta-installer"
+const UNINSTALLER_HELP_LINK = "https://wilderzone.org/docs/ta-installer"
+const UNINSTALLER_UPDATES_LINK = "https://wilderzone.org/docs/ta-installer/updates"
 const UNINSTALLER_PUBLISHER = "Wilderzone"
 
 // Maximum number of assets to process concurrently. Downloads are network-bound

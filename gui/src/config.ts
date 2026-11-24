@@ -8,7 +8,7 @@ export enum AppWindow {
 	AssetSelect = 'assetSelect'
 }
 
-export const infoUrl = 'https://wilderzone.org/docs/ta-installer';
+export const infoUrl = 'https://wilderzone.org/docs/ta-installer/gui';
 
 /**
  * Where the game is installed by default.
