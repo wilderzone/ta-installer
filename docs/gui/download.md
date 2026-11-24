@@ -10,6 +10,8 @@ The installer weighs less than 30MB, so it should download in no time at all.
 
 Then open it, and proceed to the [next step](/gui/game-type)!
 
+---
+
 If the installer won't open, please try the following:
 
 <details>

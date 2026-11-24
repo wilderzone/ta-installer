@@ -9,9 +9,13 @@ order: 5
 
 If Tribes: Ascend isn't working correctly, performing a file verification might help.
 
-To manually verify the game's files on Windows, navigate to the game's installation folder and run `\Installer\verify.exe`.
+To verify the game's files on Windows, navigate to the game's installation folder and run `\Installer\verify.exe`.
 
-To manually verify the game's files on Linux, open the game's context menu and select "Verify Files".
+<p align="center">
+  <img src="/assets/windows-installation-utility-binary-verify.png" class="gui-image" alt="The default installation folder for Tribes: Ascend, open in Windows Explorer, with the Verify utility selected" />
+</p>
+
+To verify the game's files on Linux, open the game's context menu and select "Verify Files".
 
 <p align="center">
   <img src="/assets/linux-launch-shortcut-context-menu-verify.png" class="gui-image" alt="The app context menu for Tribes: Ascend, with the Verify Files option highlighted" />
@@ -23,6 +27,10 @@ To manually verify the game's files on Linux, open the game's context menu and s
 Tribes: Ascend will automatically check for updates upon launch.
 
 To manually check for updates on Windows, navigate to the game's installation folder and run `\Installer\update.exe`.
+
+<p align="center">
+  <img src="/assets/windows-installation-utility-binary-update.png" class="gui-image" alt="The default installation folder for Tribes: Ascend, open in Windows Explorer, with the Update utility selected" />
+</p>
 
 To manually check for updates on Linux, open the game's context menu and select "Check for Updates".
 

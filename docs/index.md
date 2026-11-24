@@ -22,11 +22,11 @@ These docs describe how to use TAI, its inner workings, and how to contribute to
 
 ## System Requirements
 
-|                      | Minimum                                                                       | Recommended                                                   |
-| :------------------- | :---------------------------------------------------------------------------- | :------------------------------------------------------------ |
-| OS                   | Windows 10 (1803) or newer. Any major Linux distribution released after 2014. | Windows 11. Any major Linux distribution released after 2021. |
-| Processor            | Any 64-bit Intel or AMD processor with at least 2 cores.                      | Any 64-bit Intel or AMD processor with at least 4 cores.      |
-| Graphics Card        | Any integrated or dedicated graphics card with at least 2GB of video RAM.     | Any dedicated graphics card with at least 4GB of video RAM.   |
-| RAM                  | 4GB                                                                           | 8GB                                                           |
-| Available Disk Space | 12GB                                                                          | 20GB                                                          |
-| Software             | Windows: [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist), [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/). Linux: [WebKitGTK](https://webkitgtk.org/). |  |
+|                          | Minimum                                                                       | Recommended                                                   |
+| :----------------------- | :---------------------------------------------------------------------------- | :------------------------------------------------------------ |
+| **OS**                   | Windows 10 (1803) or newer. Any major Linux distribution released after 2014. | Windows 11. Any major Linux distribution released after 2021. |
+| **Processor**            | Any 64-bit Intel or AMD processor with at least 2 cores.                      | Any 64-bit Intel or AMD processor with at least 4 cores.      |
+| **Graphics Card**        | Any integrated or dedicated graphics card with at least 2GB of video RAM.     | Any dedicated graphics card with at least 4GB of video RAM.   |
+| **RAM**                  | 4GB                                                                           | 8GB                                                           |
+| **Available Disk Space** | 12GB                                                                          | 20GB                                                          |
+| **Software**             | Windows: [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist), [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/). Linux: [WebKitGTK](https://webkitgtk.org/). |  |
