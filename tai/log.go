@@ -138,6 +138,7 @@ var (
 	RUNTIME_READY             = LogLine{Type: "RUNTIME_READY", Message: "Compatibility layer ready."}
 	RUNTIME_REPAIRED          = LogLine{Type: "RUNTIME_REPAIRED", Message: "Replaced the compatibility layer."}
 	RUNTIME_VERIFIED          = LogLine{Type: "RUNTIME_VERIFIED", Message: "Compatibility layer verified."}
+	SETTINGS_REMOVE_FAILURE   = LogLine{Type: "SETTINGS_REMOVE_FAILURE", Message: "Failed to remove the game's settings. You may need to delete this folder manually:"}
 	SHORTCUTS_FAILURE         = LogLine{Type: "SHORTCUTS_FAILURE", Message: "Failed to create shortcuts. " + SHORTCUTS_FAILURE_HINT}
 	SHORTCUTS_SUCCESS         = LogLine{Type: "SHORTCUTS_SUCCESS", Message: "Created shortcuts."}
 	SHORTCUTS_REMOVE_FAILURE  = LogLine{Type: "SHORTCUTS_REMOVE_FAILURE", Message: "Failed to remove some shortcuts. You may need to delete them manually."}

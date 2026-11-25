@@ -60,23 +60,25 @@ func init() {
 }
 
 type arguments struct {
-	method      string
-	path        string
-	repo        string
-	name        string
-	include     []string
-	exclude     []string
-	remove      []string
-	keep        []string
-	shortcuts   bool
-	progress    bool
-	machine     bool
-	silent      bool
-	verbose     bool
-	yes         bool
+	method         string
+	path           string
+	repo           string
+	name           string
+	include        []string
+	exclude        []string
+	remove         []string
+	keep           []string
+	// Also remove the game's settings, which are kept outside the installation on Windows.
+	removeSettings bool
+	shortcuts      bool
+	progress       bool
+	machine        bool
+	silent         bool
+	verbose        bool
+	yes            bool
 	// Stop where the drive may not have room for the downloads, rather than asking whether
 	// to go ahead. See stoppedShort.
-	stopIfShort bool
+	stopIfShort    bool
 }
 
 // Write a usage summary to the given writer.
@@ -91,6 +93,7 @@ func usage(w io.Writer) {
 	fmt.Fprint(w, "  --exclude=<a,b,...>      Install/list everything except these assets (by type or name).\n")
 	fmt.Fprint(w, "  --remove=<a,b,...>       Uninstall only these assets (by type or name).\n")
 	fmt.Fprint(w, "  --keep=<a,b,...>         Uninstall everything except these assets (by type or name).\n")
+	fmt.Fprint(w, "  --remove-settings        Also remove the game's settings and logs from Documents\\My Games (Windows only). Can't be combined with --remove or --keep.\n")
 	fmt.Fprint(w, "  --stop-if-short          Stop before downloading if there may not be enough free space, even with -y.\n")
 	fmt.Fprint(w, "  -m                       Output machine-readable JSON.\n")
 	fmt.Fprint(w, "  -p                       Output download progress updates in JSON.\n")
@@ -137,6 +140,7 @@ func getArguments() (arguments, error) {
 	fs.BoolVar(&args.verbose, "v", false, "")
 	fs.BoolVar(&args.yes, "y", false, "")
 	fs.BoolVar(&args.stopIfShort, "stop-if-short", false, "")
+	fs.BoolVar(&args.removeSettings, "remove-settings", false, "")
 	fs.Func("include", "", func(value string) error {
 		args.include = parseList(value)
 		return nil

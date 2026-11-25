@@ -15,6 +15,9 @@ import (
 // Handle the "uninstall" command.
 func Uninstall(ctx context.Context, logger *Logger, arguments arguments) error {
 	filterProvided := len(arguments.remove) != 0 || len(arguments.keep) != 0
+	if arguments.removeSettings && filterProvided {
+		return userErrorf(nil, "The game's settings are only removed along with the whole installation, so --remove-settings can't be combined with --remove or --keep.")
+	}
 
 	installed, err := readManifest(logger, arguments.path)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -34,7 +37,7 @@ func Uninstall(ctx context.Context, logger *Logger, arguments arguments) error {
 		if !proceed {
 			return nil
 		}
-		return removeInstallation(ctx, logger, arguments.path)
+		return removeInstallation(ctx, logger, arguments.path, arguments.removeSettings)
 	}
 
 	// Determine which assets to remove. `--remove` maps to include and `--keep` to
@@ -77,7 +80,7 @@ func Uninstall(ctx context.Context, logger *Logger, arguments arguments) error {
 		if !proceed {
 			return userErrorf(nil, "Uninstall cancelled.")
 		}
-		return removeInstallation(ctx, logger, arguments.path)
+		return removeInstallation(ctx, logger, arguments.path, arguments.removeSettings)
 	}
 
 	// Confirm before removing assets the filters didn't name. Orphaned dependencies
@@ -136,9 +139,9 @@ func Uninstall(ctx context.Context, logger *Logger, arguments arguments) error {
 }
 
 // removeInstallation clears the entire install directory and the external
-// shortcuts. Used when no subset is requested, or when nothing would remain
-// installed after a filtered uninstall.
-func removeInstallation(ctx context.Context, logger *Logger, root string) error {
+// shortcuts, and the game's settings if `includeSettings` is set. Used when no subset
+// is requested, or when nothing would remain installed after a filtered uninstall.
+func removeInstallation(ctx context.Context, logger *Logger, root string, includeSettings bool) error {
 	logger.log(UNINSTALLING)
 
 	// Remove all entries in the specified directory.
@@ -186,6 +189,11 @@ func removeInstallation(ctx context.Context, logger *Logger, root string) error 
 	if err := removeShortcuts(root); err != nil {
 		logger.log(SHORTCUTS_REMOVE_FAILURE)
 		logger.detail("remove shortcuts", err)
+	}
+
+	// Only remove the settings directory upon a successful uninstall.
+	if includeSettings && failed == 0 {
+		removeSettings(logger)
 	}
 
 	if failed == 0 {

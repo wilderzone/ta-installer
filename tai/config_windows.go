@@ -6,6 +6,9 @@ const SHORTCUT_NAME_MAIN = "Tribes Ascend.lnk"
 const SHORTCUT_NAME_PUG = "Tribes Ascend PUGs.lnk"
 const UNINSTALL_SHORTCUT_NAME = "Uninstall.lnk"
 
+// Where the game keeps its settings and logs, relative to the user's Documents folder.
+const SETTINGS_DIRECTORY = `My Games\Tribes Ascend`
+
 // The AppUserModelIDs of the game's shortcuts, one for each login server. The play utility
 // starts the game with the ID of the shortcut it was started from, which ties the game's
 // taskbar button to that shortcut.
