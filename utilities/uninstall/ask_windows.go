@@ -8,9 +8,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// REMOVE_SETTINGS has the CLI remove the game's settings along with the installation.
-const REMOVE_SETTINGS = "--remove-settings"
-
 // SETTINGS_DIRECTORY is where the game keeps its settings and logs, relative to the user's
 // Documents folder. It matches the CLI's own, which decides what REMOVE_SETTINGS removes.
 const SETTINGS_DIRECTORY = `My Games\Tribes Ascend`
@@ -41,7 +38,7 @@ func ask(heading string, text string, icon zenity.DialogIcon) ([]string, bool) {
 		return nil, askPlainly(heading, text, icon)
 	}
 	if accepted && checked {
-		return []string{REMOVE_SETTINGS}, true
+		return []string{"--remove-settings"}, true
 	}
 	return nil, accepted
 }
