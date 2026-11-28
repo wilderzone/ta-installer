@@ -78,6 +78,7 @@ Passing the `-m` [flag](/cli/options#flags) will instruct TAI to output machine-
 - `RUNTIME_READY`
 - `RUNTIME_REPAIRED`
 - `RUNTIME_VERIFIED`
+- `SETTINGS_REMOVE_FAILURE`
 - `SHORTCUTS_FAILURE`
 - `SHORTCUTS_REMOVE_FAILURE`
 - `SHORTCUTS_SUCCESS`

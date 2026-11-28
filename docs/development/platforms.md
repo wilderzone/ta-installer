@@ -23,7 +23,7 @@ A few things differ from Windows by necessity:
 - Shortcuts are desktop entries that are placed in the installation directory, the applications menu, and (unless `--shortcuts=false`) on the desktop. The uninstall entry stands in for the Add/Remove Programs listing, and the game's desktop entry offers the [installation utilities](/development/installation-utilities#on-linux) as right-click actions.
 - DirectX 9 is served by the compatibility layer's own Direct3D 9 implementation, rather than installed system-wide.
 - The compatibility layer's container image is fetched by [umu](https://github.com/Open-Wine-Components/umu-launcher), into `~/.local/share/umu`, the first time a Wine prefix is created. That download is outside TAI's own progress reporting, so it appears as "Preparing the compatibility layer".
-- TA and TAMods settings live inside the Wine prefix, under `Prefix/pfx/drive_c/users/`, because that's where TA looks for its Documents folder. Uninstalling removes them along with the installation, whereas on Windows they remain in the real Documents folder and survive an uninstall.
+- TA and TAMods settings live inside the Wine prefix, under `Prefix/pfx/drive_c/users/`, because that's where TA looks for its Documents folder. Uninstalling removes them along with the installation. On Windows they're in the real Documents folder, and survive an uninstall unless the user [chooses to delete them](/development/installation-utilities#uninstalling).
 - Before committing to a multi-gigabyte download, `install` reports anything about the machine that would prevent a successful installation (eg, a missing Vulkan driver, no `python3`, or unprivileged user namespaces being disabled). `verify` runs the same checks as well.
 
 ### Graphics Drivers
