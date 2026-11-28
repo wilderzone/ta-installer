@@ -25,31 +25,34 @@ func main() {
 }
 
 // confirm checks the installation before asking whether to remove it, so the question can
-// be honest about what will be deleted. Cancel is the default answer.
-func confirm(found frontend.Installation) bool {
+// be honest about what will be deleted. Cancel is the default answer. It returns the arguments
+// the answer adds to the CLI's.
+func confirm(found frontend.Installation) ([]string, bool) {
 	status, err := found.Check()
 	if err != nil {
 		_ = zenity.Error(fmt.Sprintf("Couldn't check the installation at %s, so nothing was uninstalled.\n\n%s", found.Game, err.Error()), zenity.Title(TITLE))
-		return false
+		return nil, false
 	}
 
 	switch status {
 		case frontend.CHECK_NOT_FOUND:
 			_ = zenity.Info(fmt.Sprintf("%s isn't installed at %s.", frontend.PRODUCT_NAME, found.Game), zenity.Title(TITLE))
-			return false
+			return nil, false
 
 		case frontend.CHECK_UNREADABLE:
-			text := fmt.Sprintf("%s's files couldn't be identified.\n\nUninstalling anyway will permanently delete this folder and everything in it, including any files that weren't installed with the game:\n\n%s", frontend.PRODUCT_NAME, found.Game)
-			return ask(text, zenity.WarningIcon)
+			heading := fmt.Sprintf("%s's files couldn't be identified.", frontend.PRODUCT_NAME)
+			text := fmt.Sprintf("Uninstalling anyway will permanently delete this folder and everything in it, including any files that weren't installed with the game:\n\n%s", found.Game)
+			return ask(heading, text, zenity.WarningIcon)
 	}
 
-	text := fmt.Sprintf("Are you sure you want to uninstall %s?\n\nThis will permanently delete this folder and everything in it:\n\n%s", frontend.PRODUCT_NAME, found.Game)
-	return ask(text, zenity.QuestionIcon)
+	heading := fmt.Sprintf("Are you sure you want to uninstall %s?", frontend.PRODUCT_NAME)
+	text := fmt.Sprintf("This will permanently delete this folder and everything in it:\n\n%s", found.Game)
+	return ask(heading, text, zenity.QuestionIcon)
 }
 
-// ask asks whether to uninstall, and reports whether the user agreed.
-func ask(text string, icon zenity.DialogIcon) bool {
-	err := zenity.Question(text,
+// askPlainly confirms whether to uninstall via a plain message box.
+func askPlainly(heading string, text string, icon zenity.DialogIcon) bool {
+	err := zenity.Question(heading + "\n\n" + text,
 		zenity.Title(TITLE),
 		zenity.Icon(icon),
 		zenity.OKLabel("Uninstall"),

@@ -37,4 +37,6 @@ On Windows, each of the game's shortcuts carries an AppUserModelID (`Wilderzone.
 
 `uninstall` runs the CLI's `check` subcommand first, so its confirmation can say exactly what will happen: the installation folder, and everything in it, will be permanently deleted. If the installation's manifest can't be found/read, the prompt includes an additional warning (since there's no telling which of the files belong to the game). Cancel is the default answer.
 
-`uninstall` only removes the installation folder after a complete run, and only when nothing but the utilities directory is left in it. Otherwise, it reports a partial uninstall.
+On Windows, the game keeps its settings and logs outside the installation, in `Documents\My Games\Tribes Ascend`. If that folder exists, the confirmation includes a checkbox to delete it as well, and checking it runs the CLI with [`--remove-settings`](/cli/options). On Linux, the settings are inside the installation's Wine prefix (see [Platforms](/development/platforms#linux)), so they're always removed.
+
+`uninstall` only removes the installation folder after a complete run, and only when nothing but the utilities directory remains. Otherwise, it reports a partial uninstall.

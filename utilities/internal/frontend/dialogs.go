@@ -20,8 +20,12 @@ const MAX_LINE_LENGTH = 1024 * 1024
 
 // runWithDialogs runs the CLI behind a progress dialog, then reports the run's result.
 func runWithDialogs(found Installation, utility Utility) int {
-	if utility.Confirm != nil && !utility.Confirm(found) {
-		return 1
+	if utility.Confirm != nil {
+		arguments, proceed := utility.Confirm(found)
+		if !proceed {
+			return 1
+		}
+		utility.arguments = append(utility.arguments, arguments...)
 	}
 
 	report := RunWithProgress(found, utility)
@@ -140,6 +144,7 @@ func execute(found Installation, utility Utility, visible bool, stopIfShort bool
 	report.log = log.path
 	// `-v` adds details to the log that the CLI otherwise hides.
 	arguments := []string{utility.Command, "-m", "-p", "-y", "-v", "--path=" + found.Game}
+	arguments = append(arguments, utility.arguments...)
 	if stopIfShort {
 		arguments = append(arguments, "--stop-if-short")
 	}
