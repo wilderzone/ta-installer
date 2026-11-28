@@ -11,8 +11,7 @@ import (
 // SETTINGS_DIRECTORY is where the game keeps its settings and logs, relative to the user's
 // Documents folder. It matches the CLI's own, which decides what REMOVE_SETTINGS removes.
 const SETTINGS_DIRECTORY = `My Games\Tribes Ascend`
-
-const SETTINGS_CHECKBOX = `Also delete my settings and logs, in Documents\` + SETTINGS_DIRECTORY
+const SETTINGS_CHECKBOX_MESSAGE = `Also delete the game's settings and logs, in Documents\` + SETTINGS_DIRECTORY
 
 // ask asks whether to uninstall, and reports whether the user agreed, along with any arguments
 // their answer adds to the CLI's.
@@ -29,7 +28,7 @@ func ask(heading string, text string, icon zenity.DialogIcon) ([]string, bool) {
 		warning: icon == zenity.WarningIcon,
 	}
 	if settingsExist() {
-		dialog.checkbox = SETTINGS_CHECKBOX
+		dialog.checkbox = SETTINGS_CHECKBOX_MESSAGE
 	}
 
 	accepted, checked, err := dialog.show()
