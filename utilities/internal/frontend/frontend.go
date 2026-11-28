@@ -37,14 +37,17 @@ type Utility struct {
 	// Keeps the run's log in the temp directory, rather than in the installation, for a
 	// utility that removes the installation.
 	TemporaryLog bool
-	// Asks the user whether to go ahead, before the CLI is started. Returns false to stop.
+	// Asks the user whether to go ahead, before the CLI is started. Returns false to stop, along
+	// with any arguments the answer adds to the CLI's (eg, to remove more than it would by default).
 	// Without dialogs there is no asking this way, so the CLI asks its own questions instead.
-	Confirm      func(found Installation) bool
+	Confirm      func(found Installation) ([]string, bool)
 	// Runs once the CLI has finished its work completely: without failing, being
 	// interrupted, or leaving any of it undone. In a terminal the CLI's output isn't read,
 	// so there it runs whenever the CLI exits cleanly - which it also does after a failure
 	// it reported - and must check for itself that the work was done.
 	Complete     func(found Installation)
+	// Arguments the CLI is run with on top of the usual ones, from the answer to Confirm.
+	arguments    []string
 }
 
 // Installation is where the utility found itself: the game it belongs to, and the copy of the

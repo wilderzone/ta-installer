@@ -33,6 +33,7 @@ var WARNINGS = map[string]bool{
 	"RUNTIME_CHECK_SKIPPED":     true,
 	"RUNTIME_MISSING":           true,
 	"RUNTIME_PREPARE_FAILED":    true,
+	"SETTINGS_REMOVE_FAILURE":   true,
 	"SHORTCUTS_FAILURE":         true,
 	"SHORTCUTS_REMOVE_FAILURE":  true,
 	"UTILITIES_CHECK_SKIPPED":   true,
