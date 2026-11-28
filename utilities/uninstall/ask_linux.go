@@ -2,8 +2,9 @@ package main
 
 import "github.com/ncruces/zenity"
 
-// ask asks whether to uninstall, and reports whether the user agreed. On Linux, the game keeps
-// its settings inside the installation, so there's nothing more to ask about.
+// ask asks for confirmation when uninstalling.
+//
+// On Linux, the game's settings are inside the installation, so no additional settings-removal confirmation is necessary.
 func ask(heading string, text string, icon zenity.DialogIcon) ([]string, bool) {
 	return nil, askPlainly(heading, text, icon)
 }

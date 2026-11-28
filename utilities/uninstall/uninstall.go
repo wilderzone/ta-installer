@@ -50,7 +50,7 @@ func confirm(found frontend.Installation) ([]string, bool) {
 	return ask(heading, text, zenity.QuestionIcon)
 }
 
-// askPlainly asks whether to uninstall in a message box, and reports whether the user agreed.
+// askPlainly confirms whether to uninstall via a plain message box.
 func askPlainly(heading string, text string, icon zenity.DialogIcon) bool {
 	err := zenity.Question(heading + "\n\n" + text,
 		zenity.Title(TITLE),
