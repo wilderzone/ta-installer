@@ -10,7 +10,7 @@ import (
 
 // SETTINGS_DIRECTORY is where the game keeps its settings and logs, relative to the user's Documents folder.
 const SETTINGS_DIRECTORY = `My Games\Tribes Ascend`
-const SETTINGS_CHECKBOX_MESSAGE = `Also delete the game's settings and logs, in Documents\` + SETTINGS_DIRECTORY
+const SETTINGS_CHECKBOX_MESSAGE = "Also remove the game's settings and logs from:\nDocuments\\" + SETTINGS_DIRECTORY
 
 // ask asks whether to uninstall, and reports whether the user agreed, along with any arguments
 // their answer adds to the CLI's.
